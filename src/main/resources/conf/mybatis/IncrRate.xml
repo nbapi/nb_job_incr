@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrRateDao">
+
+	<!-- 删除过期IncrRate -->
+	<delete id="DeleteExpireIncrData">
+		delete from IncrRate
+		<where>
+			<if test="expireDate != null">
+				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			</if>
+		</where>
+		LIMIT #{limit}
+	</delete>
+
+	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条IncrRate -->
+	<select id="GetIncrRates" resultType="incrRate">
+		select * from IncrRate
+		<where>
+			<if test="changeTime != null and !changeTime.equals('')">
+				<![CDATA[ and ChangeTime > #{changeTime} ]]>
+			</if>
+			<if test="incrID != null and !incrID.equals('')">
+				<![CDATA[ and IncrID > #{incrID}  ]]>
+			</if>
+		</where>
+		order by IncrID limit 0,#{maxRecordCount}
+	</select>
+
+	<!-- 批量插入IncrRate -->
+	<insert id="BulkInsert" parameterType="java.util.List"
+		useGeneratedKeys="false">
+		insert into IncrRate
+		(IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID)
+		values
+		<foreach collection="list" item="incrRate" index="index"
+			separator=",">
+			(
+			#{incrRate.IncrID,jdbcType=BIGINT},
+			#{incrRate.ChangeID,jdbcType=BIGINT},
+			#{incrRate.HotelID,jdbcType=VARCHAR},
+			#{incrRate.RoomTypeID,jdbcType=VARCHAR},
+			#{incrRate.RateplanID,jdbcType=INTEGER},
+			#{incrRate.HotelCode,jdbcType=VARCHAR},
+			#{incrRate.StartDate},
+			#{incrRate.EndDate},
+			#{incrRate.Status,jdbcType=INTEGER},
+			#{incrRate.Member,jdbcType=DOUBLE},
+			#{incrRate.Weekend,jdbcType=DOUBLE},
+			#{incrRate.MemberCost,jdbcType=DOUBLE},
+			#{incrRate.WeekendCost,jdbcType=DOUBLE},
+			#{incrRate.AddBed,jdbcType=DOUBLE},
+			#{incrRate.ChangeTime},
+			#{incrRate.OperateTime},
+			#{incrRate.InsertTime},
+			#{incrRate.CurrencyCode,jdbcType=VARCHAR},
+			#{incrRate.PriceID,jdbcType=BIGINT}
+			)
+		</foreach>
+	</insert>
+
+</mapper>

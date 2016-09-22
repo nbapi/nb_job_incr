@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrStateDao">
+
+	<resultMap id="BaseResultMap" type="incrState">
+		<id column="IncrID" jdbcType="BIGINT" javaType="java.math.BigInteger" property="IncrID" />
+		<result column="StateType" jdbcType="INTEGER" property="StateType" typeHandler="com.elong.nb.model.enums.handler.EnumStateTypeHandler" />
+		<result column="HotelId" jdbcType="VARCHAR" javaType="java.lang.String" property="HotelId" />
+		<result column="HotelCode" jdbcType="VARCHAR" javaType="java.lang.String" property="HotelCode" />
+		<result column="RoomId" jdbcType="VARCHAR" javaType="java.lang.String" property="RoomId" />
+		<result column="RoomTypeId" jdbcType="VARCHAR" javaType="java.lang.String" property="RoomTypeId" />
+		<result column="RatePlanId" jdbcType="VARCHAR" javaType="java.lang.String" property="RatePlanId" />
+		<result column="Status" jdbcType="INTEGER" javaType="java.lang.Integer" property="Status" />
+		<result column="ChangeTime" javaType="java.util.Date" property="ChangeTime" />
+		<result column="Name" jdbcType="VARCHAR" javaType="java.lang.String" property="Name" />
+	</resultMap>
+
+	<!-- 删除过期IncrState -->
+	<delete id="DeleteExpireIncrData">
+		delete from IncrState
+		<where>
+			<if test="expireDate != null">
+				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			</if>
+		</where>
+		LIMIT #{limit}
+	</delete>
+
+	<!-- 批量插入IncrState -->
+	<insert id="BulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
+		insert into IncrState
+		(IncrID,StateType,HotelId,HotelCode,RoomId,RoomTypeId,RatePlanId,Status,ChangeTime,InsertTime,Name)
+		values
+		<foreach collection="list" item="incrState" index="index" separator=",">
+			(
+			#{incrState.IncrID,jdbcType=BIGINT},
+			#{incrState.StateType,jdbcType=INTEGER},
+			#{incrState.HotelId,jdbcType=VARCHAR},
+			#{incrState.HotelCode,jdbcType=VARCHAR},
+			#{incrState.RoomId,jdbcType=VARCHAR},
+			#{incrState.RoomTypeId,jdbcType=VARCHAR},
+			#{incrState.RatePlanId,jdbcType=VARCHAR},
+			#{incrState.Status,jdbcType=INTEGER},
+			#{incrState.ChangeTime},
+			#{incrState.InsertTime},
+			#{incrState.Name,jdbcType=VARCHAR}
+			)
+		</foreach>
+	</insert>
+
+</mapper>

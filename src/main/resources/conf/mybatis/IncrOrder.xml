@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrOrderDao">
+	<!-- 删除过期IncrOrder -->
+	<delete id="DeleteExpireIncrData">
+		delete from IncrOrder
+		<where>
+			<if test="expireDate != null">
+				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			</if>
+		</where>
+		LIMIT #{limit}
+	</delete>
+
+	<!-- 插入IncrOrder -->
+	<insert id="insert" parameterType="java.util.Map"
+		useGeneratedKeys="false">
+		insert into IncrOrder
+		(IncrID,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
+		values
+		(
+		#{incrOrder.IncrID,jdbcType=BIGINT},
+		#{incrOrder.ChangeTime},
+		#{incrOrder.OrderId,jdbcType=BIGINT},
+		#{incrOrder.Status,jdbcType=VARCHAR},
+		#{incrOrder.ArrivalDate},
+		#{incrOrder.DepartureDate},
+		#{incrOrder.TotalPrice,jdbcType=DOUBLE},
+		#{incrOrder.NumberOfRooms,jdbcType=INTEGER},
+		#{incrOrder.CardNo,jdbcType=BIGINT},
+		#{incrOrder.OrderFrom,jdbcType=INTEGER},
+		#{incrOrder.ProxyId,jdbcType=VARCHAR},
+		#{incrOrder.InsertTime}
+		)
+	</insert>
+
+	<!-- 批量插入IncrOrder -->
+	<insert id="BulkInsert" parameterType="java.util.List"
+		useGeneratedKeys="false">
+		insert into IncrOrder
+		(IncrID,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
+		values
+		<foreach collection="list" item="incrOrder" index="index"
+			separator=",">
+			(
+			#{incrOrder.IncrID,jdbcType=BIGINT},
+			#{incrOrder.ChangeTime},
+			#{incrOrder.OrderId,jdbcType=BIGINT},
+			#{incrOrder.Status,jdbcType=VARCHAR},
+			#{incrOrder.ArrivalDate},
+			#{incrOrder.DepartureDate},
+			#{incrOrder.TotalPrice,jdbcType=DOUBLE},
+			#{incrOrder.NumberOfRooms,jdbcType=INTEGER},
+			#{incrOrder.CardNo,jdbcType=BIGINT},
+			#{incrOrder.OrderFrom,jdbcType=INTEGER},
+			#{incrOrder.ProxyId,jdbcType=VARCHAR},
+			#{incrOrder.InsertTime}
+			)
+		</foreach>
+	</insert>
+
+</mapper>
