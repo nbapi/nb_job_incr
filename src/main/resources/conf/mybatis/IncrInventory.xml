@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrInventoryDao">
+
+	<!-- 删除过期IncrInventory -->
+	<delete id="DeleteExpireIncrData">
+		delete from IncrInventory
+		<where>
+			<if test="expireDate != null">
+				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			</if>
+		</where>
+		LIMIT #{limit}
+	</delete>
+
+	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条库存增量 -->
+	<select id="GetIncrInventories" resultType="incrInventory">
+		select * from IncrInventory
+		<where>
+			<if test="changeTime != null and !changeTime.equals('')">
+				<![CDATA[ and ChangeTime > #{changeTime} ]]>
+			</if>
+			<if test="incrID != null and !incrID.equals('')">
+				<![CDATA[ and IncrID > #{incrID}  ]]>
+			</if>
+		</where>
+		order by IncrID limit 0,#{maxRecordCount}
+	</select>
+
+	<!-- 批量插入IncrInventory -->
+	<insert id="BulkInsert" parameterType="java.util.List"
+		useGeneratedKeys="false">
+		insert into IncrInventory
+		(IncrID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime)
+		values
+		<foreach collection="list" item="incrInventory" index="index"
+			separator=",">
+			(
+			#{incrInventory.IncrID,jdbcType=BIGINT},
+			#{incrInventory.ChangeID,jdbcType=BIGINT},
+			#{incrInventory.HotelID,jdbcType=VARCHAR},
+			#{incrInventory.RoomTypeID,jdbcType=VARCHAR},
+			#{incrInventory.HotelCode,jdbcType=VARCHAR},
+			#{incrInventory.Status,jdbcType=INTEGER},
+			#{incrInventory.AvailableDate},
+			#{incrInventory.AvailableAmount,jdbcType=INTEGER},
+			#{incrInventory.OverBooking,jdbcType=INTEGER},
+			#{incrInventory.StartDate},
+			#{incrInventory.EndDate},
+			#{incrInventory.StartTime,jdbcType=VARCHAR},
+			#{incrInventory.EndTime,jdbcType=VARCHAR},
+			#{incrInventory.ChangeTime},
+			#{incrInventory.OperateTime},
+			#{incrInventory.InsertTime}
+			)
+		</foreach>
+	</insert>
+
+</mapper>

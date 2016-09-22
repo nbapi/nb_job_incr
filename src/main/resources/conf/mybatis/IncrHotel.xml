@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrHotelDao">
+
+	<!-- 删除过期IncrHotel -->
+	<delete id="DeleteExpireIncrData">
+		delete from IncrHotel
+		<where>
+			<if test="expireDate != null">
+				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			</if>
+		</where>
+		limit #{limit}
+	</delete>
+
+	<!-- 获取trigger的最后一条IncrHotel -->
+	<select id="GetLastHotel" resultType="incrHotel">
+		select * from IncrHotel
+		<where>
+			<if test="_parameter != null and !_parameter.equals('')"> and `Trigger` = #{_parameter} </if>
+		</where>
+		order by IncrID desc limit 0,1
+	</select>
+
+	<!-- 批量插入IncrHotel -->
+	<insert id="BulkInsert" parameterType="java.util.List"
+		useGeneratedKeys="false">
+		insert into IncrHotel
+		(IncrID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime)
+		values
+		<foreach collection="list" item="incrHotel" index="index"
+			separator=",">
+			(
+			#{incrHotel.IncrID,jdbcType=BIGINT},
+			#{incrHotel.HotelID,jdbcType=VARCHAR},
+			#{incrHotel.StartDate},
+			#{incrHotel.EndDate},
+			#{incrHotel.Trigger,jdbcType=VARCHAR},
+			#{incrHotel.TriggerID,jdbcType=INTEGER},
+			#{incrHotel.ChangeTime},
+			#{incrHotel.InsertTime}
+			)
+		</foreach>
+	</insert>
+
+</mapper>
