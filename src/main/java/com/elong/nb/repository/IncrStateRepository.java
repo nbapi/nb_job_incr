@@ -101,7 +101,7 @@ public class IncrStateRepository {
 					if (row == null || row.get("HotelId") == null || StringUtils.isEmpty((String) row.get("HotelId")))
 						continue;
 
-					String mhotelid = (String) row.get("HotelId");
+//					String mhotelid = (String) row.get("HotelId");
 					// 1表示open酒店打开,重置Redis,0关闭清除redis
 					// M_SRelationRepository.ResetHotelMSCache(mhotelid);//TODO 暂时注掉，wcf调不通，待产品组提供新接口
 				}
