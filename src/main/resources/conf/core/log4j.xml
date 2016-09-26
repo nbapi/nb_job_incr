@@ -10,55 +10,55 @@
 	</appender>
 
 	<!--syncIncrInventory appender -->
-	<appender name="syncIncrInventoryAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrv.log" />
+	<appender name="syncIncrInventoryAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrInventory.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%m%n" />
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
 	<!--syncIncrOrder appender -->
-	<appender name="syncIncrOrderAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrOrder.log" />
+	<appender name="syncIncrOrderAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrOrder.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%m%n" />
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
 	<!--syncIncrHotel appender -->
-	<appender name="syncIncrHotelAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrHotel.log" />
+	<appender name="syncIncrHotelAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrHotel.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%m%n" />
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
 	<!--syncIncrState appender -->
-	<appender name="syncIncrStateAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrState.log" />
+	<appender name="syncIncrStateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrState.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%m%n" />
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
 	<!--syncIncrRate appender -->
-	<appender name="syncIncrRateAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrRate.log" />
+	<appender name="syncIncrRateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrRate.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%m%n" />
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />
