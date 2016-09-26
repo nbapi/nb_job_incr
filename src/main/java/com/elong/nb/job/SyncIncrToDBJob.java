@@ -30,7 +30,7 @@ import com.elong.nb.util.HttpClientUtils;
  * @version		1.0  
  * @since		JDK1.7
  */
-public class SyncIncrToDBJob {
+public class SyncIncrToDBJob implements IJob{
 
 	private static final Log logger = LogFactory.getLog(SyncIncrToDBJob.class);
 
