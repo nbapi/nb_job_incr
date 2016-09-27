@@ -3,8 +3,7 @@
 <mapper namespace="com.elong.nb.dao.SqlServerDataDao">
 
 	<select id="getDataFromPriceInfoTrack" resultType="java.util.HashMap">
-		usp_execute_sql_prod
-		'select top 10000 ID ChangeID,InsertTime
+		select top 10000 ID ChangeID,InsertTime
 				ChangeTime,OperateTime,RoomTypeID,RatePlanID as RateplanID,HotelID
 				HotelCode,BeginDate StartDate,EndDate,IsEffective Status,GenSalePrice
 				Member,
@@ -22,12 +21,11 @@
 				<![CDATA[ and Id > ${Id}  ]]>
 			</if>
 		</where>
-		order by Id'
+		order by Id
 	</select>
 
 	<select id="getDataFromReserveTrack" resultType="java.util.HashMap">
-		usp_execute_sql_prod
-		'select a.*,b.proxy ProxyId from (
+		select a.*,b.proxy ProxyId from (
 			select  top 10000
 					ID IncrId,
 					InsertTime ChangeTime,
@@ -50,7 +48,7 @@
 				</if>
 			</where>
 			order by Id
-		) a inner join member b on a.CardNo = b.card_no'
+		) a inner join member b on a.CardNo = b.card_no
 	</select>
 	
 	<select id="getHotelIdCount" resultType="java.lang.Integer">
