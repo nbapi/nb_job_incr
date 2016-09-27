@@ -51,9 +51,8 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	@Override
 	public void SyncInventoryToDB() {
 		// 删除30小时以前的数据
-		logger.info("incr.SyncInventoryToDB, 开始删数据");
-		incrInventoryRepository.DeleteExpireIncrData("IncrInventory", DateUtils.getDBExpireDate());
-		logger.info("incr.SyncInventoryToDB, 结束删数据");
+		int count = incrInventoryRepository.DeleteExpireIncrData("IncrInventory", DateUtils.getDBExpireDate());
+		logger.info("IncrInventory delete successfully.count = " + count);
 
 		SyncInventoryToDB(0);
 	}

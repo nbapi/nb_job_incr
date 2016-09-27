@@ -53,9 +53,8 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	public void SyncStateToDB() {
 		if (DateTime.now().getHourOfDay() == 1 && DateTime.now().getMinuteOfHour() < 10) {
 			// 删除过期数据
-			logger.info("incr.SyncRatesToDB, 开始删数据");
-			incrStateRepository.DeleteExpireIncrData("IncrState", DateUtils.getDBExpireDate());
-			logger.info("incr.SyncRatesToDB, 结束删数据");
+			int count = incrStateRepository.DeleteExpireIncrData("IncrState", DateUtils.getDBExpireDate());
+			logger.info("IncrState delete successfully,count = " + count);
 		}
 
 		JSONObject jsonObj = (JSONObject) redisManager.getObj(RedisKeyConst.StateSyncTimeKey_CacheKey);

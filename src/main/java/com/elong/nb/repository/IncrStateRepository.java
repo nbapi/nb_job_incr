@@ -53,7 +53,7 @@ public class IncrStateRepository {
 	 * @param table
 	 * @param expireDate
 	 */
-	public void DeleteExpireIncrData(String table, Date expireDate) {
+	public int DeleteExpireIncrData(String table, Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrState DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
@@ -62,12 +62,15 @@ public class IncrStateRepository {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("expireDate", expireDate);
 		params.put("limit", limit);
+		int result = 0;
 		int count = 0;
 		count = incrStateDao.DeleteExpireIncrData(params);
+		result += count;
 		while (count == limit) {
 			count = incrStateDao.DeleteExpireIncrData(params);
 		}
-		logger.info("DeleteExpireIncrData successfully.table = " + table + ",expireDate = " + expireDate);
+		logger.info("IncrState delete successfully,expireDate = " + expireDate);
+		return result;
 	}
 
 	/** 
@@ -101,7 +104,7 @@ public class IncrStateRepository {
 					if (row == null || row.get("HotelId") == null || StringUtils.isEmpty((String) row.get("HotelId")))
 						continue;
 
-//					String mhotelid = (String) row.get("HotelId");
+					// String mhotelid = (String) row.get("HotelId");
 					// 1表示open酒店打开,重置Redis,0关闭清除redis
 					// M_SRelationRepository.ResetHotelMSCache(mhotelid);//TODO 暂时注掉，wcf调不通，待产品组提供新接口
 				}

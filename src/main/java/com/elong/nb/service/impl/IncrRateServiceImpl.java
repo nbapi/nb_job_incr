@@ -51,13 +51,13 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	 */
 	@Override
 	public void SyncRatesToDB() {
-		logger.info("incr.SyncRatesToDB, 开始删数据");
 		// 删除过期数据
-		incrRateRepository.DeleteExpireIncrData("IncrRate", DateUtils.getDBExpireDate());
-		logger.info("incr.SyncRatesToDB, 结束删数据");
+		int count = incrRateRepository.DeleteExpireIncrData("IncrRate", DateUtils.getDBExpireDate());
+		logger.info("IncrRate delete successfully.count = " + count);
 
 		String changIDStr = redisManager.getStr(RedisKeyConst.KEY_Rate_LastID_CacheKey);
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
+		logger.info("get changID = " + changID + ",from redis key = " + RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
 
 		while (true) {
 			long newChangID = incrRateRepository.SyncRatesToDB(changID);
@@ -66,6 +66,7 @@ public class IncrRateServiceImpl implements IIncrRateService {
 				break;
 			else {
 				redisManager.put(RedisKeyConst.KEY_Rate_LastID_CacheKey, newChangID);
+				logger.info("put newChangID = " + newChangID + ",to redis key = " + RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
 				changID = newChangID;
 			}
 		}

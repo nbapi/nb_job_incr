@@ -60,21 +60,23 @@ public class IncrRateRepository {
 	 * @param table
 	 * @param expireDate
 	 */
-	public void DeleteExpireIncrData(String table, Date expireDate) {
+	public int DeleteExpireIncrData(String table, Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrRate DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
-		logger.info("DeleteExpireIncrData start.table = " + table + ",expireDate = " + expireDate);
 		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("expireDate", expireDate);
 		params.put("limit", limit);
+		int result = 0;
 		int count = 0;
 		count = incrRateDao.DeleteExpireIncrData(params);
+		result += count;
 		while (count == limit) {
 			count = incrRateDao.DeleteExpireIncrData(params);
 		}
-		logger.info("DeleteExpireIncrData successfully.table = " + table + ",expireDate = " + expireDate);
+		logger.info("IncrRate delete successfully,expireDate = " + expireDate);
+		return result;
 	}
 
 	/** 
@@ -91,6 +93,8 @@ public class IncrRateRepository {
 			params.put("InsertTime", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
 		}
 		List<Map<String, Object>> incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
+		int incrRateListSize = (incrRateList == null) ? 0 : incrRateList.size();
+		logger.info("incrRateList size = " + incrRateListSize);
 		if (incrRateList == null || incrRateList.size() == 0)
 			return changID;
 

@@ -72,9 +72,8 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	@Override
 	public void handlerMessage(final String message) {
 		// 删除30小时以前的数据
-		logger.info("incr.SyncOrdersToDB, 开始删数据");
-		incrOrderRepository.DeleteExpireIncrData("IncrOrder", com.elong.nb.util.DateUtils.getDBExpireDate());
-		logger.info("incr.SyncOrdersToDB, 结束删数据");
+		int count = incrOrderRepository.DeleteExpireIncrData("IncrOrder", com.elong.nb.util.DateUtils.getDBExpireDate());
+		logger.info("IncrOrder delete successfully,count = " + count);
 
 		// 构建请求参数
 		Map<String, Object> map = JSON.parseObject(message);

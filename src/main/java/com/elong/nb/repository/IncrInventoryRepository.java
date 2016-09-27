@@ -83,21 +83,23 @@ public class IncrInventoryRepository {
 	 * @param table
 	 * @param expireDate
 	 */
-	public void DeleteExpireIncrData(String table, Date expireDate) {
+	public int DeleteExpireIncrData(String table, Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrInventory DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
-		logger.info("DeleteExpireIncrData start.table = " + table + ",expireDate = " + expireDate);
 		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("expireDate", expireDate);
 		params.put("limit", limit);
+		int result = 0;
 		int count = 0;
 		count = incrInventoryDao.DeleteExpireIncrData(params);
+		result += count;
 		while (count == limit) {
 			count = incrInventoryDao.DeleteExpireIncrData(params);
 		}
-		logger.info("DeleteExpireIncrData successfully.table = " + table + ",expireDate = " + expireDate);
+		logger.info("IncrInventory delete successfully,expireDate = " + expireDate);
+		return result;
 	}
 
 	/** 
