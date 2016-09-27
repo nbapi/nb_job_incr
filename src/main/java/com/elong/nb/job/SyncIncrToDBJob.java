@@ -11,13 +11,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.ClientProtocolException;
 
-import com.alibaba.fastjson.JSON;
 import com.elong.hotel.schedule.entity.TaskResult;
 import com.elong.nb.model.ResponseResult;
-import com.elong.nb.util.HttpClientUtils;
+import com.elong.nb.util.HttpUtil;
 
 /**
- * IncrHotel同步Job
+ * 增量同步Job
  *
  * <p>
  * 修改历史:											<br>  
@@ -30,7 +29,7 @@ import com.elong.nb.util.HttpClientUtils;
  * @version		1.0  
  * @since		JDK1.7
  */
-public class SyncIncrToDBJob implements IJob{
+public class SyncIncrToDBJob{
 
 	private static final Log logger = LogFactory.getLog(SyncIncrToDBJob.class);
 
@@ -38,9 +37,7 @@ public class SyncIncrToDBJob implements IJob{
 		TaskResult r = new TaskResult();
 		try {
 			logger.info("SyncIncrToDBJob start,url = " + param);
-			String result = HttpClientUtils.httpGet(param);
-			logger.info("SyncIncrToDBJob,httpPost,result = " + result);
-			ResponseResult response = JSON.parseObject(result, ResponseResult.class);
+			ResponseResult response=HttpUtil.httpGet(param);
 			if (response != null) {
 				if (response.getCode() == ResponseResult.SUCCESS) {
 					r.setCode(0);
