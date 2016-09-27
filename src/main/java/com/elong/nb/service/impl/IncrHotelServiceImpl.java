@@ -63,9 +63,8 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 	@Override
 	public void SyncHotelToDB() {
 		// 删除30小时以前的数据
-		logger.info("incr.SyncHotelToDB, 开始删数据");
-		incrHotelRepository.DeleteExpireIncrData("IncrHotel", DateUtils.getDBExpireDate());
-		logger.info("incr.SyncHotelToDB, 结束删数据");
+		int count = incrHotelRepository.DeleteExpireIncrData("IncrHotel", DateUtils.getDBExpireDate());
+		logger.info("IncrRate delete successfully.count = " + count);
 
 		final String triggerInventory = "Inventory";
 		final String triggerRate = "Rate";
@@ -78,11 +77,13 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					while (true) {
 						List<IncrInventory> inventorys = new ArrayList<IncrInventory>();
 						IncrHotel hotel = incrHotelRepository.GetLastHotel(triggerInventory);
+						logger.info("Trigger = " + triggerInventory + ",lastHotel = " + JSON.toJSONString(hotel));
 						if (hotel == null) {
 							inventorys = incrHotelRepository.GetIncrInventories(DateUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
 							inventorys = incrHotelRepository.GetIncrInventories(hotel.TriggerID, MaxRecordCount);
 						}
+						logger.info("Trigger = " + triggerInventory + ",inventorys size = " + inventorys.size());
 						if (inventorys == null || inventorys.size() == 0)
 							break;
 						List<IncrHotel> hotels = new ArrayList<IncrHotel>();
@@ -113,10 +114,13 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					while (true) {
 						List<IncrRate> rates = new ArrayList<IncrRate>();
 						IncrHotel hotel = incrHotelRepository.GetLastHotel(triggerRate);
-						if (hotel == null)
+						logger.info("Trigger = " + triggerRate + ",lastHotel = " + JSON.toJSONString(hotel));
+						if (hotel == null) {
 							rates = incrHotelRepository.GetIncrRates(DateUtils.getCacheExpireDate(), MaxRecordCount);
-						else
+						} else {
 							rates = incrHotelRepository.GetIncrRates(hotel.TriggerID, MaxRecordCount);
+						}
+						logger.info("Trigger = " + triggerRate + ",rates size = " + rates.size());
 						if (rates == null || rates.size() == 0)
 							break;
 						List<IncrHotel> hotels = new ArrayList<IncrHotel>();
