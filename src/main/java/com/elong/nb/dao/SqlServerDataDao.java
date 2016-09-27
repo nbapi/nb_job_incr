@@ -24,7 +24,6 @@ import com.elong.nb.db.DataSource;
  * @version		1.0  
  * @since		JDK1.7
  */
-@DataSource("dataSource_nbbdg")
 public interface SqlServerDataDao {
 
 	/** 
@@ -33,6 +32,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_14")
 	public List<Map<String, Object>> getDataFromPriceInfoTrack(Map<String, Object> params);
 
 	/** 
@@ -41,6 +41,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_14")
 	public List<Map<String, Object>> getDataFromReserveTrack(Map<String, Object> params);
 
 	/** 
@@ -49,6 +50,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public int getHotelIdCount(Map<String, Object> params);
 
 	/** 
@@ -57,6 +59,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public int getHotelCodeCount(Map<String, Object> params);
 
 	/** 
@@ -65,6 +68,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public int getRoomIdCount(Map<String, Object> params);
 
 	/** 
@@ -73,6 +77,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public int getRoomTypeIdCount(Map<String, Object> params);
 
 	/** 
@@ -81,6 +86,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public int getRatePlanIdCount(Map<String, Object> params);
 
 	/** 
@@ -89,6 +95,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public int getRatePlanPolicyCount(Map<String, Object> params);
 
 	/** 
@@ -97,6 +104,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public List<Map<String, Object>> getHotelIdData(Map<String, Object> params);
 
 	/** 
@@ -105,6 +113,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public List<Map<String, Object>> getHotelCodeData(Map<String, Object> params);
 
 	/** 
@@ -113,6 +122,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public List<Map<String, Object>> getRoomIdData(Map<String, Object> params);
 
 	/** 
@@ -121,6 +131,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public List<Map<String, Object>> getRoomTypeIdData(Map<String, Object> params);
 
 	/** 
@@ -129,6 +140,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public List<Map<String, Object>> getRatePlanIdData(Map<String, Object> params);
 
 	/** 
@@ -137,6 +149,7 @@ public interface SqlServerDataDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_sqlserver_13")
 	public List<Map<String, Object>> getRatePlanPolicyData(Map<String, Object> params);
 
 }

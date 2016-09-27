@@ -17,7 +17,8 @@
 		<property name="targetDataSources">
 			<map key-type="java.lang.String">
 				<entry key="dataSource_nbhotelincr" value-ref="dataSource_nbhotelincr" />
-				<entry key="dataSource_nbbdg" value-ref="dataSource_nbbdg" />
+				<entry key="dataSource_sqlserver_13" value-ref="dataSource_sqlserver_13" />
+				<entry key="dataSource_sqlserver_14" value-ref="dataSource_sqlserver_14" />
 			</map>
 		</property>
 		<property name="defaultTargetDataSource" ref="dataSource_nbhotelincr" />
