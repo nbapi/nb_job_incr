@@ -5,8 +5,6 @@
  */
 package com.elong.nb.service.impl;
 
-import java.text.MessageFormat;
-
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +59,7 @@ public class IncrRateServiceImpl implements IIncrRateService {
 
 		while (true) {
 			long newChangID = incrRateRepository.SyncRatesToDB(changID);
-			logger.info("incr.SyncRatesToDB_ReadDB," + MessageFormat.format("SyncRatesToDB \t \t{0} ====> {1}", changID, newChangID));
+			logger.info("SyncRatesToDB," + changID + " ====> " + newChangID);
 			if (newChangID == changID)
 				break;
 			else {
@@ -70,7 +68,7 @@ public class IncrRateServiceImpl implements IIncrRateService {
 				changID = newChangID;
 			}
 		}
-		logger.info("incr.SyncRatesToDB,finished");
+		logger.info("SyncRatesToDB,finished");
 	}
 
 }
