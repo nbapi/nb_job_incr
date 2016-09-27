@@ -35,7 +35,7 @@ import com.elong.nb.dao.SqlServerDataDao;
  * @since		JDK1.7
  */
 @Repository
-public class IncrStateRepository {
+public class IncrStateRepository { 
 
 	private static final Logger logger = Logger.getLogger("syncIncrStateLogger");
 

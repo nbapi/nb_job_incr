@@ -43,7 +43,7 @@ public class IncrOrderRepository {
 	private static final Logger logger = Logger.getLogger("syncIncrOrderLogger");
 
 	@Resource
-	private IncrOrderDao incrOrderDao;
+	private IncrOrderDao incrOrderDao; 
 
 	@Resource
 	private SqlServerDataDao sqlServerDataDao;

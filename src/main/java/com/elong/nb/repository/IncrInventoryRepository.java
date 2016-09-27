@@ -86,7 +86,7 @@ public class IncrInventoryRepository {
 	public int DeleteExpireIncrData(String table, Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrInventory DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
-		}
+		} 
 		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("expireDate", expireDate);

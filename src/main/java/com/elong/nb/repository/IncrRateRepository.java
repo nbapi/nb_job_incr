@@ -43,7 +43,7 @@ public class IncrRateRepository {
 
 	private Set<String> filteredSHotelIds = new HashSet<String>();
 
-	@Resource
+	@Resource 
 	private M_SRelationRepository M_SRelationRepository;
 
 	@Resource
