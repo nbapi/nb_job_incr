@@ -217,7 +217,6 @@ public class IncrInventoryRepository {
 			int startDays = Days.daysBetween(DateTime.now(), changeModel.getBeginTime()).getDays();
 			int endDays = Days.daysBetween(DateTime.now(), changeModel.getEndTime()).getDays();
 			if (startDays > MAXDAYS || endDays < 0) {
-				logger.info(threadName + ":return,startDays = " + startDays + ",endDays = " + endDays);
 				return;
 			}
 			if (startDays < -1) {
@@ -229,7 +228,6 @@ public class IncrInventoryRepository {
 				endDays = MAXDAYS;
 			}
 			if (changeModel.getBeginTime().compareTo(changeModel.getEndTime()) > 0) {
-				logger.info(threadName + ":return,beginTime = " + changeModel.getBeginTime() + ",endTime = " + changeModel.getEndTime());
 				return;
 			}
 			// #endregion
@@ -244,7 +242,7 @@ public class IncrInventoryRepository {
 			List<ResourceInventoryState> ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			// retry
 			if (ResourceInventoryStateList == null || ResourceInventoryStateList.size() == 0) {
-				logger.info("incr.inv.update,0,data-lack,response inv is empty," + JSON.toJSONString(request) + ","
+				logger.info(threadName + ":incr.inv.update,0,data-lack,response inv is empty," + JSON.toJSONString(request) + ","
 						+ JSON.toJSONString(response));
 				if (IsToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
 					Thread.sleep(2000);
@@ -299,10 +297,11 @@ public class IncrInventoryRepository {
 					}
 					date = date.plusDays(1);
 				}
-				logger.error(MessageFormat.format("incr inv detail empty: {0} \t{1}", changeModel.getID(), JSON.toJSONString(changeModel)));
+				logger.error(threadName + ":"
+						+ MessageFormat.format("incr inv detail empty: {0} \t{1}", changeModel.getID(), JSON.toJSONString(changeModel)));
 			}
 		} catch (Exception ex) {
-			logger.error("incr.inv.IncrInventory,incr-fail", ex);
+			logger.error(threadName + ":incr.inv.IncrInventory,incr-fail", ex);
 			throw new RuntimeException(ex);
 		}
 	}
