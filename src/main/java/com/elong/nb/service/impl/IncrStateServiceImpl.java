@@ -52,10 +52,11 @@ public class IncrStateServiceImpl implements IIncrStateService {
 		if (DateTime.now().getHourOfDay() == 1 && DateTime.now().getMinuteOfHour() < 10) {
 			// 删除过期数据
 			int count = incrStateRepository.DeleteExpireIncrData("IncrState", DateUtils.getDBExpireDate());
-			logger.info("IncrState delete successfully,count = " + count);
+			logger.info("IncrState delete successfully, count = " + count);
 		}
 
 		DateTime startTime = (DateTime) redisManager.getObj(RedisKeyConst.StateSyncTimeKey_CacheKey);
+		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.StateSyncTimeKey_CacheKey.getKey());
 		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.StateSyncTimeKey_CacheKey.getKey());
 		if (startTime == null) {
 			startTime = DateTime.now();
