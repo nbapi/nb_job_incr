@@ -1,6 +1,11 @@
 package com.elong.nb.test;
 
+import java.util.Calendar;
+
 import org.junit.Test;
+
+import com.alibaba.fastjson.JSON;
+import com.elong.nb.util.DateUtils;
 
 public class SyncIncrTestCase {
 
@@ -20,6 +25,7 @@ public class SyncIncrTestCase {
 		// e.printStackTrace();
 		// }
 
+		System.out.println(JSON.toJSONString(DateUtils.getOffsetDate(Calendar.HOUR, -1)));
 	}
 
 }

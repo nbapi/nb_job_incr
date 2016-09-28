@@ -28,7 +28,7 @@ public class DateUtils {
 	/** 
 	 * 获取指定类型偏移值后的日期
 	 *
-	 * @param type Calendar.HOUR 等
+	 * @param type Calendar.HOUR 等等
 	 * @param value 偏移值
 	 * @return
 	 */
