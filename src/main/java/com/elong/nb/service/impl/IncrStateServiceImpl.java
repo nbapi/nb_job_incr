@@ -11,8 +11,6 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
 import com.elong.nb.repository.IncrStateRepository;
@@ -57,21 +55,20 @@ public class IncrStateServiceImpl implements IIncrStateService {
 			logger.info("IncrState delete successfully,count = " + count);
 		}
 
-		JSONObject jsonObj = (JSONObject) redisManager.getObj(RedisKeyConst.StateSyncTimeKey_CacheKey);
-		DateTime startTime = JSON.toJavaObject(jsonObj, DateTime.class);
+		DateTime startTime = (DateTime) redisManager.getObj(RedisKeyConst.StateSyncTimeKey_CacheKey);
+		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.StateSyncTimeKey_CacheKey.getKey());
 		if (startTime == null) {
 			startTime = DateTime.now();
 		}
 		DateTime endTime = DateTime.now().plusMinutes(-5);
-		logger.info("incr.SyncRatesToDB,startTime = " + startTime.toString("yyyy-MM-dd HH:mm:ss") + ",endTime = "
+		logger.info("SyncRatesToDB,startTime = " + startTime.toString("yyyy-MM-dd HH:mm:ss") + ",endTime = "
 				+ endTime.toString("yyyy-MM-dd HH:mm:ss"));
 		if (endTime.compareTo(startTime) > 0) {
 			SyncStateToDB(startTime, endTime);
 			redisManager.put(RedisKeyConst.StateSyncTimeKey_CacheKey, endTime);
-			logger.info("incr.SyncStateToDB,redis put successfully.key = " + RedisKeyConst.StateSyncTimeKey_CacheKey + ",value = "
-					+ endTime);
+			logger.info("put to redis successfully.key = " + RedisKeyConst.StateSyncTimeKey_CacheKey + ",value = " + endTime);
 		} else {
-			logger.info("incr.SyncRatesToDB, ignore this time.");
+			logger.info("SyncRatesToDB, ignore this time ,due to startTime < endTime");
 		}
 	}
 
