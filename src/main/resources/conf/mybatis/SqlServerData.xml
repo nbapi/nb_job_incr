@@ -15,7 +15,7 @@
 		<where>
 			and datatype=0
 			<if test="InsertTime != null and !InsertTime.equals('')">
-				<![CDATA[ and InsertTime > ''${InsertTime}'' ]]>
+				<![CDATA[ and InsertTime > '${InsertTime}' ]]>
 			</if>
 			<if test="Id != null and !Id.equals('')">
 				<![CDATA[ and Id > ${Id}  ]]>
@@ -41,7 +41,7 @@
 			<where>
 				and reser_status in('N','A','F','C','Z','D','B','O','G','U','H','B1','B2','B3','S')
 				<if test="InsertTime != null and !InsertTime.equals('')">
-					<![CDATA[ and InsertTime > ''${InsertTime}'' ]]>
+					<![CDATA[ and InsertTime > '${InsertTime}' ]]>
 				</if>
 				<if test="Id != null and !Id.equals('')">
 					<![CDATA[ and Id > ${Id}  ]]>
