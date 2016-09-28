@@ -5,12 +5,16 @@
  */
 package com.elong.nb.service.impl;
 
+import java.util.Calendar;
+import java.util.Date;
+
 import javax.annotation.Resource;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.fastjson.JSON;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
 import com.elong.nb.repository.IncrStateRepository;
@@ -55,15 +59,13 @@ public class IncrStateServiceImpl implements IIncrStateService {
 			logger.info("IncrState delete successfully, count = " + count);
 		}
 
-		DateTime startTime = (DateTime) redisManager.getObj(RedisKeyConst.StateSyncTimeKey_CacheKey);
+		String jsonStr = redisManager.getStr(RedisKeyConst.StateSyncTimeKey_CacheKey);
+		Date startTime = JSON.parseObject(jsonStr, Date.class);
 		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.StateSyncTimeKey_CacheKey.getKey());
-		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.StateSyncTimeKey_CacheKey.getKey());
-		if (startTime == null) {
-			startTime = DateTime.now();
-		}
-		DateTime endTime = DateTime.now().plusMinutes(-5);
-		logger.info("SyncRatesToDB,startTime = " + startTime.toString("yyyy-MM-dd HH:mm:ss") + ",endTime = "
-				+ endTime.toString("yyyy-MM-dd HH:mm:ss"));
+		startTime = (startTime == null) ? new Date() : startTime;
+		Date endTime = DateUtils.getOffsetDate(Calendar.MINUTE, -5);
+		logger.info("SyncRatesToDB,startTime = " + DateUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss") + ",endTime = "
+				+ DateUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss"));
 		if (endTime.compareTo(startTime) > 0) {
 			SyncStateToDB(startTime, endTime);
 			redisManager.put(RedisKeyConst.StateSyncTimeKey_CacheKey, endTime);
@@ -79,13 +81,15 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	 * @param startTime
 	 * @param endTime
 	 */
-	private void SyncStateToDB(DateTime startTime, DateTime endTime) {
-		incrStateRepository.SyncStateToDB(startTime, endTime, "HotelId");
-		incrStateRepository.SyncStateToDB(startTime, endTime, "HotelCode");
-		incrStateRepository.SyncStateToDB(startTime, endTime, "RoomId");
-		incrStateRepository.SyncStateToDB(startTime, endTime, "RoomTypeId");
-		incrStateRepository.SyncStateToDB(startTime, endTime, "RatePlanId");
-		incrStateRepository.SyncStateToDB(startTime, endTime, "RatePlanPolicy");
+	private void SyncStateToDB(Date startTime, Date endTime) {
+		String startTimeStr = DateUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss");
+		String endTimeStr = DateUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss");
+		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "HotelId");
+		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "HotelCode");
+		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "RoomId");
+		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "RoomTypeId");
+		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "RatePlanId");
+		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "RatePlanPolicy");
 	}
 
 }
