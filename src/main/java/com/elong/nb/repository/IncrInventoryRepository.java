@@ -189,8 +189,17 @@ public class IncrInventoryRepository {
 						return (int) ((long) (o1.get("ChangeID")) - (long) (o2.get("ChangeID")));
 					}
 				});
-				int count = incrInventoryDao.BulkInsert(rows);
-				logger.info("IncrInventory BulkInsert successfully,count = " + count);
+				logger.info("IncrInventory BulkInsert start,rows size = " + rows.size());
+
+				int pageSize = 1000;
+				int recordCount = rows.size();
+				int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+				for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+					int startNum = (pageIndex - 1) * pageSize + 1;
+					int endNum = pageIndex * pageSize;
+					int count = incrInventoryDao.BulkInsert(rows.subList(startNum, endNum));
+					logger.info("IncrInventory BulkInsert successfully,count = " + count);
+				}
 			}
 			// ID排序，去最大ID
 			if (changeList != null && changeList.size() > 0) {
