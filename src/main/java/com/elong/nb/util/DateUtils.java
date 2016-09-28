@@ -5,6 +5,7 @@
  */
 package com.elong.nb.util;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -23,6 +24,32 @@ import java.util.Date;
  * @since		JDK1.7
  */
 public class DateUtils {
+
+	/** 
+	 * 获取指定类型偏移值后的日期
+	 *
+	 * @param type Calendar.HOUR 等
+	 * @param value 偏移值
+	 * @return
+	 */
+	public static Date getOffsetDate(int type, int value) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(new Date());
+		calendar.add(type, value);
+		return calendar.getTime();
+	}
+
+	/** 
+	 * 格式化日期 
+	 *
+	 * @param date
+	 * @param pattern
+	 * @return 返回字符串
+	 */
+	public static String formatDate(Date date, String pattern) {
+		SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+		return sdf.format(date);
+	}
 
 	/**   
 	 * 得到dBExpireDate的值   

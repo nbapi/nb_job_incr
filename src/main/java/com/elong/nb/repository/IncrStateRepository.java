@@ -15,7 +15,6 @@ import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
 import com.elong.nb.dao.IncrStateDao;
@@ -80,11 +79,11 @@ public class IncrStateRepository {
 	 * @param endTime
 	 * @param type
 	 */
-	public void SyncStateToDB(DateTime startTime, DateTime endTime, String type) {
+	public void SyncStateToDB(String startTime, String endTime, String type) {
 		int pageSize = 1000;// TODO 正式上线前改为50000
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("startTime", startTime.toString("yyyy-MM-dd HH:mm:ss"));
-		params.put("endTime", endTime.toString("yyyy-MM-dd HH:mm:ss"));
+		params.put("startTime", startTime);
+		params.put("endTime", endTime);
 		logger.info("getDataCount,params = " + params + ",type = " + type);
 		int recordCount = getDataCount(params, type);
 		logger.info("getDataCount,recordCount = " + recordCount);
