@@ -25,7 +25,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.springframework.stereotype.Repository;
 
-import com.alibaba.fastjson.JSON;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailRequest;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailResponse;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeListRequest;
@@ -173,12 +172,12 @@ public class IncrInventoryRepository {
 			executorService.shutdown();
 			try {
 				while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-					logger.info("SyncInventoryToDB,线程池没有关闭");
+					logger.info("thread-pool has not been closed yet.");
 				}
 			} catch (InterruptedException e) {
 				logger.error(e.getMessage(), e);
 			}
-			logger.info("SyncInventoryToDB,线程池已经关闭");
+			logger.info("thread-pool has been closed.");
 
 			// ChangeID排序，存数据库
 			if (rows.size() > 0) {
@@ -199,7 +198,7 @@ public class IncrInventoryRepository {
 					int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
 					successCount += incrInventoryDao.BulkInsert(rows.subList(startNum, endNum));
 				}
-				logger.info("IncrInventory BulkInsert successfully,successCount = " + successCount);
+				logger.info("IncrInventory BulkInsert end,successCount = " + successCount);
 			}
 			// ID排序，去最大ID
 			if (changeList != null && changeList.size() > 0) {
@@ -219,7 +218,7 @@ public class IncrInventoryRepository {
 		String threadName = Thread.currentThread().getName();
 		try {
 			if (this.filteredSHotelIds.contains(changeModel.getHotelID())) {
-				logger.info(threadName + ":SyncInventoryToDB,CQ FilteredSHotelID:" + changeModel.getHotelID());
+				logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;
 			}
 			// #region 仅提供昨天和最近90天的房态数据 判断开始结束时间段是否在昨天和MaxDays之内
@@ -251,8 +250,7 @@ public class IncrInventoryRepository {
 			List<ResourceInventoryState> ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			// retry
 			if (ResourceInventoryStateList == null || ResourceInventoryStateList.size() == 0) {
-				logger.info(threadName + ":incr.inv.update,0,data-lack,response inv is empty," + JSON.toJSONString(request) + ","
-						+ JSON.toJSONString(response));
+				logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
 				if (IsToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
 					Thread.sleep(2000);
 					response = ProductForPartnerServiceContract.getInventoryChangeDetail(request);
