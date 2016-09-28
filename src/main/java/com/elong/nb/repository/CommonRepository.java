@@ -76,10 +76,10 @@ public class CommonRepository {
 						filteredSHotelIds.add(content.trim());
 					}
 				}
-				logger.info("FillFilteredSHotelsIds," + MessageFormat.format("The FilteredSHotelIds' Count:{0}", filteredSHotelIds.size()));
+				logger.info("FillFilteredSHotelsIds size = ," + filteredSHotelIds.size());
 			} catch (Exception ex) {
 				String title = "增量库存在读取携程去哪过滤酒店信息时抛出异常";
-				String content = MessageFormat.format("读取携程去哪过滤的酒店信息文件出现异常,异常原因：{0}", ex.getMessage());
+				String content = "读取携程去哪过滤的酒店信息文件出现异常,异常原因:" + ex.getMessage();
 				logger.error("title =" + title + ",content = " + content, ex);
 			}
 		} else {

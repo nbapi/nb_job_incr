@@ -5,8 +5,6 @@
  */
 package com.elong.nb.service.impl;
 
-import java.text.MessageFormat;
-
 import javax.annotation.Resource;
 
 import org.apache.log4j.Logger;
@@ -68,18 +66,20 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	public void SyncInventoryToDB(long changeID) {
 		if (changeID == 0) {
 			changeID = Long.valueOf(redisManager.getStr(RedisKeyConst.KEY_Inventory_LastID_CacheKey));
+			logger.info("get changeID = " + changeID + ",from redis key = " + RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey());
 		}
 		if (changeID == 0) {
 			changeID = incrInventoryRepository.GetInventoryChangeMinID(DateUtils.getCacheExpireDate());
+			logger.info("get changeID = " + changeID + ",from wcf [ProductForPartnerServiceContract.getInventoryChangeMinID]");
 		}
 		long newLastChgID = incrInventoryRepository.SyncInventoryToDB(changeID);
-		logger.info("incr.SyncInventoryToDB," + MessageFormat.format("SyncInventoryToDB change: {0} ===> {1} ", changeID, newLastChgID));
+		logger.info("SyncInventoryToDB,change: " + changeID + " ===> " + newLastChgID);
 
 		long incred = newLastChgID - changeID;
 		if (incred > 0) {
 			// 更新LastID
 			redisManager.put(RedisKeyConst.KEY_Inventory_LastID_CacheKey, newLastChgID);
-			logger.info("incr.SyncInventoryToDB,redis put key = " + RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey() + " successfully.");
+			logger.info("put to redis key = " + RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey() + ",value = " + newLastChgID);
 			if (incred > 100) {
 				// 继续执行
 				SyncInventoryToDB(newLastChgID);

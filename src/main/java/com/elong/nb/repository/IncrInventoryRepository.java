@@ -86,7 +86,7 @@ public class IncrInventoryRepository {
 	public int DeleteExpireIncrData(String table, Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrInventory DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
-		} 
+		}
 		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("expireDate", expireDate);
@@ -132,6 +132,8 @@ public class IncrInventoryRepository {
 		request.setId(changID);
 		List<InventoryChangeModel> changeList = ProductForPartnerServiceContractForList.getInventoryChangeList(request)
 				.getInventoryChangeList().getInventoryChangeModel();
+		int changeListSize = changeList == null ? 0 : changeList.size();
+		logger.info("changeList size = " + changeListSize + ",from wcf [ProductForPartnerServiceContractForList.getInventoryChangeList]");
 
 		List<InventoryChangeModel> filterChangeList = new ArrayList<InventoryChangeModel>();
 		if (changeList != null && changeList.size() > 0) {
@@ -147,6 +149,9 @@ public class IncrInventoryRepository {
 				filterChangeList.add(item);
 			}
 			changeList = filterChangeList;
+			int filterChangeListSize = filterChangeList == null ? 0 : filterChangeList.size();
+			logger.info("filterChangeList size = " + filterChangeListSize + ",after dohandler InventoryChangeDelayMinutes = "
+					+ InventoryChangeDelayMinutes);
 		}
 
 		if (changeList != null && changeList.size() > 0) {
@@ -155,6 +160,7 @@ public class IncrInventoryRepository {
 
 			// 最大支持300线程并行
 			int maximumPoolSize = changeList.size() < 300 ? changeList.size() : 300;
+			logger.info("maximumPoolSize = " + maximumPoolSize);
 			ExecutorService executorService = ExecutorUtils.newSelfThreadPool(maximumPoolSize, 400);
 			final List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
 			for (final InventoryChangeModel changeModel : changeList) {
@@ -168,12 +174,12 @@ public class IncrInventoryRepository {
 			executorService.shutdown();
 			try {
 				while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-					logger.info("incr.IncrInventory,线程池没有关闭");
+					logger.info("SyncInventoryToDB,线程池没有关闭");
 				}
 			} catch (InterruptedException e) {
 				logger.error(e.getMessage(), e);
 			}
-			logger.info("incr.IncrInventory,线程池已经关闭");
+			logger.info("SyncInventoryToDB,线程池已经关闭");
 
 			// ChangeID排序，存数据库
 			if (rows.size() > 0) {
@@ -201,16 +207,17 @@ public class IncrInventoryRepository {
 	}
 
 	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows) {
+		String threadName = Thread.currentThread().getName();
 		try {
 			if (this.filteredSHotelIds.contains(changeModel.getHotelID())) {
-				String message = MessageFormat.format("CQ FilteredSHotelID：{0}", changeModel.getHotelID());
-				logger.info("SyncInventoryToDB," + message);
+				logger.info(threadName + ":SyncInventoryToDB,CQ FilteredSHotelID:" + changeModel.getHotelID());
 				return;
 			}
 			// #region 仅提供昨天和最近90天的房态数据 判断开始结束时间段是否在昨天和MaxDays之内
 			int startDays = Days.daysBetween(DateTime.now(), changeModel.getBeginTime()).getDays();
 			int endDays = Days.daysBetween(DateTime.now(), changeModel.getEndTime()).getDays();
 			if (startDays > MAXDAYS || endDays < 0) {
+				logger.info(threadName + ":return,startDays = " + startDays + ",endDays = " + endDays);
 				return;
 			}
 			if (startDays < -1) {
@@ -222,6 +229,7 @@ public class IncrInventoryRepository {
 				endDays = MAXDAYS;
 			}
 			if (changeModel.getBeginTime().compareTo(changeModel.getEndTime()) > 0) {
+				logger.info(threadName + ":return,beginTime = " + changeModel.getBeginTime() + ",endTime = " + changeModel.getEndTime());
 				return;
 			}
 			// #endregion
