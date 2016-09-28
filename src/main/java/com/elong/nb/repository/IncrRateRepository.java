@@ -43,7 +43,7 @@ public class IncrRateRepository {
 
 	private Set<String> filteredSHotelIds = new HashSet<String>();
 
-	@Resource 
+	@Resource
 	private M_SRelationRepository M_SRelationRepository;
 
 	@Resource
@@ -92,15 +92,16 @@ public class IncrRateRepository {
 		} else {
 			params.put("InsertTime", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
 		}
+		logger.info("getDataFromPriceInfoTrack, params = " + params);
 		List<Map<String, Object>> incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
 		int incrRateListSize = (incrRateList == null) ? 0 : incrRateList.size();
-		logger.info("incrRateList size = " + incrRateListSize);
+		logger.info("getDataFromPriceInfoTrack, incrRateList size = " + incrRateListSize);
 		if (incrRateList == null || incrRateList.size() == 0)
 			return changID;
 
 		Map<String, String> dict = new HashMap<String, String>();
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
-		Date validDate = DateTime.now().minusYears(1).toDate();
+		Date validDate = DateTime.now().plusYears(1).toDate();
 
 		filteredSHotelIds = commonRepository.FillFilteredSHotelsIds();
 		for (Map<String, Object> rowMap : incrRateList) {
