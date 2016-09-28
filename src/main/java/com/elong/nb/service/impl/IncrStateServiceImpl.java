@@ -59,19 +59,19 @@ public class IncrStateServiceImpl implements IIncrStateService {
 
 		JSONObject jsonObj = (JSONObject) redisManager.getObj(RedisKeyConst.StateSyncTimeKey_CacheKey);
 		DateTime startTime = JSON.toJavaObject(jsonObj, DateTime.class);
+		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.StateSyncTimeKey_CacheKey.getKey());
 		if (startTime == null) {
 			startTime = DateTime.now();
 		}
 		DateTime endTime = DateTime.now().plusMinutes(-5);
-		logger.info("incr.SyncRatesToDB,startTime = " + startTime.toString("yyyy-MM-dd HH:mm:ss") + ",endTime = "
+		logger.info("SyncRatesToDB,startTime = " + startTime.toString("yyyy-MM-dd HH:mm:ss") + ",endTime = "
 				+ endTime.toString("yyyy-MM-dd HH:mm:ss"));
 		if (endTime.compareTo(startTime) > 0) {
 			SyncStateToDB(startTime, endTime);
 			redisManager.put(RedisKeyConst.StateSyncTimeKey_CacheKey, endTime);
-			logger.info("incr.SyncStateToDB,redis put successfully.key = " + RedisKeyConst.StateSyncTimeKey_CacheKey + ",value = "
-					+ endTime);
+			logger.info("put to redis successfully.key = " + RedisKeyConst.StateSyncTimeKey_CacheKey + ",value = " + endTime);
 		} else {
-			logger.info("incr.SyncRatesToDB, ignore this time.");
+			logger.info("SyncRatesToDB, ignore this time ,due to startTime < endTime");
 		}
 	}
 

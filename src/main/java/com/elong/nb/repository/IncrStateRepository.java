@@ -35,7 +35,7 @@ import com.elong.nb.dao.SqlServerDataDao;
  * @since		JDK1.7
  */
 @Repository
-public class IncrStateRepository { 
+public class IncrStateRepository {
 
 	private static final Logger logger = Logger.getLogger("syncIncrStateLogger");
 
@@ -81,19 +81,23 @@ public class IncrStateRepository {
 	 * @param type
 	 */
 	public void SyncStateToDB(DateTime startTime, DateTime endTime, String type) {
-		int pageSize = 50000;
+		int pageSize = 1000;// TODO 正式上线前改为50000
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("startTime", startTime.toString("yyyy-MM-dd HH:mm:ss"));
 		params.put("endTime", endTime.toString("yyyy-MM-dd HH:mm:ss"));
+		logger.info("getDataCount,params = " + params + ",type = " + type);
 		int recordCount = getDataCount(params, type);
+		logger.info("getDataCount,recordCount = " + recordCount);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 			int startNum = (pageIndex - 1) * pageSize + 1;
 			int endNum = pageIndex * pageSize;
 			params.put("startNum", startNum);
 			params.put("endNum", endNum);
+			logger.info("getDataList,params = " + params + ",type = " + type);
 			List<Map<String, Object>> hotelIdDataList = getDataList(params, type);
-			logger.info("SyncStateToDB,from = " + type + ",startNum = " + startNum + ",endNum = " + endNum);
+			int resultSize = hotelIdDataList == null ? 0 : hotelIdDataList.size();
+			logger.info("getDataList,result size = " + resultSize);
 			if (hotelIdDataList == null || hotelIdDataList.size() == 0)
 				continue;
 
@@ -110,7 +114,7 @@ public class IncrStateRepository {
 				}
 			}
 			int count = incrStateDao.BulkInsert(hotelIdDataList);
-			logger.info("SyncStateToDB,from = " + type + ",BulkInsert successfully,count = " + count);
+			logger.info("IncrState BulkInsert successfully,count = " + count + ",type = " + type);
 		}
 	}
 
