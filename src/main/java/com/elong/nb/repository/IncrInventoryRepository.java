@@ -5,7 +5,6 @@
  */
 package com.elong.nb.repository;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -193,13 +192,14 @@ public class IncrInventoryRepository {
 				int pageSize = 1000;
 				int recordCount = rows.size();
 				logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
+				int successCount = 0;
 				int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 				for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 					int startNum = (pageIndex - 1) * pageSize;
 					int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-					int count = incrInventoryDao.BulkInsert(rows.subList(startNum, endNum));
-					logger.info("IncrInventory BulkInsert successfully,count = " + count);
+					successCount += incrInventoryDao.BulkInsert(rows.subList(startNum, endNum));
 				}
+				logger.info("IncrInventory BulkInsert successfully,successCount = " + successCount);
 			}
 			// ID排序，去最大ID
 			if (changeList != null && changeList.size() > 0) {
@@ -306,12 +306,10 @@ public class IncrInventoryRepository {
 					}
 					date = date.plusDays(1);
 				}
-				logger.error(threadName + ":"
-						+ MessageFormat.format("incr inv detail empty: {0} \t{1}", changeModel.getID(), JSON.toJSONString(changeModel)));
 			}
 		} catch (Exception ex) {
-			logger.error(threadName + ":incr.inv.IncrInventory,incr-fail", ex);
-			throw new RuntimeException(ex);
+			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
+			throw new IllegalStateException(ex);
 		}
 	}
 
