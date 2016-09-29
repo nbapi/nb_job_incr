@@ -36,7 +36,7 @@ import com.elong.nb.dao.SqlServerDataDao;
 @Repository
 public class IncrStateRepository {
 
-	private static final Logger logger = Logger.getLogger("syncIncrStateLogger");
+	private static final Logger logger = Logger.getLogger("IncrStateLogger");
 
 	@Resource
 	private IncrStateDao incrStateDao;
@@ -45,28 +45,27 @@ public class IncrStateRepository {
 	private SqlServerDataDao sqlServerDataDao;
 
 	@Resource
-	private M_SRelationRepository M_SRelationRepository;
+	private M_SRelationRepository msRelationRepository;
 
 	/** 
 	 * 删除过期增量数据
 	 * @param table
 	 * @param expireDate
 	 */
-	public int DeleteExpireIncrData(String table, Date expireDate) {
+	public int deleteExpireIncrData(Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrState DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
-		logger.info("DeleteExpireIncrData start.table = " + table + ",expireDate = " + expireDate);
 		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("expireDate", expireDate);
 		params.put("limit", limit);
 		int result = 0;
 		int count = 0;
-		count = incrStateDao.DeleteExpireIncrData(params);
+		count = incrStateDao.deleteExpireIncrData(params);
 		result += count;
 		while (count == limit) {
-			count = incrStateDao.DeleteExpireIncrData(params);
+			count = incrStateDao.deleteExpireIncrData(params);
 		}
 		logger.info("IncrState delete successfully,expireDate = " + expireDate);
 		return result;
@@ -79,7 +78,7 @@ public class IncrStateRepository {
 	 * @param endTime
 	 * @param type
 	 */
-	public void SyncStateToDB(String startTime, String endTime, String type) {
+	public void syncStateToDB(String startTime, String endTime, String type) {
 		int pageSize = 1000;// TODO 正式上线前改为50000
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("startTime", startTime);
@@ -112,7 +111,7 @@ public class IncrStateRepository {
 					// M_SRelationRepository.ResetHotelMSCache(mhotelid);//TODO 暂时注掉，wcf调不通，待产品组提供新接口
 				}
 			}
-			int count = incrStateDao.BulkInsert(hotelIdDataList);
+			int count = incrStateDao.bulkInsert(hotelIdDataList);
 			logger.info("IncrState BulkInsert successfully,count = " + count + ",type = " + type);
 		}
 	}

@@ -25,13 +25,13 @@ public interface IIncrInventoryService {
 	 * 同步库存增量
 	 *
 	 */
-	public void SyncInventoryToDB();
+	public void syncInventoryToDB();
 
 	/** 
 	 * 递归，根据changeID同步库存增量 
 	 *
 	 * @param changeID
 	 */
-	public void SyncInventoryToDB(long changeID);
+	public void syncInventoryToDB(long changeID);
 
 }

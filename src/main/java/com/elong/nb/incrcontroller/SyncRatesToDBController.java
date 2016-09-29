@@ -35,7 +35,7 @@ import com.elong.nb.service.IIncrRateService;
 @Controller
 public class SyncRatesToDBController {
 
-	private static final Logger logger = Logger.getLogger("syncIncrRateLogger");
+	private static final Logger logger = Logger.getLogger("IncrRateLogger");
 
 	@Resource
 	private IIncrRateService incrRateService;
@@ -51,7 +51,7 @@ public class SyncRatesToDBController {
 		ResponseResult result = new ResponseResult();
 		try {
 			logger.info("SyncRatesToDB,Controller,start.");
-			incrRateService.SyncRatesToDB();
+			incrRateService.syncRatesToDB();
 			result.setCode(ResponseResult.SUCCESS);
 			result.setMessage("SyncRatesToDB successfully.");
 			logger.info("SyncRatesToDB,Controller,end.");

@@ -35,7 +35,7 @@ public interface IncrOrderDao {
 	 * @param limit
 	 * @return 返回删除数量
 	 */
-	public int DeleteExpireIncrData(Map<String, Object> params);
+	public int deleteExpireIncrData(Map<String, Object> params);
 
 	/** 
 	 * 获取最大IncrID的订单增量
@@ -73,6 +73,6 @@ public interface IncrOrderDao {
 	 *
 	 * @param incrOrders
 	 */
-	public int BulkInsert(List<Map<String, Object>> incrOrders);
+	public int bulkInsert(List<Map<String, Object>> incrOrders);
 
 }

@@ -35,7 +35,7 @@ import com.elong.nb.service.IIncrStateService;
 @Controller
 public class SyncStateToDBController {
 
-	private static final Logger logger = Logger.getLogger("syncIncrStateLogger");
+	private static final Logger logger = Logger.getLogger("IncrStateLogger");
 
 	@Resource
 	private IIncrStateService incrStateService;
@@ -51,7 +51,7 @@ public class SyncStateToDBController {
 		ResponseResult result = new ResponseResult();
 		try {
 			logger.info("SyncStateToDB,Controller,start.");
-			incrStateService.SyncStateToDB();
+			incrStateService.syncStateToDB();
 			result.setCode(ResponseResult.SUCCESS);
 			result.setMessage("SyncStateToDB successfully.");
 			logger.info("SyncStateToDB,Controller,end.");

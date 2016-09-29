@@ -25,6 +25,6 @@ public interface IIncrStateService {
 	 * 同步状态增量
 	 *
 	 */
-	public void SyncStateToDB();
+	public void syncStateToDB();
 
 }

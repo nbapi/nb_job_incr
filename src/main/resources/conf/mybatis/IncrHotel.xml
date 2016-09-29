@@ -3,7 +3,7 @@
 <mapper namespace="com.elong.nb.dao.IncrHotelDao">
 
 	<!-- 删除过期IncrHotel -->
-	<delete id="DeleteExpireIncrData">
+	<delete id="deleteExpireIncrData">
 		delete from IncrHotel
 		<where>
 			<if test="expireDate != null">
@@ -14,7 +14,7 @@
 	</delete>
 
 	<!-- 获取trigger的最后一条IncrHotel -->
-	<select id="GetLastHotel" resultType="incrHotel">
+	<select id="getLastHotel" resultType="incrHotel">
 		select * from IncrHotel
 		<where>
 			<if test="_parameter != null and !_parameter.equals('')"> and `Trigger` = #{_parameter} </if>
@@ -23,7 +23,7 @@
 	</select>
 
 	<!-- 批量插入IncrHotel -->
-	<insert id="BulkInsert" parameterType="java.util.List"
+	<insert id="bulkInsert" parameterType="java.util.List"
 		useGeneratedKeys="false">
 		insert into IncrHotel
 		(IncrID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime)

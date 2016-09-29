@@ -35,7 +35,7 @@ public interface IncrInventoryDao {
 	 * @param limit
 	 * @return 返回删除数量
 	 */
-	public int DeleteExpireIncrData(Map<String, Object> params);
+	public int deleteExpireIncrData(Map<String, Object> params);
 
 	/** 
 	 * 
@@ -44,13 +44,13 @@ public interface IncrInventoryDao {
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<IncrInventory> GetIncrInventories(Map<String, Object> params);
+	public List<IncrInventory> getIncrInventories(Map<String, Object> params);
 
 	/** 
 	 * 批量插入IncrInventory
 	 *
 	 * @param incrInventories
 	 */
-	public int BulkInsert(List<Map<String, Object>> incrInventories);
+	public int bulkInsert(List<Map<String, Object>> incrInventories);
 
 }

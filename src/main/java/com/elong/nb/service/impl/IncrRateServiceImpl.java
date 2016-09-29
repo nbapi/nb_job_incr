@@ -34,7 +34,7 @@ import com.elong.nb.util.DateUtils;
 @Service
 public class IncrRateServiceImpl implements IIncrRateService {
 
-	private static final Logger logger = Logger.getLogger("syncIncrRateLogger");
+	private static final Logger logger = Logger.getLogger("IncrRateLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
@@ -48,9 +48,9 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	 * @see com.elong.nb.service.IIncrRateService#SyncRatesToDB()    
 	 */
 	@Override
-	public void SyncRatesToDB() {
+	public void syncRatesToDB() {
 		// 删除过期数据
-		int count = incrRateRepository.DeleteExpireIncrData("IncrRate", DateUtils.getDBExpireDate());
+		int count = incrRateRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
 		logger.info("IncrRate delete successfully.count = " + count);
 
 		String changIDStr = redisManager.getStr(RedisKeyConst.KEY_Rate_LastID_CacheKey);
@@ -58,7 +58,7 @@ public class IncrRateServiceImpl implements IIncrRateService {
 		logger.info("get changID = " + changID + ",from redis key = " + RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
 
 		while (true) {
-			long newChangID = incrRateRepository.SyncRatesToDB(changID);
+			long newChangID = incrRateRepository.syncRatesToDB(changID);
 			logger.info("SyncRatesToDB," + changID + " ====> " + newChangID);
 			if (newChangID == changID)
 				break;

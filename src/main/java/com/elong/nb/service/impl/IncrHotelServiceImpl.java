@@ -47,7 +47,7 @@ import edu.emory.mathcs.backport.java.util.Collections;
 @Service
 public class IncrHotelServiceImpl implements IIncrHotelService {
 
-	private static final Logger logger = Logger.getLogger("syncIncrHotelLogger");
+	private static final Logger logger = Logger.getLogger("IncrHotelLogger");
 
 	private static final int MaxRecordCount = 1000;
 
@@ -61,9 +61,9 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 	 * @see com.elong.nb.service.IIncrHotelService#SyncHotelToDB()    
 	 */
 	@Override
-	public void SyncHotelToDB() {
+	public void syncHotelToDB() {
 		// 删除30小时以前的数据
-		int count = incrHotelRepository.DeleteExpireIncrData("IncrHotel", DateUtils.getDBExpireDate());
+		int count = incrHotelRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
 		logger.info("IncrHotel delete successfully.count = " + count);
 
 		final String triggerInventory = "Inventory";
@@ -75,13 +75,13 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 			public void run() {
 				try {
 					while (true) {
-						IncrHotel hotel = incrHotelRepository.GetLastHotel(triggerInventory);
+						IncrHotel hotel = incrHotelRepository.getLastHotel(triggerInventory);
 						logger.info("Trigger = " + triggerInventory + ",lastHotel = " + JSON.toJSONString(hotel));
 						List<IncrInventory> inventorys = null;
 						if (hotel == null) {
-							inventorys = incrHotelRepository.GetIncrInventories(DateUtils.getCacheExpireDate(), MaxRecordCount);
+							inventorys = incrHotelRepository.getIncrInventories(DateUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
-							inventorys = incrHotelRepository.GetIncrInventories(hotel.TriggerID, MaxRecordCount);
+							inventorys = incrHotelRepository.getIncrInventories(hotel.TriggerID, MaxRecordCount);
 						}
 						logger.info("Trigger = " + triggerInventory + ",inventorys size = " + inventorys.size());
 						if (inventorys == null || inventorys.size() == 0)
@@ -99,7 +99,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 							hotels.add(incrHotel);
 						}
 						hotels = filterDuplicationHotel(hotels);
-						incrHotelRepository.SyncIncrHotelToDB(hotels);
+						incrHotelRepository.syncIncrHotelToDB(hotels);
 					}
 				} catch (Exception e) {
 					logger.error("incr.SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
@@ -112,13 +112,13 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 			public void run() {
 				try {
 					while (true) {
-						IncrHotel hotel = incrHotelRepository.GetLastHotel(triggerRate);
+						IncrHotel hotel = incrHotelRepository.getLastHotel(triggerRate);
 						logger.info("Trigger = " + triggerRate + ",lastHotel = " + JSON.toJSONString(hotel));
 						List<IncrRate> rates = null;
 						if (hotel == null) {
-							rates = incrHotelRepository.GetIncrRates(DateUtils.getCacheExpireDate(), MaxRecordCount);
+							rates = incrHotelRepository.getIncrRates(DateUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
-							rates = incrHotelRepository.GetIncrRates(hotel.TriggerID, MaxRecordCount);
+							rates = incrHotelRepository.getIncrRates(hotel.TriggerID, MaxRecordCount);
 						}
 						logger.info("Trigger = " + triggerRate + ",rates size = " + rates.size());
 						if (rates == null || rates.size() == 0)
@@ -136,7 +136,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 							hotels.add(incrHotel);
 						}
 						hotels = filterDuplicationHotel(hotels);
-						incrHotelRepository.SyncIncrHotelToDB(hotels);
+						incrHotelRepository.syncIncrHotelToDB(hotels);
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);

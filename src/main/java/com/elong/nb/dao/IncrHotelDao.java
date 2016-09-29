@@ -35,7 +35,7 @@ public interface IncrHotelDao {
 	 * @param limit
 	 * @return 返回删除数量
 	 */
-	public int DeleteExpireIncrData(Map<String,Object> params);
+	public int deleteExpireIncrData(Map<String,Object> params);
 
 	/** 
 	 * 获取trigger的最后一条IncrHotel
@@ -43,14 +43,14 @@ public interface IncrHotelDao {
 	 * @param trigger
 	 * @return
 	 */
-	public IncrHotel GetLastHotel(String trigger);
+	public IncrHotel getLastHotel(String trigger);
 	
 	/** 
 	 * 批量插入IncrHotel
 	 *
 	 * @param incrHotelList
 	 */
-	public int BulkInsert(List<IncrHotel> incrHotelList);
+	public int bulkInsert(List<IncrHotel> incrHotelList);
 	
 
 }

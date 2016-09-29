@@ -16,7 +16,7 @@
 	</resultMap>
 
 	<!-- 删除过期IncrState -->
-	<delete id="DeleteExpireIncrData">
+	<delete id="deleteExpireIncrData">
 		delete from IncrState
 		<where>
 			<if test="expireDate != null">
@@ -27,7 +27,7 @@
 	</delete>
 
 	<!-- 批量插入IncrState -->
-	<insert id="BulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
+	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
 		insert into IncrState
 		(IncrID,StateType,HotelId,HotelCode,RoomId,RoomTypeId,RatePlanId,Status,ChangeTime,InsertTime,Name)
 		values

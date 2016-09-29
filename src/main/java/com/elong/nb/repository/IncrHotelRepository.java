@@ -39,7 +39,7 @@ import com.elong.nb.model.bean.IncrRate;
 @Repository
 public class IncrHotelRepository {
 
-	private static final Logger logger = Logger.getLogger("syncIncrHotelLogger");
+	private static final Logger logger = Logger.getLogger("IncrHotelLogger");
 
 	@Resource
 	private IncrHotelDao incrHotelDao;
@@ -55,7 +55,7 @@ public class IncrHotelRepository {
 	 * @param table
 	 * @param expireDate
 	 */
-	public int DeleteExpireIncrData(String table, Date expireDate) {
+	public int deleteExpireIncrData(Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrHotel DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
@@ -65,10 +65,10 @@ public class IncrHotelRepository {
 		params.put("limit", limit);
 		int result = 0;
 		int count = 0;
-		count = incrHotelDao.DeleteExpireIncrData(params);
+		count = incrHotelDao.deleteExpireIncrData(params);
 		result += count;
 		while (count == limit) {
-			count = incrHotelDao.DeleteExpireIncrData(params);
+			count = incrHotelDao.deleteExpireIncrData(params);
 		}
 		logger.info("IncrHotel delete successfully,expireDate = " + expireDate);
 		return result;
@@ -80,11 +80,11 @@ public class IncrHotelRepository {
 	 * @param trigger
 	 * @return
 	 */
-	public IncrHotel GetLastHotel(String trigger) {
+	public IncrHotel getLastHotel(String trigger) {
 		if (StringUtils.isEmpty(trigger)) {
 			throw new IllegalArgumentException("GetLastHotel,the paramter 'trigger' must not be null or empty.");
 		}
-		return incrHotelDao.GetLastHotel(trigger);
+		return incrHotelDao.getLastHotel(trigger);
 	}
 
 	/** 
@@ -94,14 +94,14 @@ public class IncrHotelRepository {
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<IncrInventory> GetIncrInventories(Date changeTime, int maxRecordCount) {
+	public List<IncrInventory> getIncrInventories(Date changeTime, int maxRecordCount) {
 		if (changeTime == null || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrInventories,the paramter ['changeTime' or 'maxRecordCount'] must not be null or 0.");
 		}
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("changeTime", changeTime);
 		params.put("maxRecordCount", maxRecordCount);
-		return incrInventoryDao.GetIncrInventories(params);
+		return incrInventoryDao.getIncrInventories(params);
 	}
 
 	/** 
@@ -111,14 +111,14 @@ public class IncrHotelRepository {
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<IncrInventory> GetIncrInventories(long incrID, int maxRecordCount) {
+	public List<IncrInventory> getIncrInventories(long incrID, int maxRecordCount) {
 		if (incrID == 0l || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrInventories,the paramter ['incrID' or 'maxRecordCount'] must not be null or 0.");
 		}
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("incrID", incrID);
 		params.put("maxRecordCount", maxRecordCount);
-		return incrInventoryDao.GetIncrInventories(params);
+		return incrInventoryDao.getIncrInventories(params);
 	}
 
 	/** 
@@ -128,14 +128,14 @@ public class IncrHotelRepository {
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<IncrRate> GetIncrRates(Date changTime, int maxRecordCount) {
+	public List<IncrRate> getIncrRates(Date changTime, int maxRecordCount) {
 		if (changTime == null || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrRates,the paramter ['changeTime' or 'maxRecordCount'] must not be null or 0.");
 		}
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("changTime", changTime);
 		params.put("maxRecordCount", maxRecordCount);
-		return incrRateDao.GetIncrRates(params);
+		return incrRateDao.getIncrRates(params);
 	}
 
 	/** 
@@ -145,14 +145,14 @@ public class IncrHotelRepository {
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<IncrRate> GetIncrRates(long incrID, int maxRecordCount) {
+	public List<IncrRate> getIncrRates(long incrID, int maxRecordCount) {
 		if (incrID == 0l || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrRates,the paramter ['incrID' or 'maxRecordCount'] must not be 0.");
 		}
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("incrID", incrID);
 		params.put("maxRecordCount", maxRecordCount);
-		return incrRateDao.GetIncrRates(params);
+		return incrRateDao.getIncrRates(params);
 	}
 
 	/** 
@@ -160,10 +160,10 @@ public class IncrHotelRepository {
 	 *
 	 * @param hotels
 	 */
-	public void SyncIncrHotelToDB(List<IncrHotel> hotels) {
+	public void syncIncrHotelToDB(List<IncrHotel> hotels) {
 		if (hotels == null || hotels.size() == 0)
 			return;
-		int count = incrHotelDao.BulkInsert(hotels);
+		int count = incrHotelDao.bulkInsert(hotels);
 		logger.info("IncrHotel BulkInsert successfully,count = " + count);
 	}
 

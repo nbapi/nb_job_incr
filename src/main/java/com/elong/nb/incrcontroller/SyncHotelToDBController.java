@@ -35,7 +35,7 @@ import com.elong.nb.service.IIncrHotelService;
 @Controller
 public class SyncHotelToDBController {
 
-	private static final Logger logger = Logger.getLogger("syncIncrHotelLogger");
+	private static final Logger logger = Logger.getLogger("IncrHotelLogger");
 
 	@Resource
 	private IIncrHotelService incrHotelService;
@@ -51,7 +51,7 @@ public class SyncHotelToDBController {
 		ResponseResult result = new ResponseResult();
 		try {
 			logger.info("SyncHotelToDB,Controller,start.");
-			incrHotelService.SyncHotelToDB();
+			incrHotelService.syncHotelToDB();
 			result.setCode(ResponseResult.SUCCESS);
 			result.setMessage("SyncHotelToDB successfully.");
 			logger.info("SyncHotelToDB,Controller,end.");

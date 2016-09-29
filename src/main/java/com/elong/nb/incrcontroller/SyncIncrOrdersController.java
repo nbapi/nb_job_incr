@@ -38,7 +38,7 @@ import com.elong.nb.service.IIncrOrderService;
 @Controller
 public class SyncIncrOrdersController {
 
-	private static final Logger logger = Logger.getLogger("syncIncrOrderLogger");
+	private static final Logger logger = Logger.getLogger("IncrOrderLogger");
 
 	private ExecutorService executor = Executors.newFixedThreadPool(10);
 

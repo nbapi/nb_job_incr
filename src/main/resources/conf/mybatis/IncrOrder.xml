@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.elong.nb.dao.IncrOrderDao">
 	<!-- 删除过期IncrOrder -->
-	<delete id="DeleteExpireIncrData">
+	<delete id="deleteExpireIncrData">
 		delete from IncrOrder
 		<where>
 			<if test="expireDate != null">
@@ -35,7 +35,7 @@
 	</insert>
 
 	<!-- 批量插入IncrOrder -->
-	<insert id="BulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
+	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
 		insert into IncrOrder
 		(IncrID,ChangeTime,OrderId,AffiliateConfirmationId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
 		values

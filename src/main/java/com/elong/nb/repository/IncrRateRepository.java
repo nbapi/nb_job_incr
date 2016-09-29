@@ -39,12 +39,12 @@ import com.elong.nb.dao.SqlServerDataDao;
 @Repository
 public class IncrRateRepository {
 
-	private static final Logger logger = Logger.getLogger("syncIncrRateLogger");
+	private static final Logger logger = Logger.getLogger("IncrRateLogger");
 
 	private Set<String> filteredSHotelIds = new HashSet<String>();
 
 	@Resource
-	private M_SRelationRepository M_SRelationRepository;
+	private M_SRelationRepository msRelationRepository;
 
 	@Resource
 	private CommonRepository commonRepository;
@@ -60,7 +60,7 @@ public class IncrRateRepository {
 	 * @param table
 	 * @param expireDate
 	 */
-	public int DeleteExpireIncrData(String table, Date expireDate) {
+	public int deleteExpireIncrData(Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrRate DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
@@ -70,10 +70,10 @@ public class IncrRateRepository {
 		params.put("limit", limit);
 		int result = 0;
 		int count = 0;
-		count = incrRateDao.DeleteExpireIncrData(params);
+		count = incrRateDao.deleteExpireIncrData(params);
 		result += count;
 		while (count == limit) {
-			count = incrRateDao.DeleteExpireIncrData(params);
+			count = incrRateDao.deleteExpireIncrData(params);
 		}
 		logger.info("IncrRate delete successfully,expireDate = " + expireDate);
 		return result;
@@ -85,7 +85,7 @@ public class IncrRateRepository {
 	 * @param changID
 	 * @return
 	 */
-	public long SyncRatesToDB(long changID) {
+	public long syncRatesToDB(long changID) {
 		Map<String, Object> params = new HashMap<String, Object>();
 		if (changID > 0) {
 			params.put("Id", changID);
@@ -103,7 +103,7 @@ public class IncrRateRepository {
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		Date validDate = DateTime.now().plusYears(1).toDate();
 
-		filteredSHotelIds = commonRepository.FillFilteredSHotelsIds();
+		filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		for (Map<String, Object> rowMap : incrRateList) {
 			if (rowMap == null)
 				continue;
@@ -120,7 +120,7 @@ public class IncrRateRepository {
 			if (dict.containsKey(shotelId)) {
 				mhotelId = dict.get(shotelId);
 			} else {
-				mhotelId = this.M_SRelationRepository.GetMHotelId(shotelId);
+				mhotelId = msRelationRepository.getMHotelId(shotelId);
 				dict.put(shotelId, mhotelId);
 			}
 			rowMap.put("HotelID", mhotelId);
@@ -131,7 +131,7 @@ public class IncrRateRepository {
 
 			incrRates.add(rowMap);
 		}
-		int count = incrRateDao.BulkInsert(incrRates);
+		int count = incrRateDao.bulkInsert(incrRates);
 		logger.info("IncrRate BulkInsert successfully,count = " + count);
 
 		changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");

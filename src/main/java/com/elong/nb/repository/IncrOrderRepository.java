@@ -40,7 +40,7 @@ import com.elong.nb.model.OrderFromResult;
 @Repository
 public class IncrOrderRepository {
 
-	private static final Logger logger = Logger.getLogger("syncIncrOrderLogger");
+	private static final Logger logger = Logger.getLogger("IncrOrderLogger");
 
 	@Resource
 	private IncrOrderDao incrOrderDao; 
@@ -49,7 +49,7 @@ public class IncrOrderRepository {
 	private SqlServerDataDao sqlServerDataDao;
 
 	@Resource
-	private CommonRepository CommonRepository;
+	private CommonRepository commonRepository;
 
 	/** 
 	 * 删除过期增量数据
@@ -57,7 +57,7 @@ public class IncrOrderRepository {
 	 * @param expireDate
 	 */
 	@Transactional(propagation = Propagation.REQUIRED)
-	public int DeleteExpireIncrData(String table, Date expireDate) {
+	public int deleteExpireIncrData(Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrOrder DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
@@ -67,10 +67,10 @@ public class IncrOrderRepository {
 		params.put("limit", limit);
 		int result = 0;
 		int count = 0;
-		count = incrOrderDao.DeleteExpireIncrData(params);
+		count = incrOrderDao.deleteExpireIncrData(params);
 		result += count;
 		while (count == limit) {
-			count = incrOrderDao.DeleteExpireIncrData(params);
+			count = incrOrderDao.deleteExpireIncrData(params);
 		}
 		logger.info("IncrOrder delete successfully,expireDate = " + expireDate);
 		return result;
@@ -82,7 +82,7 @@ public class IncrOrderRepository {
 	 * @param changID
 	 * @return
 	 */
-	public long SyncOrdersToDB(long changID) {
+	public long syncOrdersToDB(long changID) {
 		Map<String, Object> params = new HashMap<String, Object>();
 		if (changID > 0) {
 			params.put("Id", changID);
@@ -98,7 +98,7 @@ public class IncrOrderRepository {
 			row.put("InsertTime", now);
 			if (row.get("CardNo").toString() == "49") {
 				// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
-				OrderFromResult orderProxy = CommonRepository.GetProxyInfoByOrderFrom((int) row.get("OrderFrom"));
+				OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) row.get("OrderFrom"));
 				if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {
 					row.put("ProxyId", orderProxy.getData().getProxyId());
 					row.put("CardNo", orderProxy.getData().getCardNo());
@@ -106,7 +106,7 @@ public class IncrOrderRepository {
 				}
 			}
 		}
-		int count = incrOrderDao.BulkInsert(incrOrderList);
+		int count = incrOrderDao.bulkInsert(incrOrderList);
 		try {
 			changID = (long) incrOrderList.get(incrOrderList.size() - 1).get("IncrId");
 		} catch (Exception e) {

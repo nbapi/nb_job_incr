@@ -167,27 +167,27 @@
 	</logger>
 
 	<!-- IncrOrder同步日志器 -->
-	<logger name="syncIncrOrderLogger" additivity="false">
+	<logger name="IncrOrderLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="syncIncrOrderAppender" />
 	</logger>
 	<!-- IncrInventory同步日志器 -->
-	<logger name="syncIncrInventoryLogger" additivity="false">
+	<logger name="IncrInventoryLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="syncIncrInventoryAppender" />
 	</logger>
 	<!-- IncrHotel同步日志器 -->
-	<logger name="syncIncrHotelLogger" additivity="false">
+	<logger name="IncrHotelLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="syncIncrHotelAppender" />
 	</logger>
 	<!-- IncrState同步日志器 -->
-	<logger name="syncIncrStateLogger" additivity="false">
+	<logger name="IncrStateLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="syncIncrStateAppender" />
 	</logger>
 	<!-- IncrRate同步日志器 -->
-	<logger name="syncIncrRateLogger" additivity="false">
+	<logger name="IncrRateLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="syncIncrRateAppender" />
 	</logger>

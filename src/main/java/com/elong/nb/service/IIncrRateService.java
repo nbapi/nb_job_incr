@@ -25,6 +25,6 @@ public interface IIncrRateService {
 	 * IncrRate同步到数据库 
 	 *
 	 */
-	public void SyncRatesToDB();
+	public void syncRatesToDB();
 
 }

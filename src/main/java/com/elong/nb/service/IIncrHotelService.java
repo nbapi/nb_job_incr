@@ -26,6 +26,6 @@ public interface IIncrHotelService {
 	 * 同步酒店增量
 	 *
 	 */
-	public void SyncHotelToDB();
+	public void syncHotelToDB();
 
 }

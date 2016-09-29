@@ -51,7 +51,7 @@ import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 @Service
 public class IncrOrderServiceImpl implements IIncrOrderService {
 
-	private static final Logger logger = Logger.getLogger("syncIncrOrderLogger");
+	private static final Logger logger = Logger.getLogger("IncrOrderLogger");
 
 	@Resource
 	private IncrOrderDao incrOrderDao;
@@ -72,7 +72,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	@Override
 	public void handlerMessage(final String message) {
 		// 删除30小时以前的数据
-		int count = incrOrderRepository.DeleteExpireIncrData("IncrOrder", com.elong.nb.util.DateUtils.getDBExpireDate());
+		int count = incrOrderRepository.deleteExpireIncrData(com.elong.nb.util.DateUtils.getDBExpireDate());
 		logger.info("IncrOrder delete successfully,count = " + count);
 
 		// 构建请求参数
@@ -117,7 +117,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
 		if (incrOrderMap.get("CardNo").toString() == "49") {
-			OrderFromResult orderProxy = commonRepository.GetProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
+			OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
 			if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {
 				incrOrderMap.put("ProxyId", orderProxy.getData().getProxyId());
 				incrOrderMap.put("CardNo", orderProxy.getData().getCardNo());

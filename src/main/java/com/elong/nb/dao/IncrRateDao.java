@@ -35,7 +35,7 @@ public interface IncrRateDao {
 	 * @param limit
 	 * @return 返回删除数量
 	 */
-	public int DeleteExpireIncrData(Map<String, Object> params);
+	public int deleteExpireIncrData(Map<String, Object> params);
 
 	/** 
 	 *
@@ -44,13 +44,13 @@ public interface IncrRateDao {
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<IncrRate> GetIncrRates(Map<String, Object> params);
+	public List<IncrRate> getIncrRates(Map<String, Object> params);
 
 	/** 
 	 * 批量插入IncrRate
 	 *
 	 * @param incrRates
 	 */
-	public int BulkInsert(List<Map<String, Object>> incrRates);
+	public int bulkInsert(List<Map<String, Object>> incrRates);
 
 }

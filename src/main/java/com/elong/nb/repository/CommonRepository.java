@@ -58,13 +58,13 @@ public class CommonRepository {
 	 *
 	 * @return
 	 */
-	public Set<String> FillFilteredSHotelsIds() {
+	public Set<String> fillFilteredSHotelsIds() {
 		if (this.filteredSHotelIds.size() > 0) {
 			return filteredSHotelIds;
 		}
 
 		String rootPath = Thread.currentThread().getContextClassLoader().getResource("/").getPath();
-		String filePath = rootPath + "conf/custom/env/FilteCtripQunarHotelIds.txt";
+		String filePath = rootPath + "conf/core/FilteCtripQunarHotelIds.txt";
 		File file = new File(filePath);
 		if (file.exists()) {
 			try {
@@ -94,7 +94,7 @@ public class CommonRepository {
 	 * @param orderFromId
 	 * @return
 	 */
-	public OrderFromResult GetProxyInfoByOrderFrom(int orderFromId) {
+	public OrderFromResult getProxyInfoByOrderFrom(int orderFromId) {
 		OrderFromResult orderFromResult = null;
 		final String minitorKey = MessageFormat.format(RedisKeyConst.KEY_Proxy_CardNo_OrderFrom, orderFromId);
 		ICacheKey cacheKey = new ICacheKey() {
@@ -113,10 +113,10 @@ public class CommonRepository {
 			return orderFromResult;
 		}
 
-		String OrderFromNameUrl = PropertiesHelper.getEnvProperties("OrderFromNameUrl", "config").toString();
-		OrderFromNameUrl = StringUtils.isEmpty(OrderFromNameUrl) ? "http://api.vip.elong.com/admin.php/Api/getprojectname?orderFromId={0}"
-				: OrderFromNameUrl;
-		String url = MessageFormat.format(OrderFromNameUrl, orderFromId);
+		String orderFromNameUrl = PropertiesHelper.getEnvProperties("OrderFromNameUrl", "config").toString();
+		orderFromNameUrl = StringUtils.isEmpty(orderFromNameUrl) ? "http://api.vip.elong.com/admin.php/Api/getprojectname?orderFromId={0}"
+				: orderFromNameUrl;
+		String url = MessageFormat.format(orderFromNameUrl, orderFromId);
 
 		try {
 			logger.info("httpGet,url = " + url);

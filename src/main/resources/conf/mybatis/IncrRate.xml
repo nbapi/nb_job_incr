@@ -3,7 +3,7 @@
 <mapper namespace="com.elong.nb.dao.IncrRateDao">
 
 	<!-- 删除过期IncrRate -->
-	<delete id="DeleteExpireIncrData">
+	<delete id="deleteExpireIncrData">
 		delete from IncrRate
 		<where>
 			<if test="expireDate != null">
@@ -14,7 +14,7 @@
 	</delete>
 
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条IncrRate -->
-	<select id="GetIncrRates" resultType="incrRate">
+	<select id="getIncrRates" resultType="incrRate">
 		select * from IncrRate
 		<where>
 			<if test="changeTime != null and !changeTime.equals('')">
@@ -28,7 +28,7 @@
 	</select>
 
 	<!-- 批量插入IncrRate -->
-	<insert id="BulkInsert" parameterType="java.util.List"
+	<insert id="bulkInsert" parameterType="java.util.List"
 		useGeneratedKeys="false">
 		insert into IncrRate
 		(IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID)

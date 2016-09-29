@@ -35,7 +35,7 @@ import com.elong.nb.service.IIncrInventoryService;
 @Controller
 public class SyncInventoryToDBController {
 
-	private static final Logger logger = Logger.getLogger("syncIncrInventoryLogger");
+	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
 
 	@Resource
 	private IIncrInventoryService incrInventoryService;
@@ -51,7 +51,7 @@ public class SyncInventoryToDBController {
 		ResponseResult result = new ResponseResult();
 		try {
 			logger.info("SyncInventoryToDB,Controller,start.");
-			incrInventoryService.SyncInventoryToDB();
+			incrInventoryService.syncInventoryToDB();
 			result.setCode(ResponseResult.SUCCESS);
 			result.setMessage("SyncInventoryToDB successfully.");
 			logger.info("SyncInventoryToDB,Controller,end.");

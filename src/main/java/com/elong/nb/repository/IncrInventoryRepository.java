@@ -53,11 +53,11 @@ import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 @Repository
 public class IncrInventoryRepository {
 
-	private static final Logger logger = Logger.getLogger("syncIncrInventoryLogger");
+	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
 
 	private static final int MAXDAYS = 90;
 
-	private boolean IsToRetryInventoryDetailRequest;
+	private boolean isToRetryInventoryDetailRequest;
 
 	private Set<String> filteredSHotelIds = new HashSet<String>();
 
@@ -65,13 +65,13 @@ public class IncrInventoryRepository {
 	private IncrInventoryDao incrInventoryDao;
 
 	@Resource
-	private IProductForPartnerServiceContract ProductForPartnerServiceContract;
+	private IProductForPartnerServiceContract productForPartnerServiceContract;
 
 	@Resource
-	private IProductForPartnerServiceContract ProductForPartnerServiceContractForList;
+	private IProductForPartnerServiceContract productForPartnerServiceContractForList;
 
 	@Resource
-	private M_SRelationRepository M_SRelationRepository;
+	private M_SRelationRepository msRelationRepository;
 
 	@Resource
 	private CommonRepository commonRepository;
@@ -81,7 +81,7 @@ public class IncrInventoryRepository {
 	 * @param table
 	 * @param expireDate
 	 */
-	public int DeleteExpireIncrData(String table, Date expireDate) {
+	public int deleteExpireIncrData(Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrInventory DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
@@ -91,10 +91,10 @@ public class IncrInventoryRepository {
 		params.put("limit", limit);
 		int result = 0;
 		int count = 0;
-		count = incrInventoryDao.DeleteExpireIncrData(params);
+		count = incrInventoryDao.deleteExpireIncrData(params);
 		result += count;
 		while (count == limit) {
-			count = incrInventoryDao.DeleteExpireIncrData(params);
+			count = incrInventoryDao.deleteExpireIncrData(params);
 		}
 		logger.info("IncrInventory delete successfully,expireDate = " + expireDate);
 		return result;
@@ -106,10 +106,10 @@ public class IncrInventoryRepository {
 	 * @param lastChangeTime
 	 * @return
 	 */
-	public long GetInventoryChangeMinID(Date lastChangeTime) {
+	public long getInventoryChangeMinID(Date lastChangeTime) {
 		GetInventoryChangeMinIDRequest request = new GetInventoryChangeMinIDRequest();
 		request.setLastUpdateTime(new DateTime(lastChangeTime.getTime()));
-		GetInventoryChangeMinIDResponse response = ProductForPartnerServiceContract.getInventoryChangeMinID(request);
+		GetInventoryChangeMinIDResponse response = productForPartnerServiceContract.getInventoryChangeMinID(request);
 		if (response.getResult().getResponseCode() == 0) {
 			return response.getMinID();
 		} else if (response.getMinID() == Long.MAX_VALUE) {
@@ -125,10 +125,10 @@ public class IncrInventoryRepository {
 	 * @param changID
 	 * @return
 	 */
-	public long SyncInventoryToDB(long changID) {
+	public long syncInventoryToDB(long changID) {
 		GetInventoryChangeListRequest request = new GetInventoryChangeListRequest();
 		request.setId(changID);
-		List<InventoryChangeModel> changeList = ProductForPartnerServiceContractForList.getInventoryChangeList(request)
+		List<InventoryChangeModel> changeList = productForPartnerServiceContractForList.getInventoryChangeList(request)
 				.getInventoryChangeList().getInventoryChangeModel();
 		int changeListSize = changeList == null ? 0 : changeList.size();
 		logger.info("changeList size = " + changeListSize + ",from wcf [ProductForPartnerServiceContractForList.getInventoryChangeList]");
@@ -154,7 +154,7 @@ public class IncrInventoryRepository {
 
 		if (changeList != null && changeList.size() > 0) {
 			// 填充全局变量FilteredSHotelIds
-			filteredSHotelIds = commonRepository.FillFilteredSHotelsIds();
+			filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 
 			// 最大支持300线程并行
 			int maximumPoolSize = changeList.size() < 300 ? changeList.size() : 300;
@@ -196,7 +196,7 @@ public class IncrInventoryRepository {
 				for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 					int startNum = (pageIndex - 1) * pageSize;
 					int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-					successCount += incrInventoryDao.BulkInsert(rows.subList(startNum, endNum));
+					successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
 				}
 				logger.info("IncrInventory BulkInsert end,successCount = " + successCount);
 			}
@@ -245,18 +245,18 @@ public class IncrInventoryRepository {
 			request.setBeginTime(changeModel.getBeginTime());
 			request.setEndTime(changeModel.getEndTime());
 			request.setRoomTypeIDs(changeModel.getRoomTypeID());
-			GetInventoryChangeDetailResponse response = ProductForPartnerServiceContract.getInventoryChangeDetail(request);
+			GetInventoryChangeDetailResponse response = productForPartnerServiceContract.getInventoryChangeDetail(request);
 
 			List<ResourceInventoryState> ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			// retry
 			if (ResourceInventoryStateList == null || ResourceInventoryStateList.size() == 0) {
 				logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
-				if (IsToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
+				if (isToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
 					Thread.sleep(2000);
-					response = ProductForPartnerServiceContract.getInventoryChangeDetail(request);
+					response = productForPartnerServiceContract.getInventoryChangeDetail(request);
 				}
 			}
-			String MHotelId = this.M_SRelationRepository.GetMHotelId(changeModel.getHotelID());
+			String MHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
 			ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			if (ResourceInventoryStateList != null && ResourceInventoryStateList.size() > 0) {
 				for (ResourceInventoryState detail : ResourceInventoryStateList) {

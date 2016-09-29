@@ -34,13 +34,13 @@ public interface IncrStateDao {
 	 * @param limit
 	 * @return 返回删除数量
 	 */
-	public int DeleteExpireIncrData(Map<String, Object> params);
+	public int deleteExpireIncrData(Map<String, Object> params);
 
 	/** 
 	 * 批量插入IncrState
 	 *
 	 * @param incrRates
 	 */
-	public int BulkInsert(List<Map<String, Object>> incrStates);
+	public int bulkInsert(List<Map<String, Object>> incrStates);
 
 }

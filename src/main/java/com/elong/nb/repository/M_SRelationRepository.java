@@ -43,9 +43,9 @@ public class M_SRelationRepository {
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
-	private INorthBoundForAPIService NorthBoundForAPIService;
+	private INorthBoundForAPIService northBoundForAPIService;
 
-	public String GetMHotelId(String sHotelID) {
+	public String getMHotelId(String sHotelID) {
 		String res = redisManager.hashGet(RedisKeyConst.KEY_ID_S_M_CacheKey, sHotelID);
 
 		if (StringUtils.isEmpty(res)) {
@@ -58,8 +58,8 @@ public class M_SRelationRepository {
 		return res;
 	}
 
-	public void ResetHotelMSCache(String mhotelId) {
-		List<NB_M_SRelation> relatioins = GetMSHotelRelation(mhotelId, null);
+	public void resetHotelMSCache(String mhotelId) {
+		List<NB_M_SRelation> relatioins = getMSHotelRelation(mhotelId, null);
 		// region 去掉已关闭的酒店关联，M酒店和S酒店
 		List<NB_M_SRelation> noClosedHotel = new ArrayList<NB_M_SRelation>();
 		if (relatioins != null && relatioins.size() > 0) {
@@ -100,13 +100,13 @@ public class M_SRelationRepository {
 		}
 	}
 
-	private List<NB_M_SRelation> GetMSHotelRelation(String mHotelId, String sHotelId) {
+	private List<NB_M_SRelation> getMSHotelRelation(String mHotelId, String sHotelId) {
 		List<NB_M_SRelation> nbm_slist = new ArrayList<NB_M_SRelation>();
 
 		GetMSRelationRequest req = new GetMSRelationRequest();
 		req.setMHotelID(mHotelId);
 		req.setSHotelID(sHotelId);
-		GetMSRelationResponse res = NorthBoundForAPIService.getMHotelSHotelRelations(req);
+		GetMSRelationResponse res = northBoundForAPIService.getMHotelSHotelRelations(req);
 		if (res != null && res.getRelations() != null && res.getRelations().getMSRelation() != null
 				&& res.getRelations().getMSRelation().size() > 0) {
 			for (MSRelation m_s : res.getRelations().getMSRelation()) {

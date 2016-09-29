@@ -38,7 +38,7 @@ import com.elong.nb.util.DateUtils;
 @Service
 public class IncrStateServiceImpl implements IIncrStateService {
 
-	private static final Logger logger = Logger.getLogger("syncIncrStateLogger");
+	private static final Logger logger = Logger.getLogger("IncrStateLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
@@ -52,10 +52,10 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	 * @see com.elong.nb.service.IIncrStateService#SyncStateToDB()    
 	 */
 	@Override
-	public void SyncStateToDB() {
+	public void syncStateToDB() {
 		if (DateTime.now().getHourOfDay() == 1 && DateTime.now().getMinuteOfHour() < 10) {
 			// 删除过期数据
-			int count = incrStateRepository.DeleteExpireIncrData("IncrState", DateUtils.getDBExpireDate());
+			int count = incrStateRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
 			logger.info("IncrState delete successfully, count = " + count);
 		}
 
@@ -67,7 +67,7 @@ public class IncrStateServiceImpl implements IIncrStateService {
 		logger.info("SyncRatesToDB,startTime = " + DateUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss") + ",endTime = "
 				+ DateUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss"));
 		if (endTime.compareTo(startTime) > 0) {
-			SyncStateToDB(startTime, endTime);
+			syncStateToDB(startTime, endTime);
 			redisManager.put(RedisKeyConst.StateSyncTimeKey_CacheKey, endTime);
 			logger.info("put to redis successfully.key = " + RedisKeyConst.StateSyncTimeKey_CacheKey + ",value = " + endTime);
 		} else {
@@ -81,15 +81,15 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	 * @param startTime
 	 * @param endTime
 	 */
-	private void SyncStateToDB(Date startTime, Date endTime) {
+	private void syncStateToDB(Date startTime, Date endTime) {
 		String startTimeStr = DateUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss");
 		String endTimeStr = DateUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss");
-		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "HotelId");
-		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "HotelCode");
-		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "RoomId");
-		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "RoomTypeId");
-		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "RatePlanId");
-		incrStateRepository.SyncStateToDB(startTimeStr, endTimeStr, "RatePlanPolicy");
+		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "HotelId");
+		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "HotelCode");
+		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "RoomId");
+		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "RoomTypeId");
+		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "RatePlanId");
+		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "RatePlanPolicy");
 	}
 
 }

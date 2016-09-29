@@ -33,7 +33,7 @@ import com.elong.nb.util.DateUtils;
 @Service
 public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
-	private static final Logger logger = Logger.getLogger("syncIncrInventoryLogger");
+	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
@@ -47,12 +47,12 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	 * @see com.elong.nb.service.IIncrInventoryService#SyncInventoryToDB()    
 	 */
 	@Override
-	public void SyncInventoryToDB() {
+	public void syncInventoryToDB() {
 		// 删除30小时以前的数据
-		int count = incrInventoryRepository.DeleteExpireIncrData("IncrInventory", DateUtils.getDBExpireDate());
+		int count = incrInventoryRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
 		logger.info("IncrInventory delete successfully.count = " + count);
 
-		SyncInventoryToDB(0);
+		syncInventoryToDB(0);
 	}
 
 	/** 
@@ -63,16 +63,16 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	 * @see com.elong.nb.service.IIncrInventoryService#SyncInventoryToDB(long)    
 	 */
 	@Override
-	public void SyncInventoryToDB(long changeID) {
+	public void syncInventoryToDB(long changeID) {
 		if (changeID == 0) {
 			changeID = Long.valueOf(redisManager.getStr(RedisKeyConst.KEY_Inventory_LastID_CacheKey));
 			logger.info("get changeID = " + changeID + ",from redis key = " + RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey());
 		}
 		if (changeID == 0) {
-			changeID = incrInventoryRepository.GetInventoryChangeMinID(DateUtils.getCacheExpireDate());
+			changeID = incrInventoryRepository.getInventoryChangeMinID(DateUtils.getCacheExpireDate());
 			logger.info("get changeID = " + changeID + ",from wcf [ProductForPartnerServiceContract.getInventoryChangeMinID]");
 		}
-		long newLastChgID = incrInventoryRepository.SyncInventoryToDB(changeID);
+		long newLastChgID = incrInventoryRepository.syncInventoryToDB(changeID);
 		logger.info("SyncInventoryToDB,change: " + changeID + " ===> " + newLastChgID);
 
 		long incred = newLastChgID - changeID;
@@ -82,7 +82,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			logger.info("put to redis key = " + RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey() + ",value = " + newLastChgID);
 			if (incred > 100) {
 				// 继续执行
-				SyncInventoryToDB(newLastChgID);
+				syncInventoryToDB(newLastChgID);
 			}
 		}
 	}
