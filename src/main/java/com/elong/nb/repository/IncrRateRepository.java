@@ -5,7 +5,6 @@
  */
 package com.elong.nb.repository;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -111,8 +110,7 @@ public class IncrRateRepository {
 
 			String shotelId = (String) rowMap.get("HotelCode");
 			if (filteredSHotelIds.contains(shotelId)) {
-				String message = MessageFormat.format("CQ FilteredSHotelID：{0}", shotelId);
-				logger.info("SyncRatesToDB," + message);
+				logger.info("filteredSHotelIds contain value[" + shotelId + "],ignore it.");
 				continue;
 			}
 

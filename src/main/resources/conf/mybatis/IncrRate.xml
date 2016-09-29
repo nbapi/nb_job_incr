@@ -28,13 +28,11 @@
 	</select>
 
 	<!-- 批量插入IncrRate -->
-	<insert id="bulkInsert" parameterType="java.util.List"
-		useGeneratedKeys="false">
+	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
 		insert into IncrRate
 		(IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID)
 		values
-		<foreach collection="list" item="incrRate" index="index"
-			separator=",">
+		<foreach collection="list" item="incrRate" index="index" separator=",">
 			(
 			#{incrRate.IncrID,jdbcType=BIGINT},
 			#{incrRate.ChangeID,jdbcType=BIGINT},

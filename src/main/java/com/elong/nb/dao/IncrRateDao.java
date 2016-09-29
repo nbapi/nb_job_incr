@@ -31,17 +31,16 @@ public interface IncrRateDao {
 	/** 
 	 * 删除过期IncrRate
 	 *
-	 * @param expireDate
-	 * @param limit
 	 * @return 返回删除数量
 	 */
 	public int deleteExpireIncrData(Map<String, Object> params);
 
 	/** 
-	 *
-	 * @param changTime 获取大于指定changTime的最早发生变化的房价增量
-	 * @param incrID 获取大于指定incrID的maxRecordCount条房价增量
-	 * @param maxRecordCount
+	 * changTime 获取大于指定changTime的最早发生变化的房价增量
+	 * incrID 获取大于指定incrID的maxRecordCount条房价增量	
+	 * maxRecordCount 返回记录数
+	 * 
+	 * @param params
 	 * @return
 	 */
 	public List<IncrRate> getIncrRates(Map<String, Object> params);
