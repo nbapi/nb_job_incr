@@ -139,7 +139,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 						incrHotelRepository.SyncIncrHotelToDB(hotels);
 					}
 				} catch (Exception e) {
-					logger.error("incr.SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
+					logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
 				}
 			}
 		});
@@ -147,12 +147,12 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 		executorService.shutdown();
 		try {
 			while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-				logger.info("incr.SyncHotelToDB,线程池没有关闭");
+				logger.info("thread-pool has not been closed yet.");
 			}
 		} catch (InterruptedException e) {
-			logger.error("incr.SyncHotelToDB,awaitTermination error = " + e.getMessage(), e);
+			logger.error("SyncHotelToDB,awaitTermination error = " + e.getMessage(), e);
 		}
-		logger.info("incr.SyncHotelToDB,线程池已经关闭");
+		// logger.info("thread-pool has been closed.");
 	}
 
 	/** 

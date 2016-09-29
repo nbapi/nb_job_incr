@@ -172,7 +172,7 @@ public class IncrInventoryRepository {
 			executorService.shutdown();
 			try {
 				while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-					logger.info("thread-pool has not been closed yet.");
+//					logger.info("thread-pool has not been closed yet.");
 				}
 			} catch (InterruptedException e) {
 				logger.error(e.getMessage(), e);
