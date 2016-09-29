@@ -3,6 +3,7 @@
 <mapper namespace="com.elong.nb.dao.SqlServerDataDao">
 
 	<select id="getDataFromPriceInfoTrack" resultType="java.util.HashMap">
+		<!-- TODO 正式上线前改为10000 -->
 		select top 1000 ID ChangeID,InsertTime
 				ChangeTime,OperateTime,RoomTypeID,RatePlanID as RateplanID,HotelID
 				HotelCode,BeginDate StartDate,EndDate,IsEffective Status,GenSalePrice

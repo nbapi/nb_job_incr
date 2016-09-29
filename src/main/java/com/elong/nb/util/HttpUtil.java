@@ -7,6 +7,7 @@ package com.elong.nb.util;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -37,6 +38,7 @@ public class HttpUtil {
 
 	public static String httpPost(String reqUrl, String reqData) throws Exception {
 		HttpURLConnection conn = null;
+		BufferedReader reader = null;
 		try {
 			URL url = new URL(reqUrl);
 			conn = (HttpURLConnection) url.openConnection();
@@ -54,7 +56,7 @@ public class HttpUtil {
 			out.write(reqData.getBytes("UTF-8"));
 			out.flush();
 			out.close();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
 			String lines;
 			StringBuilder sb = new StringBuilder();
 			while ((lines = reader.readLine()) != null)
@@ -65,6 +67,14 @@ public class HttpUtil {
 			throw ex;
 
 		} finally {
+			if (null != reader) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
+					throw e;
+				}
+			}
 			if (null != conn)
 				try {
 					conn.disconnect();
@@ -117,6 +127,7 @@ public class HttpUtil {
 
 	public static String httpGetData(String reqUrl) throws Exception {
 		HttpURLConnection conn = null;
+		BufferedReader in = null;
 		logger.info("[HTTPGET]开始访问" + reqUrl);
 		try {
 			long start = System.currentTimeMillis();
@@ -133,7 +144,7 @@ public class HttpUtil {
 				logger.info("http访问错误:" + reqUrl);
 				throw new RuntimeException("http访问错误,返回码：" + code);
 			}
-			BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			StringBuffer buffer = new StringBuffer();
 			String line;
 			if ((line = in.readLine()) != null) {
@@ -150,6 +161,14 @@ public class HttpUtil {
 			ex.printStackTrace();
 			throw ex;
 		} finally {
+			if (null != in) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
+					throw e;
+				}
+			}
 			if (null != conn)
 				try {
 					conn.disconnect();

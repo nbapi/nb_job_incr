@@ -75,9 +75,9 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 			public void run() {
 				try {
 					while (true) {
-						List<IncrInventory> inventorys = new ArrayList<IncrInventory>();
 						IncrHotel hotel = incrHotelRepository.GetLastHotel(triggerInventory);
 						logger.info("Trigger = " + triggerInventory + ",lastHotel = " + JSON.toJSONString(hotel));
+						List<IncrInventory> inventorys = null;
 						if (hotel == null) {
 							inventorys = incrHotelRepository.GetIncrInventories(DateUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
@@ -112,9 +112,9 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 			public void run() {
 				try {
 					while (true) {
-						List<IncrRate> rates = new ArrayList<IncrRate>();
 						IncrHotel hotel = incrHotelRepository.GetLastHotel(triggerRate);
 						logger.info("Trigger = " + triggerRate + ",lastHotel = " + JSON.toJSONString(hotel));
+						List<IncrRate> rates = null;
 						if (hotel == null) {
 							rates = incrHotelRepository.GetIncrRates(DateUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
@@ -147,12 +147,12 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 		executorService.shutdown();
 		try {
 			while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-				logger.info("thread-pool has not been closed yet.");
+				// logger.info("thread-pool has not been closed yet.");
 			}
 		} catch (InterruptedException e) {
 			logger.error("SyncHotelToDB,awaitTermination error = " + e.getMessage(), e);
 		}
-		// logger.info("thread-pool has been closed.");
+		logger.info("thread-pool has been closed.");
 	}
 
 	/** 
@@ -271,7 +271,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 			incrHotel.setInsertTime(tempHotel.getInsertTime());
 			resultlist.add(incrHotel);
 		}
-		logger.info("after filterDuplicationHotel,count = " + hotels.size());
+		logger.info("after filterDuplicationHotel,count = " + resultlist.size());
 		return resultlist;
 	}
 
