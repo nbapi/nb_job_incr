@@ -128,7 +128,6 @@ public class IncrInventoryRepository {
 	public long syncInventoryToDB(long changID) {
 		GetInventoryChangeListRequest request = new GetInventoryChangeListRequest();
 		request.setId(changID);
-		
 		long startTime = new Date().getTime();
 		List<InventoryChangeModel> changeList = productForPartnerServiceContractForList.getInventoryChangeList(request)
 				.getInventoryChangeList().getInventoryChangeModel();
@@ -181,7 +180,7 @@ public class IncrInventoryRepository {
 				});
 			}
 			endTime = new Date().getTime();
-			logger.info("use time = " + (endTime - startTime) + ",executorService");
+			logger.info("use time = " + (endTime - startTime) + ",executorService submit task");
 			executorService.shutdown();
 			try {
 				while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
@@ -204,6 +203,7 @@ public class IncrInventoryRepository {
 				endTime = new Date().getTime();
 				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
 
+				//TODO
 				int pageSize = 1000;
 				int recordCount = rows.size();
 				logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
@@ -217,7 +217,7 @@ public class IncrInventoryRepository {
 				}
 				logger.info("IncrInventory BulkInsert end,successCount = " + successCount);
 				endTime = new Date().getTime();
-				logger.info("use time = " + (endTime - startTime) + ",IncrInventory BulkInsert");
+				logger.info("use time = " + (endTime - startTime) + ",IncrInventory BulkInsert,successCount = " + successCount);
 			}
 			// ID排序，去最大ID
 			if (changeList != null && changeList.size() > 0) {
@@ -281,8 +281,8 @@ public class IncrInventoryRepository {
 			if (ResourceInventoryStateList == null || ResourceInventoryStateList.size() == 0) {
 				logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
 				if (isToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
-					Thread.sleep(2000);
 					startTime = new Date().getTime();
+					Thread.sleep(2000);
 					response = productForPartnerServiceContract.getInventoryChangeDetail(request);
 					endTime = new Date().getTime();
 					logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",retry productForPartnerServiceContract.getInventoryChangeDetail");

@@ -1,5 +1,6 @@
 package com.elong.nb.test;
 
+import java.text.ParseException;
 import java.util.Calendar;
 
 import org.junit.Test;
@@ -24,8 +25,13 @@ public class SyncIncrTestCase {
 		// } catch (Exception e) {
 		// e.printStackTrace();
 		// }
-
-		System.out.println(JSON.toJSONString(DateUtils.getOffsetDate(Calendar.HOUR, -1)));
+		String orderTimestamp = "2016-09-30 16:49:32.837";
+		
+		try {
+			System.out.println(org.apache.commons.lang.time.DateUtils.parseDate(orderTimestamp, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.SSS", }));
+		} catch (ParseException e) {
+			System.out.println("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']");
+		}
+		
 	}
-
 }

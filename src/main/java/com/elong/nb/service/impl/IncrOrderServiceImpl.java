@@ -182,9 +182,11 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			errorList.add("orderTimestamp is null or empty.");
 		} else {
 			try {
-				DateUtils.parseDate(orderTimestamp, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
+				DateUtils.parseDate(orderTimestamp, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss",
+						"yyyy-MM-dd HH:mm:ss.SSS" });
 			} catch (ParseException e) {
-				errorList.add("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']");
+				errorList
+						.add("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss','yyyy-MM-dd HH:mm:ss.SSS']");
 			}
 		}
 		if (orderId == null) {
@@ -214,14 +216,16 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		try {
 			String orderTimestamp = (String) sourceMap.get("orderTimestamp");
-			Date ChangeTime = DateUtils.parseDate(orderTimestamp, new String[] { "yyyy-MM-dd HH:mm:ss.SSS","yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
+			Date ChangeTime = DateUtils.parseDate(orderTimestamp, new String[] { "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd HH:mm:ss:SSS",
+					"yyyy-MM-dd HH:mm:ss" });
 			targetMap.put("ChangeTime", ChangeTime);
 		} catch (ParseException e) {
 			logger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 
 		targetMap.put("OrderId", sourceMap.get("orderId"));
-		targetMap.put("AffiliateConfirmationId", sourceMap.get("sourceOrderId")==null?StringUtils.EMPTY:sourceMap.get("sourceOrderId"));
+		targetMap.put("AffiliateConfirmationId",
+				sourceMap.get("sourceOrderId") == null ? StringUtils.EMPTY : sourceMap.get("sourceOrderId"));
 		targetMap.put("Status", sourceMap.get("status"));
 		try {
 			String checkInDate = (String) sourceMap.get("checkInDate");

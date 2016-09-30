@@ -57,8 +57,6 @@ public class SyncIncrOrdersController {
 		try {
 			logger.info("SyncIncrOrders,Controller,start.");
 			final String message = request.getParameter("message");
-			// final String message =
-			// "{\"businessSystemId\":3,\"orderId\":300315525,\"preStatus\":\"V\",\"status\":\"F\",\"changeEvent\":[\"BaseOrderStatusChange\"],\"orderTimestamp\":\"2016-01-07 10:02:34:153\",\"payment\":\"D\",\"checkInDate\":\"2016-01-05 00:00:00\",\"checkOutDate\":\"2016-01-12 00:00:00\",\"roomCount\":1,\"sHotelId\":\"90000332\",\"additionalStatus\":1073750272,\"addtionalStatusI\":1073741824}";
 			logger.info("SyncIncrOrders,Controller,message = " + message);
 
 			messageResponse = incrOrderService.checkMessage(message);

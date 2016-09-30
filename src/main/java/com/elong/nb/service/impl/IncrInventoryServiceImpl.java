@@ -51,9 +51,12 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	@Override
 	public void syncInventoryToDB() {
 		// 删除30小时以前的数据
+		long startTime = new Date().getTime();
 		int count = incrInventoryRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
 		logger.info("IncrInventory delete successfully.count = " + count);
-
+		long endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",IncrInventory delete successfully.count = " + count);
+		// 递归同步数据
 		syncInventoryToDB(0);
 	}
 
@@ -81,16 +84,19 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			long endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",incrInventoryRepository.getInventoryChangeMinID");
 		}
+		long startTime = new Date().getTime();
 		long newLastChgID = incrInventoryRepository.syncInventoryToDB(changeID);
-		logger.info("SyncInventoryToDB,change: " + changeID + " ===> " + newLastChgID);
+		logger.info("syncInventoryToDB,change: " + changeID + " ===> " + newLastChgID);
+		long endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",syncInventoryToDB,change: from " + changeID + " to " + newLastChgID);
 
 		long incred = newLastChgID - changeID;
 		if (incred > 0) {
 			// 更新LastID
-			long startTime = new Date().getTime();
+			startTime = new Date().getTime();
 			redisManager.put(RedisKeyConst.KEY_Inventory_LastID_CacheKey, newLastChgID);
 			logger.info("put to redis key = " + RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey() + ",value = " + newLastChgID);
-			long endTime = new Date().getTime();
+			endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",put to redis key" + ",incred = " + incred);
 			if (incred > 100) {
 				// 继续执行
