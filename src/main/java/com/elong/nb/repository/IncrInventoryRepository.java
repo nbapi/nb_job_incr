@@ -128,13 +128,18 @@ public class IncrInventoryRepository {
 	public long syncInventoryToDB(long changID) {
 		GetInventoryChangeListRequest request = new GetInventoryChangeListRequest();
 		request.setId(changID);
+		
+		long startTime = new Date().getTime();
 		List<InventoryChangeModel> changeList = productForPartnerServiceContractForList.getInventoryChangeList(request)
 				.getInventoryChangeList().getInventoryChangeModel();
 		int changeListSize = changeList == null ? 0 : changeList.size();
 		logger.info("changeList size = " + changeListSize + ",from wcf [ProductForPartnerServiceContractForList.getInventoryChangeList]");
+		long endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",productForPartnerServiceContractForList.getInventoryChangeList");
 
 		List<InventoryChangeModel> filterChangeList = new ArrayList<InventoryChangeModel>();
 		if (changeList != null && changeList.size() > 0) {
+			startTime = new Date().getTime();
 			// 解决订阅库延时问题，获取明细时延时3分钟
 			String InventoryChangeDelayMinutes = PropertiesHelper.getEnvProperties("InventoryChangeDelayMinutes", "config").toString();
 			InventoryChangeDelayMinutes = StringUtils.isEmpty(InventoryChangeDelayMinutes) ? "10" : InventoryChangeDelayMinutes;
@@ -150,15 +155,21 @@ public class IncrInventoryRepository {
 			int filterChangeListSize = filterChangeList == null ? 0 : filterChangeList.size();
 			logger.info("filterChangeList size = " + filterChangeListSize + ",after dohandler InventoryChangeDelayMinutes = "
 					+ InventoryChangeDelayMinutes);
+			endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",dohandler InventoryChangeDelay");
 		}
 
 		if (changeList != null && changeList.size() > 0) {
 			// 填充全局变量FilteredSHotelIds
+			startTime = new Date().getTime();
 			filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
+			endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",commonRepository.fillFilteredSHotelsIds");
 
 			// 最大支持300线程并行
 			int maximumPoolSize = changeList.size() < 300 ? changeList.size() : 300;
 			logger.info("maximumPoolSize = " + maximumPoolSize);
+			startTime = new Date().getTime();
 			ExecutorService executorService = ExecutorUtils.newSelfThreadPool(maximumPoolSize, 400);
 			final List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
 			for (final InventoryChangeModel changeModel : changeList) {
@@ -169,6 +180,8 @@ public class IncrInventoryRepository {
 					}
 				});
 			}
+			endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",executorService");
 			executorService.shutdown();
 			try {
 				while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
@@ -217,7 +230,11 @@ public class IncrInventoryRepository {
 	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows) {
 		String threadName = Thread.currentThread().getName();
 		try {
-			if (this.filteredSHotelIds.contains(changeModel.getHotelID())) {
+			long startTime = new Date().getTime();
+			boolean isFileterd = this.filteredSHotelIds.contains(changeModel.getHotelID());
+			long endTime = new Date().getTime();
+			logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",filteredSHotelIds.contains");
+			if (isFileterd) {
 //				logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;
 			}
@@ -245,7 +262,10 @@ public class IncrInventoryRepository {
 			request.setBeginTime(changeModel.getBeginTime());
 			request.setEndTime(changeModel.getEndTime());
 			request.setRoomTypeIDs(changeModel.getRoomTypeID());
+			startTime = new Date().getTime();
 			GetInventoryChangeDetailResponse response = productForPartnerServiceContract.getInventoryChangeDetail(request);
+			endTime = new Date().getTime();
+			logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",productForPartnerServiceContract.getInventoryChangeDetail");
 
 			List<ResourceInventoryState> ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			// retry
@@ -253,12 +273,19 @@ public class IncrInventoryRepository {
 				logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
 				if (isToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
 					Thread.sleep(2000);
+					startTime = new Date().getTime();
 					response = productForPartnerServiceContract.getInventoryChangeDetail(request);
+					endTime = new Date().getTime();
+					logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",retry productForPartnerServiceContract.getInventoryChangeDetail");
 				}
 			}
+			startTime = new Date().getTime();
 			String MHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
+			endTime = new Date().getTime();
+			logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
 			ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			if (ResourceInventoryStateList != null && ResourceInventoryStateList.size() > 0) {
+				startTime = new Date().getTime();
 				for (ResourceInventoryState detail : ResourceInventoryStateList) {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
@@ -280,8 +307,11 @@ public class IncrInventoryRepository {
 						rows.add(row);
 					}
 				}
+				endTime = new Date().getTime();
+				logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",build rowMap one.");
 			} else {
 				DateTime date = changeModel.getBeginTime();
+				startTime = new Date().getTime();
 				while (date.compareTo(changeModel.getEndTime()) < 0) {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
@@ -304,6 +334,8 @@ public class IncrInventoryRepository {
 					}
 					date = date.plusDays(1);
 				}
+				endTime = new Date().getTime();
+				logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",build rowMap two.");
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
