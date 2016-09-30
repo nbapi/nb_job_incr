@@ -218,7 +218,7 @@ public class IncrInventoryRepository {
 		String threadName = Thread.currentThread().getName();
 		try {
 			if (this.filteredSHotelIds.contains(changeModel.getHotelID())) {
-				logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
+//				logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;
 			}
 			// #region 仅提供昨天和最近90天的房态数据 判断开始结束时间段是否在昨天和MaxDays之内

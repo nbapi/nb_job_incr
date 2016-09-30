@@ -110,7 +110,7 @@ public class IncrRateRepository {
 
 			String shotelId = (String) rowMap.get("HotelCode");
 			if (filteredSHotelIds.contains(shotelId)) {
-				logger.info("filteredSHotelIds contain value[" + shotelId + "],ignore it.");
+				// logger.info("filteredSHotelIds contain value[" + shotelId + "],ignore it.");
 				continue;
 			}
 

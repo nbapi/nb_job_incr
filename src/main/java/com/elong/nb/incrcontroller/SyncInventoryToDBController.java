@@ -46,7 +46,7 @@ public class SyncInventoryToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncInventoryToDB")
-	public @ResponseBody String SyncInventoryToDB() {
+	public @ResponseBody String syncInventoryToDB() {
 		long startTime = new Date().getTime();
 		ResponseResult result = new ResponseResult();
 		try {

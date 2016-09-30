@@ -46,7 +46,7 @@ public class SyncStateToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncStateToDB")
-	public @ResponseBody String SyncStateToDB() {
+	public @ResponseBody String syncStateToDB() {
 		long startTime = new Date().getTime();
 		ResponseResult result = new ResponseResult();
 		try {

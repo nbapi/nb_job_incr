@@ -12,7 +12,7 @@
 				WeekendCost,CASE WHEN
 				AllowAddBed=1 THEN AddBedPrice ELSE -1 END
 				AddBed,CurrencyCode,PriceID
-		  from PriceInfo_track
+		  from dbo.PriceInfo_LastChange PriceInfo_track
 		<where>
 			and datatype=0
 			<if test="InsertTime != null and !InsertTime.equals('')">

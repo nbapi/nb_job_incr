@@ -46,7 +46,7 @@ public class SyncRatesToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncRatesToDB")
-	public @ResponseBody String SyncRatesToDB() {
+	public @ResponseBody String syncRatesToDB() {
 		long startTime = new Date().getTime();
 		ResponseResult result = new ResponseResult();
 		try {
@@ -56,6 +56,7 @@ public class SyncRatesToDBController {
 			result.setMessage("SyncRatesToDB successfully.");
 			logger.info("SyncRatesToDB,Controller,end.");
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error("SyncRatesToDB,Controller,error = " + e.getMessage(), e);
 			result.setCode(ResponseResult.FAILURE);
 			result.setMessage(e.getMessage());

@@ -46,7 +46,7 @@ public class SyncHotelToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncHotelToDB")
-	public @ResponseBody String SyncHotelToDB() {
+	public @ResponseBody String syncHotelToDB() {
 		long startTime = new Date().getTime();
 		ResponseResult result = new ResponseResult();
 		try {

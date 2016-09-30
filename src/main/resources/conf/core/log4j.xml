@@ -11,7 +11,7 @@
 
 	<!--syncIncrInventory appender -->
 	<appender name="syncIncrInventoryAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrInventory.log" />
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrInventory.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
@@ -22,7 +22,7 @@
 	</appender>
 	<!--syncIncrOrder appender -->
 	<appender name="syncIncrOrderAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrOrder.log" />
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrOrder.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
@@ -33,7 +33,7 @@
 	</appender>
 	<!--syncIncrHotel appender -->
 	<appender name="syncIncrHotelAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrHotel.log" />
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrHotel.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
@@ -44,7 +44,7 @@
 	</appender>
 	<!--syncIncrState appender -->
 	<appender name="syncIncrStateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrState.log" />
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrState.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
@@ -55,7 +55,7 @@
 	</appender>
 	<!--syncIncrRate appender -->
 	<appender name="syncIncrRateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrlog/syncIncrRate.log" />
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrRate.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
