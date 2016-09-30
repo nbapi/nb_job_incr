@@ -5,13 +5,13 @@
 	<select id="getDataFromPriceInfoTrack" resultType="java.util.HashMap">
 		<!-- TODO 正式上线前改为10000 -->
 		select top 1000 ID ChangeID,InsertTime
-				ChangeTime,OperateTime,RoomTypeID,RatePlanID as RateplanID,HotelID
-				HotelCode,BeginDate StartDate,EndDate,IsEffective Status,GenSalePrice
+				ChangeTime,OperateTime,isnull(RoomTypeID,'') RoomTypeID,isnull(RatePlanID,'') as RateplanID,isnull(HotelID,'')
+				HotelCode,BeginDate StartDate,EndDate,isnull(IsEffective,'') Status,isnull(GenSalePrice,0)
 				Member,
-				WeekendSalePrice Weekend,GenSaleCost MemberCost,WeekendSaleCost
-				WeekendCost,CASE WHEN
-				AllowAddBed=1 THEN AddBedPrice ELSE -1 END
-				AddBed,CurrencyCode,PriceID
+				isnull(WeekendSalePrice,0) Weekend,isnull(GenSaleCost,0) MemberCost,isnull(WeekendSaleCost,0)
+				WeekendCost,isnull(CASE WHEN
+				AllowAddBed=1 THEN AddBedPrice ELSE -1 END,0)
+				AddBed,isnull(CurrencyCode,'') CurrencyCode,isnull(PriceID,0) PriceID
 		  from PriceInfo_track
 		<where>
 			and datatype=0
