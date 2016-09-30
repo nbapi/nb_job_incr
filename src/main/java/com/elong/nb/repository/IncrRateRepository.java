@@ -132,7 +132,7 @@ public class IncrRateRepository {
 
 			incrRates.add(rowMap);
 		}
-		int count = 0;//incrRateDao.bulkInsert(incrRates);
+		int count = incrRateDao.bulkInsert(incrRates);
 		logger.info("IncrRate BulkInsert successfully,count = " + count);
 
 		changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");
