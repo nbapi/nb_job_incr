@@ -194,27 +194,34 @@ public class IncrInventoryRepository {
 
 			// ChangeID排序，存数据库
 			if (rows.size() > 0) {
+				startTime = new Date().getTime();
 				Collections.sort(rows, new Comparator<Map<String, Object>>() {
 					@Override
 					public int compare(Map<String, Object> o1, Map<String, Object> o2) {
 						return (int) ((long) (o1.get("ChangeID")) - (long) (o2.get("ChangeID")));
 					}
 				});
+				endTime = new Date().getTime();
+				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
 
 				int pageSize = 1000;
 				int recordCount = rows.size();
 				logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
 				int successCount = 0;
 				int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+				startTime = new Date().getTime();
 				for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 					int startNum = (pageIndex - 1) * pageSize;
 					int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
 					successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
 				}
 				logger.info("IncrInventory BulkInsert end,successCount = " + successCount);
+				endTime = new Date().getTime();
+				logger.info("use time = " + (endTime - startTime) + ",IncrInventory BulkInsert");
 			}
 			// ID排序，去最大ID
 			if (changeList != null && changeList.size() > 0) {
+				startTime = new Date().getTime();
 				Collections.sort(changeList, new Comparator<InventoryChangeModel>() {
 					@Override
 					public int compare(InventoryChangeModel o1, InventoryChangeModel o2) {
@@ -222,6 +229,8 @@ public class IncrInventoryRepository {
 					}
 				});
 				changID = changeList.get(changeList.size() - 1).getID();
+				endTime = new Date().getTime();
+				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ID");
 			}
 		}
 		return changID;
