@@ -127,7 +127,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		// 保存到IncrOrder表
 		logger.info("insert incrOrder = " + incrOrderMap);
-//		incrOrderDao.insert(incrOrderMap);
+		incrOrderDao.insert(incrOrderMap);
 		logger.info("insert incrOrder successfully.");
 	}
 

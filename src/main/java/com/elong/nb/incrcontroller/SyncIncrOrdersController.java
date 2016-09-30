@@ -60,20 +60,20 @@ public class SyncIncrOrdersController {
 			logger.info("SyncIncrOrders,Controller,message = " + message);
 
 			messageResponse = incrOrderService.checkMessage(message);
-			if (OrderMessageResponse.SUCCESS.equals(messageResponse.getResponseCode())) {
-				executor.submit(new Runnable() {
-					public void run() {
-						try {
-							incrOrderService.handlerMessage(message);
-						} catch (Exception e) {
-							logger.error("SyncIncrOrders,Controller,handlerMessage error = " + e.getMessage(), e);
-						}
-					}
-				});
-			} else if (OrderMessageResponse.IGNORE.equals(messageResponse.getResponseCode())) {
-				// 忽略数据直接返回成功
-				messageResponse.setResponseCode(OrderMessageResponse.SUCCESS);
-			}
+//			if (OrderMessageResponse.SUCCESS.equals(messageResponse.getResponseCode())) {
+//				executor.submit(new Runnable() {
+//					public void run() {
+//						try {
+//							incrOrderService.handlerMessage(message);
+//						} catch (Exception e) {
+//							logger.error("SyncIncrOrders,Controller,handlerMessage error = " + e.getMessage(), e);
+//						}
+//					}
+//				});
+//			} else if (OrderMessageResponse.IGNORE.equals(messageResponse.getResponseCode())) {
+//				// 忽略数据直接返回成功
+//				messageResponse.setResponseCode(OrderMessageResponse.SUCCESS);
+//			}
 			logger.info("SyncIncrOrders,Controller,end.");
 		} catch (Exception e) {
 			logger.error("SyncIncrOrders,Controller,error = " + e.getMessage(), e);
