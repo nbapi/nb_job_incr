@@ -8,6 +8,9 @@ package com.elong.nb.dao;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.elong.nb.db.DataSource;
 import com.elong.nb.model.bean.IncrRate;
 
@@ -33,6 +36,7 @@ public interface IncrRateDao {
 	 *
 	 * @return 返回删除数量
 	 */
+	@Transactional(propagation = Propagation.REQUIRED)
 	public int deleteExpireIncrData(Map<String, Object> params);
 
 	/** 
@@ -43,6 +47,7 @@ public interface IncrRateDao {
 	 * @param params
 	 * @return
 	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<IncrRate> getIncrRates(Map<String, Object> params);
 
 	/** 
@@ -50,6 +55,7 @@ public interface IncrRateDao {
 	 *
 	 * @param incrRates
 	 */
+	@Transactional(propagation = Propagation.REQUIRED)
 	public int bulkInsert(List<Map<String, Object>> incrRates);
 
 }

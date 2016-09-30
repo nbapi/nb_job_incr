@@ -5,6 +5,8 @@
  */
 package com.elong.nb.service.impl;
 
+import java.util.Date;
+
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -50,25 +52,34 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	@Override
 	public void syncRatesToDB() {
 		// 删除过期数据
+		long startTime = new Date().getTime();
 		int count = incrRateRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
-		logger.info("IncrRate delete successfully.count = " + count);
+		long endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",IncrRate delete successfully.count = " + count);
 
+		startTime = new Date().getTime();
 		String changIDStr = redisManager.getStr(RedisKeyConst.KEY_Rate_LastID_CacheKey);
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
-		logger.info("get changID = " + changID + ",from redis key = " + RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
+		endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",get changID = " + changID + ",from redis key = "
+				+ RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
 
 		while (true) {
+			startTime = new Date().getTime();
 			long newChangID = incrRateRepository.syncRatesToDB(changID);
-			logger.info("SyncRatesToDB," + changID + " ====> " + newChangID);
+			endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ", from " + changID + " to " + newChangID);
 			if (newChangID == changID)
 				break;
 			else {
+				startTime = new Date().getTime();
 				redisManager.put(RedisKeyConst.KEY_Rate_LastID_CacheKey, newChangID);
-				logger.info("put newChangID = " + newChangID + ",to redis key = " + RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
+				endTime = new Date().getTime();
+				logger.info("use time = " + (endTime - startTime) + ",put newChangID = " + newChangID + ",to redis key = "
+						+ RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
 				changID = newChangID;
 			}
 		}
-		logger.info("SyncRatesToDB,finished");
 	}
 
 }

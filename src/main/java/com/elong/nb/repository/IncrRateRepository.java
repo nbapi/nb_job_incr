@@ -92,9 +92,11 @@ public class IncrRateRepository {
 			params.put("InsertTime", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
 		}
 		logger.info("getDataFromPriceInfoTrack, params = " + params);
+		long startTime = new Date().getTime();
 		List<Map<String, Object>> incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
+		long endTime = new Date().getTime();
 		int incrRateListSize = (incrRateList == null) ? 0 : incrRateList.size();
-		logger.info("getDataFromPriceInfoTrack, incrRateList size = " + incrRateListSize);
+		logger.info("use time = " + (endTime - startTime) + ",getDataFromPriceInfoTrack, incrRateList size = " + incrRateListSize);
 		if (incrRateList == null || incrRateList.size() == 0)
 			return changID;
 
@@ -102,6 +104,7 @@ public class IncrRateRepository {
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		Date validDate = DateTime.now().plusYears(1).toDate();
 
+		startTime = new Date().getTime();
 		filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		for (Map<String, Object> rowMap : incrRateList) {
 			if (rowMap == null)
@@ -129,7 +132,7 @@ public class IncrRateRepository {
 
 			incrRates.add(rowMap);
 		}
-		int count = incrRateDao.bulkInsert(incrRates);
+		int count = 0;//incrRateDao.bulkInsert(incrRates);
 		logger.info("IncrRate BulkInsert successfully,count = " + count);
 
 		changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");

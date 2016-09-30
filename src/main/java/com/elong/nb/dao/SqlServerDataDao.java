@@ -8,6 +8,9 @@ package com.elong.nb.dao;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.elong.nb.db.DataSource;
 
 /**
@@ -33,6 +36,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_14")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Map<String, Object>> getDataFromPriceInfoTrack(Map<String, Object> params);
 
 	/** 
@@ -42,6 +46,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_14")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Map<String, Object>> getDataFromReserveTrack(Map<String, Object> params);
 
 	/** 
@@ -51,6 +56,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getHotelIdCount(Map<String, Object> params);
 
 	/** 
@@ -60,6 +66,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getHotelCodeCount(Map<String, Object> params);
 
 	/** 
@@ -69,6 +76,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getRoomIdCount(Map<String, Object> params);
 
 	/** 
@@ -78,6 +86,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getRoomTypeIdCount(Map<String, Object> params);
 
 	/** 
@@ -87,6 +96,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getRatePlanIdCount(Map<String, Object> params);
 
 	/** 
@@ -96,6 +106,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getRatePlanPolicyCount(Map<String, Object> params);
 
 	/** 
@@ -105,6 +116,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Map<String, Object>> getHotelIdData(Map<String, Object> params);
 
 	/** 
@@ -114,6 +126,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Map<String, Object>> getHotelCodeData(Map<String, Object> params);
 
 	/** 
@@ -123,6 +136,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Map<String, Object>> getRoomIdData(Map<String, Object> params);
 
 	/** 
@@ -132,6 +146,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Map<String, Object>> getRoomTypeIdData(Map<String, Object> params);
 
 	/** 
@@ -141,6 +156,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Map<String, Object>> getRatePlanIdData(Map<String, Object> params);
 
 	/** 
@@ -150,6 +166,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Map<String, Object>> getRatePlanPolicyData(Map<String, Object> params);
 
 }
