@@ -73,8 +73,10 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	public void handlerMessage(final String message) {
 		// 删除30小时以前的数据
 		logger.info("handlerMessage start...");
+		long startTime = new Date().getTime();
 		int count = incrOrderRepository.deleteExpireIncrData(com.elong.nb.util.DateUtils.getDBExpireDate());
-		logger.info("IncrOrder delete successfully,count = " + count);
+		long endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
 
 		// 构建请求参数
 		Map<String, Object> map = JSON.parseObject(message);
@@ -83,6 +85,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		reqData = String.format(reqData, orderId);
 
 		// 从订单中心获取订单数据
+		startTime = new Date().getTime();
 		String reqUrl = PropertiesHelper.getEnvProperties("GetOrderUrlFromOrderCenter", "config").toString();
 		logger.info("httpPost,reqUrl = " + reqUrl);
 		logger.info("httpPost,reqData = " + reqData);
@@ -93,6 +96,8 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			throw new IllegalStateException("getOrder from orderCenter error = " + e.getMessage());
 		}
 		logger.info("httpPost,result = " + result);
+		endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",httpPost");
 		JSONObject jsonObj = JSON.parseObject(result);
 		int retcode = (int) jsonObj.get("retcode");
 		if (retcode != 0) {
@@ -106,9 +111,12 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		// 判断是否推送V状态
 		String FilterOrderFromStrV = PropertiesHelper.getEnvProperties("FilterOrderFromStrV", "config").toString();
 		if (StringUtils.isNotEmpty(FilterOrderFromStrV)) {
+			startTime = new Date().getTime();
 			String[] orderFroms = StringUtils.split(FilterOrderFromStrV, ",", -1);
 			String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
 			String status = incrOrderMap.get("Status").toString();
+			endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
 			if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)) {
 				logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
 						+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
@@ -118,18 +126,22 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
 		if (incrOrderMap.get("CardNo").toString() == "49") {
+			startTime = new Date().getTime();
 			OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
 			if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {
 				incrOrderMap.put("ProxyId", orderProxy.getData().getProxyId());
 				incrOrderMap.put("CardNo", orderProxy.getData().getCardNo());
 				incrOrderMap.put("Status", "D");
 			}
+			endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
 		}
 
 		// 保存到IncrOrder表
 		logger.info("insert incrOrder = " + incrOrderMap);
+		startTime = new Date().getTime();
 		incrOrderDao.insert(incrOrderMap);
-		logger.info("insert incrOrder successfully.");
+		logger.info("use time = " + (endTime - startTime) + ",insert incrOrder successfully.");
 	}
 
 	/** 

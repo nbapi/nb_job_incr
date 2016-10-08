@@ -63,8 +63,10 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 	@Override
 	public void syncHotelToDB() {
 		// 删除30小时以前的数据
+		long startTime = new Date().getTime();
 		int count = incrHotelRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
-		logger.info("IncrHotel delete successfully.count = " + count);
+		long endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",IncrHotel delete successfully.count = " + count);
 
 		final String triggerInventory = "Inventory";
 		final String triggerRate = "Rate";
@@ -75,15 +77,19 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 			public void run() {
 				try {
 					while (true) {
+						long startTime = new Date().getTime();
 						IncrHotel hotel = incrHotelRepository.getLastHotel(triggerInventory);
-						logger.info("Trigger = " + triggerInventory + ",lastHotel = " + JSON.toJSONString(hotel));
+						long endTime = new Date().getTime();
+						logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerInventory + ",lastHotel = " + JSON.toJSONString(hotel));
 						List<IncrInventory> inventorys = null;
+						startTime = new Date().getTime();
 						if (hotel == null) {
 							inventorys = incrHotelRepository.getIncrInventories(DateUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
 							inventorys = incrHotelRepository.getIncrInventories(hotel.TriggerID, MaxRecordCount);
 						}
-						logger.info("Trigger = " + triggerInventory + ",inventorys size = " + inventorys.size());
+						endTime = new Date().getTime();
+						logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerInventory + ",inventorys size = " + inventorys.size());
 						if (inventorys == null || inventorys.size() == 0)
 							break;
 						List<IncrHotel> hotels = new ArrayList<IncrHotel>();
@@ -98,7 +104,10 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 							incrHotel.setInsertTime(new Date());
 							hotels.add(incrHotel);
 						}
+						startTime = new Date().getTime();
 						hotels = filterDuplicationHotel(hotels);
+						endTime = new Date().getTime();
+						logger.info("use time = " + (endTime - startTime) + ",filterDuplicationHotel");
 						incrHotelRepository.syncIncrHotelToDB(hotels);
 					}
 				} catch (Exception e) {
@@ -112,15 +121,19 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 			public void run() {
 				try {
 					while (true) {
+						long startTime = new Date().getTime();
 						IncrHotel hotel = incrHotelRepository.getLastHotel(triggerRate);
-						logger.info("Trigger = " + triggerRate + ",lastHotel = " + JSON.toJSONString(hotel));
+						long endTime = new Date().getTime();
+						logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerRate + ",lastHotel = " + JSON.toJSONString(hotel));
 						List<IncrRate> rates = null;
+						startTime = new Date().getTime();
 						if (hotel == null) {
 							rates = incrHotelRepository.getIncrRates(DateUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
 							rates = incrHotelRepository.getIncrRates(hotel.TriggerID, MaxRecordCount);
 						}
-						logger.info("Trigger = " + triggerRate + ",rates size = " + rates.size());
+						endTime = new Date().getTime();
+						logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerRate + ",rates size = " + rates.size());
 						if (rates == null || rates.size() == 0)
 							break;
 						List<IncrHotel> hotels = new ArrayList<IncrHotel>();
@@ -135,7 +148,10 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 							incrHotel.setInsertTime(new Date());
 							hotels.add(incrHotel);
 						}
+						startTime = new Date().getTime();
 						hotels = filterDuplicationHotel(hotels);
+						endTime = new Date().getTime();
+						logger.info("use time = " + (endTime - startTime) + ",filterDuplicationHotel");
 						incrHotelRepository.syncIncrHotelToDB(hotels);
 					}
 				} catch (Exception e) {

@@ -132,8 +132,13 @@ public class IncrRateRepository {
 
 			incrRates.add(rowMap);
 		}
+		endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
+
+		startTime = new Date().getTime();
 		int count = incrRateDao.bulkInsert(incrRates);
-		logger.info("IncrRate BulkInsert successfully,count = " + count);
+		endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,count = " + count);
 
 		changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");
 		return changID;

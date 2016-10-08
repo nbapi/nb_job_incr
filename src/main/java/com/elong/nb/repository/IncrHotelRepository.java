@@ -163,8 +163,10 @@ public class IncrHotelRepository {
 	public void syncIncrHotelToDB(List<IncrHotel> hotels) {
 		if (hotels == null || hotels.size() == 0)
 			return;
+		long startTime = new Date().getTime();
 		int count = incrHotelDao.bulkInsert(hotels);
-		logger.info("IncrHotel BulkInsert successfully,count = " + count);
+		long endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",IncrHotel BulkInsert successfully,count = " + count);
 	}
 
 }
