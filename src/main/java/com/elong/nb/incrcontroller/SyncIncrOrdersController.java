@@ -60,11 +60,14 @@ public class SyncIncrOrdersController {
 			logger.info("SyncIncrOrders,Controller,message = " + message);
 
 			messageResponse = incrOrderService.checkMessage(message);
+			logger.info("SyncIncrOrders,Controller,checkMessage finished"); 
 			if (OrderMessageResponse.SUCCESS.equals(messageResponse.getResponseCode())) {
 				executor.submit(new Runnable() {
 					public void run() {
 						try {
+							logger.info(Thread.currentThread().getName() + " begin to handlerMessage.");
 							incrOrderService.handlerMessage(message);
+							logger.info(Thread.currentThread().getName() + " end to handlerMessage.");
 						} catch (Exception e) {
 							logger.error("SyncIncrOrders,Controller,handlerMessage error = " + e.getMessage(), e);
 						}
