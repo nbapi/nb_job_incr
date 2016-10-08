@@ -72,6 +72,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	@Override
 	public void handlerMessage(final String message) {
 		// 删除30小时以前的数据
+		logger.info("handlerMessage start...");
 		int count = incrOrderRepository.deleteExpireIncrData(com.elong.nb.util.DateUtils.getDBExpireDate());
 		logger.info("IncrOrder delete successfully,count = " + count);
 
