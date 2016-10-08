@@ -30,10 +30,12 @@
 		<property name="mapperLocations" value="classpath:conf/mybatis/*.xml" />
 	</bean>
 
+	<!-- Transaction Start -->
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="incrDataSource" />
 	</bean>
-	<tx:annotation-driven transaction-manager="transactionManager" />
+	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+	<!-- Transaction End -->
 
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.elong.nb.dao" />
