@@ -95,7 +95,7 @@ public class CommonRepository {
 	 */
 	public OrderFromResult getProxyInfoByOrderFrom(int orderFromId) {
 		OrderFromResult orderFromResult = null;
-		final String minitorKey = MessageFormat.format(RedisKeyConst.KEY_Proxy_CardNo_OrderFrom, orderFromId);
+		final String minitorKey = MessageFormat.format(RedisKeyConst.KEY_Proxy_CardNo_OrderFrom, orderFromId+"");
 		ICacheKey cacheKey = new ICacheKey() {
 			@Override
 			public String getKey() {
@@ -108,7 +108,7 @@ public class CommonRepository {
 			}
 		};
 		boolean exists = redisManager.exists(cacheKey);
-		logger.info("getProxyInfoByOrderFrom,redis exists key = " + minitorKey);
+		logger.info("getProxyInfoByOrderFrom,redis exists key = " + minitorKey + ",exists = " + exists);
 		if (exists) {
 			orderFromResult = (OrderFromResult) redisManager.getObj(cacheKey);
 			return orderFromResult;
@@ -117,7 +117,7 @@ public class CommonRepository {
 		String orderFromNameUrl = PropertiesHelper.getEnvProperties("OrderFromNameUrl", "config").toString();
 		orderFromNameUrl = StringUtils.isEmpty(orderFromNameUrl) ? "http://api.vip.elong.com/admin.php/Api/getprojectname?orderFromId={0}"
 				: orderFromNameUrl;
-		String url = MessageFormat.format(orderFromNameUrl, orderFromId);
+		String url = MessageFormat.format(orderFromNameUrl, orderFromId+"");
 
 		try {
 			logger.info("httpGet,url = " + url);
