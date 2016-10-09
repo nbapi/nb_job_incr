@@ -43,7 +43,7 @@ public class IncrOrderRepository {
 	private static final Logger logger = Logger.getLogger("IncrOrderLogger");
 
 	@Resource
-	private IncrOrderDao incrOrderDao; 
+	private IncrOrderDao incrOrderDao;
 
 	@Resource
 	private SqlServerDataDao sqlServerDataDao;
@@ -96,7 +96,8 @@ public class IncrOrderRepository {
 		Date now = new Date();
 		for (Map<String, Object> row : incrOrderList) {
 			row.put("InsertTime", now);
-			if (row.get("CardNo").toString() == "49") {
+			String cardNo = (row.get("CardNo") == null) ? StringUtils.EMPTY : row.get("CardNo").toString();
+			if (StringUtils.equals("49", cardNo)) {
 				// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
 				OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) row.get("OrderFrom"));
 				if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {

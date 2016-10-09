@@ -125,7 +125,8 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		}
 
 		// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
-		if (incrOrderMap.get("CardNo").toString() == "49") {
+		String cardNo = (incrOrderMap.get("CardNo") == null) ? StringUtils.EMPTY : incrOrderMap.get("CardNo").toString();
+		if (StringUtils.equals("49", cardNo)) {
 			startTime = new Date().getTime();
 			OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
 			if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {
