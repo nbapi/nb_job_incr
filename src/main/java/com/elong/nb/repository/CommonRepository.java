@@ -108,7 +108,9 @@ public class CommonRepository {
 				return -1;
 			}
 		};
-		if (redisManager.exists(cacheKey)) {
+		boolean exists = redisManager.exists(cacheKey);
+		logger.info("getProxyInfoByOrderFrom,redis exists key = " + minitorKey);
+		if (exists) {
 			orderFromResult = (OrderFromResult) redisManager.getObj(cacheKey);
 			return orderFromResult;
 		}
