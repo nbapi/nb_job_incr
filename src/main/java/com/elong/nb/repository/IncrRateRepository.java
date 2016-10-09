@@ -15,12 +15,14 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.SqlServerDataDao;
+import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
  *
@@ -135,10 +137,20 @@ public class IncrRateRepository {
 		endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
 
+		int recordCount = incrRates.size();
+		int successCount = 0;
+		logger.info("IncrRate BulkInsert start,recordCount = " + recordCount);
+		String incrRateBatchSize = PropertiesHelper.getEnvProperties("IncrRateBatchSize", "config").toString();
+		int pageSize = StringUtils.isEmpty(incrRateBatchSize) ? 2000 : Integer.valueOf(incrRateBatchSize);
+		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		startTime = new Date().getTime();
-		int count = incrRateDao.bulkInsert(incrRates);
+		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+			int startNum = (pageIndex - 1) * pageSize;
+			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			successCount += incrRateDao.bulkInsert(incrRates.subList(startNum, endNum));
+		}
 		endTime = new Date().getTime();
-		logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,count = " + count);
+		logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,successCount = " + successCount);
 
 		changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");
 		return changID;

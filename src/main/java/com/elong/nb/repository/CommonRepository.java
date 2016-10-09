@@ -109,7 +109,8 @@ public class CommonRepository {
 		boolean exists = redisManager.exists(cacheKey);
 		logger.info("getProxyInfoByOrderFrom,redis exists key = " + minitorKey + ",exists = " + exists);
 		if (exists) {
-			orderFromResult = (OrderFromResult) redisManager.getObj(cacheKey);
+			String result = redisManager.getStr(cacheKey);
+			orderFromResult = JSON.parseObject(result, OrderFromResult.class);
 			return orderFromResult;
 		}
 

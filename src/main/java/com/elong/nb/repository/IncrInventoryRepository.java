@@ -203,16 +203,18 @@ public class IncrInventoryRepository {
 				endTime = new Date().getTime();
 				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
 
+				int recordCount = rows.size();
+				int successCount = 0;
 				logger.info("IncrInventory BulkInsert start,recordCount = " + rows.size());
-				// int pageSize = 1000;
-				// int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-				// startTime = new Date().getTime();
-				// for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-				// int startNum = (pageIndex - 1) * pageSize;
-				// int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-				// successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
-				// }
-				int successCount = incrInventoryDao.bulkInsert(rows);// TODO 测试用以上代码
+				String incrInventoryBatchSize = PropertiesHelper.getEnvProperties("IncrInventoryBatchSize", "config").toString();
+				int pageSize = StringUtils.isEmpty(incrInventoryBatchSize) ? 2000 : Integer.valueOf(incrInventoryBatchSize);
+				int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+				startTime = new Date().getTime();
+				for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+					int startNum = (pageIndex - 1) * pageSize;
+					int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+					successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
+				}
 				endTime = new Date().getTime();
 				logger.info("use time = " + (endTime - startTime) + ",IncrInventory BulkInsert,successCount = " + successCount);
 			}

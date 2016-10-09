@@ -19,6 +19,7 @@ import org.springframework.stereotype.Repository;
 
 import com.elong.nb.dao.IncrStateDao;
 import com.elong.nb.dao.SqlServerDataDao;
+import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
  *
@@ -79,7 +80,8 @@ public class IncrStateRepository {
 	 * @param type
 	 */
 	public void syncStateToDB(String startTime, String endTime, String type) {
-		int pageSize = 50000;// TODO 正式上线前改为50000
+		String incrStateBatchSize = PropertiesHelper.getEnvProperties("IncrStateBatchSize", "config").toString();
+		int pageSize = StringUtils.isEmpty(incrStateBatchSize) ? 2000 : Integer.valueOf(incrStateBatchSize);
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("startTime", startTime);
 		params.put("endTime", endTime);
