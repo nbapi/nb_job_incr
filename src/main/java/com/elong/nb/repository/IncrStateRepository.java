@@ -79,7 +79,7 @@ public class IncrStateRepository {
 	 * @param type
 	 */
 	public void syncStateToDB(String startTime, String endTime, String type) {
-		int pageSize = 1000;// TODO 正式上线前改为50000
+		int pageSize = 50000;// TODO 正式上线前改为50000
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("startTime", startTime);
 		params.put("endTime", endTime);

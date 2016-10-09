@@ -4,7 +4,7 @@
 
 	<select id="getDataFromPriceInfoTrack" resultType="java.util.HashMap">
 		<!-- TODO 正式上线前改为10000 -->
-		select top 1000 ID ChangeID,InsertTime
+		select top 10000 ID ChangeID,InsertTime
 				ChangeTime,OperateTime,isnull(RoomTypeID,'') RoomTypeID,isnull(RatePlanID,'') as RateplanID,isnull(HotelID,'')
 				HotelCode,BeginDate StartDate,EndDate,isnull(IsEffective,'') Status,isnull(GenSalePrice,0)
 				Member,

@@ -184,7 +184,7 @@ public class IncrInventoryRepository {
 			executorService.shutdown();
 			try {
 				while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-//					logger.info("thread-pool has not been closed yet.");
+					// logger.info("thread-pool has not been closed yet.");
 				}
 			} catch (InterruptedException e) {
 				logger.error(e.getMessage(), e);
@@ -203,19 +203,16 @@ public class IncrInventoryRepository {
 				endTime = new Date().getTime();
 				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
 
-				//TODO
-				int pageSize = 1000;
-				int recordCount = rows.size();
-				logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
-				int successCount = 0;
-				int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-				startTime = new Date().getTime();
-				for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-					int startNum = (pageIndex - 1) * pageSize;
-					int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-					successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
-				}
-				logger.info("IncrInventory BulkInsert end,successCount = " + successCount);
+				logger.info("IncrInventory BulkInsert start,recordCount = " + rows.size());
+				// int pageSize = 1000;
+				// int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+				// startTime = new Date().getTime();
+				// for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+				// int startNum = (pageIndex - 1) * pageSize;
+				// int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+				// successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
+				// }
+				int successCount = incrInventoryDao.bulkInsert(rows);// TODO 测试用以上代码
 				endTime = new Date().getTime();
 				logger.info("use time = " + (endTime - startTime) + ",IncrInventory BulkInsert,successCount = " + successCount);
 			}
@@ -242,9 +239,9 @@ public class IncrInventoryRepository {
 			long startTime = new Date().getTime();
 			boolean isFileterd = this.filteredSHotelIds.contains(changeModel.getHotelID());
 			long endTime = new Date().getTime();
-			logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",filteredSHotelIds.contains");
+			logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",filteredSHotelIds.contains");
 			if (isFileterd) {
-//				logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
+				// logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;
 			}
 			// #region 仅提供昨天和最近90天的房态数据 判断开始结束时间段是否在昨天和MaxDays之内
@@ -274,7 +271,8 @@ public class IncrInventoryRepository {
 			startTime = new Date().getTime();
 			GetInventoryChangeDetailResponse response = productForPartnerServiceContract.getInventoryChangeDetail(request);
 			endTime = new Date().getTime();
-			logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",productForPartnerServiceContract.getInventoryChangeDetail");
+			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
+					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
 
 			List<ResourceInventoryState> ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			// retry
@@ -285,13 +283,14 @@ public class IncrInventoryRepository {
 					Thread.sleep(2000);
 					response = productForPartnerServiceContract.getInventoryChangeDetail(request);
 					endTime = new Date().getTime();
-					logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",retry productForPartnerServiceContract.getInventoryChangeDetail");
+					logger.info("use time [" + threadName + "] = " + (endTime - startTime)
+							+ ",retry productForPartnerServiceContract.getInventoryChangeDetail");
 				}
 			}
 			startTime = new Date().getTime();
 			String MHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
 			endTime = new Date().getTime();
-			logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
+			logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
 			ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			if (ResourceInventoryStateList != null && ResourceInventoryStateList.size() > 0) {
 				startTime = new Date().getTime();
@@ -317,7 +316,7 @@ public class IncrInventoryRepository {
 					}
 				}
 				endTime = new Date().getTime();
-				logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",build rowMap one.");
+				logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap one.");
 			} else {
 				DateTime date = changeModel.getBeginTime();
 				startTime = new Date().getTime();
@@ -344,7 +343,7 @@ public class IncrInventoryRepository {
 					date = date.plusDays(1);
 				}
 				endTime = new Date().getTime();
-				logger.info("use time ["+threadName+"] = " + (endTime - startTime) + ",build rowMap two.");
+				logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap two.");
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
