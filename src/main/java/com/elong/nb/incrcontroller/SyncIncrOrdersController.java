@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSON;
@@ -45,6 +46,15 @@ public class SyncIncrOrdersController {
 	@Resource
 	private IIncrOrderService incrOrderService;
 
+	private boolean sendConfirmMessage = false;
+
+	@RequestMapping(value = "/changeSendConfirmMessage", method = RequestMethod.GET)
+	public @ResponseBody String changeSendConfirmMessage() {
+		sendConfirmMessage = !sendConfirmMessage;
+		logger.info("sendConfirmMessage = " + sendConfirmMessage);
+		return "sendConfirmMessage = " + sendConfirmMessage + "\n";
+	}
+
 	/** 
 	 * 同步IncrOrder到数据库
 	 *
@@ -60,22 +70,24 @@ public class SyncIncrOrdersController {
 			logger.info("SyncIncrOrders,Controller,message = " + message);
 
 			messageResponse = incrOrderService.checkMessage(message);
-			logger.info("SyncIncrOrders,Controller,checkMessage finished"); 
-			if (OrderMessageResponse.SUCCESS.equals(messageResponse.getResponseCode())) {
-				executor.submit(new Runnable() {
-					public void run() {
-						try {
-							logger.info(Thread.currentThread().getName() + " begin to handlerMessage.");
-							incrOrderService.handlerMessage(message);
-							logger.info(Thread.currentThread().getName() + " end to handlerMessage.");
-						} catch (Exception e) {
-							logger.error("SyncIncrOrders,Controller,handlerMessage error = " + e.getMessage(), e);
+			logger.info("SyncIncrOrders,Controller,checkMessage finished");
+			if (sendConfirmMessage) {
+				if (OrderMessageResponse.SUCCESS.equals(messageResponse.getResponseCode())) {
+					executor.submit(new Runnable() {
+						public void run() {
+							try {
+								logger.info(Thread.currentThread().getName() + " begin to handlerMessage.");
+								incrOrderService.handlerMessage(message);
+								logger.info(Thread.currentThread().getName() + " end to handlerMessage.");
+							} catch (Exception e) {
+								logger.error("SyncIncrOrders,Controller,handlerMessage error = " + e.getMessage(), e);
+							}
 						}
-					}
-				});
-			} else if (OrderMessageResponse.IGNORE.equals(messageResponse.getResponseCode())) {
-				// 忽略数据直接返回成功
-				messageResponse.setResponseCode(OrderMessageResponse.SUCCESS);
+					});
+				} else if (OrderMessageResponse.IGNORE.equals(messageResponse.getResponseCode())) {
+					// 忽略数据直接返回成功
+					messageResponse.setResponseCode(OrderMessageResponse.SUCCESS);
+				}
 			}
 			logger.info("SyncIncrOrders,Controller,end.");
 		} catch (Exception e) {
