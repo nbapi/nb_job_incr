@@ -17,12 +17,11 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
 import com.elong.nb.model.OrderFromResult;
-import com.elong.nb.util.HttpClientUtils;
+import com.elong.nb.util.HttpUtil;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
@@ -95,7 +94,7 @@ public class CommonRepository {
 	 */
 	public OrderFromResult getProxyInfoByOrderFrom(int orderFromId) {
 		OrderFromResult orderFromResult = null;
-		final String minitorKey = MessageFormat.format(RedisKeyConst.KEY_Proxy_CardNo_OrderFrom, orderFromId+"");
+		final String minitorKey = MessageFormat.format(RedisKeyConst.KEY_Proxy_CardNo_OrderFrom, orderFromId + "");
 		ICacheKey cacheKey = new ICacheKey() {
 			@Override
 			public String getKey() {
@@ -117,16 +116,13 @@ public class CommonRepository {
 		String orderFromNameUrl = PropertiesHelper.getEnvProperties("OrderFromNameUrl", "config").toString();
 		orderFromNameUrl = StringUtils.isEmpty(orderFromNameUrl) ? "http://api.vip.elong.com/admin.php/Api/getprojectname?orderFromId={0}"
 				: orderFromNameUrl;
-		String url = MessageFormat.format(orderFromNameUrl, orderFromId+"");
+		String url = MessageFormat.format(orderFromNameUrl, orderFromId + "");
 
 		try {
 			logger.info("httpGet,url = " + url);
-			String result = HttpClientUtils.httpGet(url);
+			String result = HttpUtil.httpGetData(url);
 			logger.info("httpGet,result = " + result);
-			JSONObject jsonObj = JSON.parseObject(result);
-			if (jsonObj != null) {
-				orderFromResult = jsonObj.getObject("Data", OrderFromResult.class);
-			}
+			orderFromResult = JSON.parseObject(result, OrderFromResult.class);
 		} catch (Exception ex) {
 			orderFromResult = orderFromResult == null ? new OrderFromResult() : orderFromResult;
 			orderFromResult.setCode(0);

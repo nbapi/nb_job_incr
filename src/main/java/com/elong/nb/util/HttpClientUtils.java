@@ -19,7 +19,6 @@ import org.apache.http.Consts;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Registry;
@@ -95,19 +94,6 @@ public class HttpClientUtils {
 		long endTime = System.currentTimeMillis();
 		logger.info("httpPost,cost time: " + (endTime - startTime));
 		return new String(outputStream.toByteArray());
-	}
-
-	public static String httpGet(String reqUrl) throws Exception {
-		URI uri = new URI(reqUrl);
-		HttpGet httpGet = new HttpGet(uri);
-		CloseableHttpResponse response = client.execute(httpGet);
-		InputStream is = response.getEntity().getContent();
-		if (is.available() == 0)
-			return null;
-		byte[] b = new byte[is.available()];
-		is.read(b);
-		response.close();
-		return new String(b);
 	}
 
 	private static CloseableHttpClient generateHttpClient() {
