@@ -34,7 +34,7 @@
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="incrDataSource" />
 	</bean>
-	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+	<tx:annotation-driven transaction-manager="transactionManager"/>
 	<!-- Transaction End -->
 
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
