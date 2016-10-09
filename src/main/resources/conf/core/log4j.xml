@@ -9,6 +9,17 @@
 		</layout>
 	</appender>
 
+	<!--IncrCommon appender -->
+	<appender name="IncrCommonAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrCommon.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
 	<!--syncIncrInventory appender -->
 	<appender name="syncIncrInventoryAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrInventory.log" />
@@ -171,6 +182,11 @@
 		<appender-ref ref="actionLogEntityAppender" />
 	</logger>
 
+	<!-- IncrOrder同步日志器 -->
+	<logger name="IncrCommonLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="IncrCommonAppender" />
+	</logger>
 	<!-- IncrOrder同步日志器 -->
 	<logger name="IncrOrderLogger" additivity="false">
 		<level value="INFO" />

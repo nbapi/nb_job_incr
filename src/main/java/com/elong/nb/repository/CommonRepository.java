@@ -13,8 +13,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import com.alibaba.fastjson.JSON;
@@ -42,7 +41,7 @@ import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 @Repository
 public class CommonRepository {
 
-	private static final Log logger = LogFactory.getLog(CommonRepository.class);
+	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
