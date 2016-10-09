@@ -46,7 +46,7 @@ public class SyncIncrOrdersController {
 	@Resource
 	private IIncrOrderService incrOrderService;
 
-	private boolean sendConfirmMessage = false;
+	private boolean sendConfirmMessage = true;
 
 	@RequestMapping(value = "/changeSendConfirmMessage", method = RequestMethod.GET)
 	public @ResponseBody String changeSendConfirmMessage() {

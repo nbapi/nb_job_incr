@@ -4,7 +4,7 @@
 
 	<!-- 删除过期IncrHotel -->
 	<delete id="deleteExpireIncrData">
-		delete from IncrHotel
+		delete from JIncrHotel
 		<where>
 			<if test="expireDate != null">
 				<![CDATA[ and ChangeTime < #{expireDate} ]]>
@@ -15,9 +15,9 @@
 
 	<!-- 获取trigger的最后一条IncrHotel -->
 	<select id="getLastHotel" resultType="incrHotel">
-		select * from IncrHotel
+		select * from JIncrHotel
 		<where>
-			<if test="_parameter != null and !_parameter.equals('')"> and `Trigger` = #{_parameter} </if>
+			<if test="_parameter != null and !_parameter.equals('')"> and Triggera = #{_parameter} </if>
 		</where>
 		order by IncrID desc limit 0,1
 	</select>
@@ -25,8 +25,8 @@
 	<!-- 批量插入IncrHotel -->
 	<insert id="bulkInsert" parameterType="java.util.List"
 		useGeneratedKeys="false">
-		insert into IncrHotel
-		(IncrID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime)
+		insert into JIncrHotel
+		(IncrID,HotelID,StartDate,EndDate,Triggera,TriggerID,ChangeTime,InsertTime)
 		values
 		<foreach collection="list" item="incrHotel" index="index"
 			separator=",">

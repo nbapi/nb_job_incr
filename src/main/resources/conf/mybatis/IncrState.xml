@@ -17,7 +17,7 @@
 
 	<!-- 删除过期IncrState -->
 	<delete id="deleteExpireIncrData">
-		delete from IncrState
+		delete from JIncrState
 		<where>
 			<if test="expireDate != null">
 				<![CDATA[ and ChangeTime < #{expireDate} ]]>
@@ -28,7 +28,7 @@
 
 	<!-- 批量插入IncrState -->
 	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
-		insert into IncrState
+		insert into JIncrState
 		(IncrID,StateType,HotelId,HotelCode,RoomId,RoomTypeId,RatePlanId,Status,ChangeTime,InsertTime,Name)
 		values
 		<foreach collection="list" item="incrState" index="index" separator=",">

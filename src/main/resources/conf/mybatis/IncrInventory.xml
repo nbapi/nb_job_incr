@@ -4,7 +4,7 @@
 
 	<!-- 删除过期IncrInventory -->
 	<delete id="deleteExpireIncrData">
-		delete from IncrInventory
+		delete from JIncrInventory
 		<where>
 			<if test="expireDate != null">
 				<![CDATA[ and ChangeTime < #{expireDate} ]]>
@@ -15,7 +15,7 @@
 
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条库存增量 -->
 	<select id="getIncrInventories" resultType="incrInventory">
-		select * from IncrInventory
+		select * from JIncrInventory
 		<where>
 			<if test="changeTime != null and !changeTime.equals('')">
 				<![CDATA[ and ChangeTime > #{changeTime} ]]>
@@ -30,7 +30,6 @@
 	<!-- 批量插入IncrInventory -->
 	<insert id="bulkInsert" parameterType="java.util.List"
 		useGeneratedKeys="false">
-		insert into IncrInventory
 		(IncrID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime)
 		values
 		<foreach collection="list" item="incrInventory" index="index"
