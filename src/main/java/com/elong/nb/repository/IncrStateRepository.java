@@ -88,33 +88,35 @@ public class IncrStateRepository {
 		logger.info("getDataCount,params = " + params + ",type = " + type);
 		int recordCount = getDataCount(params, type);
 		logger.info("getDataCount,recordCount = " + recordCount);
-		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			int startNum = (pageIndex - 1) * pageSize + 1;
-			int endNum = pageIndex * pageSize;
-			params.put("startNum", startNum);
-			params.put("endNum", endNum);
-			logger.info("getDataList,params = " + params + ",type = " + type);
-			List<Map<String, Object>> hotelIdDataList = getDataList(params, type);
-			int resultSize = hotelIdDataList == null ? 0 : hotelIdDataList.size();
-			logger.info("getDataList,result size = " + resultSize);
-			if (hotelIdDataList == null || hotelIdDataList.size() == 0)
-				continue;
+		if (recordCount > 0) {
+			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+				int startNum = (pageIndex - 1) * pageSize + 1;
+				int endNum = pageIndex * pageSize;
+				params.put("startNum", startNum);
+				params.put("endNum", endNum);
+				logger.info("getDataList,params = " + params + ",type = " + type);
+				List<Map<String, Object>> hotelIdDataList = getDataList(params, type);
+				int resultSize = hotelIdDataList == null ? 0 : hotelIdDataList.size();
+				logger.info("getDataList,result size = " + resultSize);
+				if (hotelIdDataList == null || hotelIdDataList.size() == 0)
+					continue;
 
-			if (StringUtils.equals("HotelId", type) || StringUtils.equals("HotelCode", type)) {
-				// M和S酒店增量过来的，需要处理一下关系Redis
-				for (Map<String, Object> row : hotelIdDataList) {
-					// 处理一下酒店关联HotelId是M酒店
-					if (row == null || row.get("HotelId") == null || StringUtils.isEmpty((String) row.get("HotelId")))
-						continue;
+				if (StringUtils.equals("HotelId", type) || StringUtils.equals("HotelCode", type)) {
+					// M和S酒店增量过来的，需要处理一下关系Redis
+					for (Map<String, Object> row : hotelIdDataList) {
+						// 处理一下酒店关联HotelId是M酒店
+						if (row == null || row.get("HotelId") == null || StringUtils.isEmpty((String) row.get("HotelId")))
+							continue;
 
-					// String mhotelid = (String) row.get("HotelId");
-					// 1表示open酒店打开,重置Redis,0关闭清除redis
-					// M_SRelationRepository.ResetHotelMSCache(mhotelid);//TODO 暂时注掉，wcf调不通，待产品组提供新接口
+						// String mhotelid = (String) row.get("HotelId");
+						// 1表示open酒店打开,重置Redis,0关闭清除redis
+						// M_SRelationRepository.ResetHotelMSCache(mhotelid);//TODO 暂时注掉，wcf调不通，待产品组提供新接口
+					}
 				}
+				int count = incrStateDao.bulkInsert(hotelIdDataList);
+				logger.info("IncrState BulkInsert successfully,count = " + count + ",type = " + type);
 			}
-			int count = incrStateDao.bulkInsert(hotelIdDataList);
-			logger.info("IncrState BulkInsert successfully,count = " + count + ",type = " + type);
 		}
 	}
 

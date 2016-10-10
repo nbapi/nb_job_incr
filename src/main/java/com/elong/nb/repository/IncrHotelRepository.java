@@ -165,19 +165,21 @@ public class IncrHotelRepository {
 		if (hotels == null || hotels.size() == 0)
 			return;
 		int recordCount = hotels.size();
-		int successCount = 0;
-		logger.info("IncrHotel BulkInsert start,recordCount = " + recordCount);
-		String incrHotelBatchSize = PropertiesHelper.getEnvProperties("IncrHotelBatchSize", "config").toString();
-		int pageSize = StringUtils.isEmpty(incrHotelBatchSize) ? 2000 : Integer.valueOf(incrHotelBatchSize);
-		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-		long startTime = new Date().getTime();
-		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			int startNum = (pageIndex - 1) * pageSize;
-			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			successCount += incrHotelDao.bulkInsert(hotels.subList(startNum, endNum));
+		if(recordCount > 0){
+			int successCount = 0;
+			logger.info("IncrHotel BulkInsert start,recordCount = " + recordCount);
+			String incrHotelBatchSize = PropertiesHelper.getEnvProperties("IncrHotelBatchSize", "config").toString();
+			int pageSize = StringUtils.isEmpty(incrHotelBatchSize) ? 2000 : Integer.valueOf(incrHotelBatchSize);
+			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+			long startTime = new Date().getTime();
+			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+				int startNum = (pageIndex - 1) * pageSize;
+				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+				successCount += incrHotelDao.bulkInsert(hotels.subList(startNum, endNum));
+			}
+			long endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",IncrHotel BulkInsert successfully,successCount = " + successCount);
 		}
-		long endTime = new Date().getTime();
-		logger.info("use time = " + (endTime - startTime) + ",IncrHotel BulkInsert successfully,successCount = " + successCount);
 	}
 
 }
