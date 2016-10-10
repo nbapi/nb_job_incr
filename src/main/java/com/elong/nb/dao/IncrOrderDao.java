@@ -47,7 +47,6 @@ public interface IncrOrderDao {
 	 * @param paramMap
 	 * @return
 	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public IncrOrder getLastIncrOrder(Map<String, Object> paramMap);
 
 	/** 
@@ -56,7 +55,6 @@ public interface IncrOrderDao {
 	 * @param paramMap
 	 * @return
 	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public IncrOrder getOneIncrOrder(Map<String, Object> paramMap);
 
 	/** 
@@ -65,7 +63,6 @@ public interface IncrOrderDao {
 	 * @param paramMap
 	 * @return
 	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<IncrOrder> getIncrOrders(Map<String, Object> paramMap);
 
 	/** 
