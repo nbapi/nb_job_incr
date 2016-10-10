@@ -276,7 +276,7 @@ public class IncrInventoryRepository {
 			List<ResourceInventoryState> ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			// retry
 			if (ResourceInventoryStateList == null || ResourceInventoryStateList.size() == 0) {
-				logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
+//				logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
 				if (isToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
 					startTime = new Date().getTime();
 					Thread.sleep(2000);
@@ -286,13 +286,13 @@ public class IncrInventoryRepository {
 							+ ",retry productForPartnerServiceContract.getInventoryChangeDetail");
 				}
 			}
-			startTime = new Date().getTime();
+//			startTime = new Date().getTime();
 			String MHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
-			endTime = new Date().getTime();
-			logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
+//			endTime = new Date().getTime();
+//			logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
 			ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			if (ResourceInventoryStateList != null && ResourceInventoryStateList.size() > 0) {
-				startTime = new Date().getTime();
+//				startTime = new Date().getTime();
 				for (ResourceInventoryState detail : ResourceInventoryStateList) {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
@@ -314,11 +314,11 @@ public class IncrInventoryRepository {
 						rows.add(row);
 					}
 				}
-				endTime = new Date().getTime();
-				logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap one.");
+//				endTime = new Date().getTime();
+//				logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap one.");
 			} else {
 				DateTime date = changeModel.getBeginTime();
-				startTime = new Date().getTime();
+//				startTime = new Date().getTime();
 				while (date.compareTo(changeModel.getEndTime()) < 0) {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
@@ -341,8 +341,8 @@ public class IncrInventoryRepository {
 					}
 					date = date.plusDays(1);
 				}
-				endTime = new Date().getTime();
-				logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap two.");
+//				endTime = new Date().getTime();
+//				logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap two.");
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
