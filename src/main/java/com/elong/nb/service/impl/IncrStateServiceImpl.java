@@ -60,7 +60,12 @@ public class IncrStateServiceImpl implements IIncrStateService {
 		}
 
 		String jsonStr = redisManager.getStr(RedisKeyConst.StateSyncTimeKey_CacheKey);
-		Date startTime = JSON.parseObject(jsonStr, Date.class);
+		Date startTime = null;
+		try {
+			startTime = DateTime.parse(jsonStr).toDate();
+		} catch (Exception e) {
+			startTime = JSON.parseObject(jsonStr, Date.class);
+		}
 		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.StateSyncTimeKey_CacheKey.getKey());
 		startTime = (startTime == null) ? new Date() : startTime;
 		Date endTime = DateUtils.getOffsetDate(Calendar.MINUTE, -5);

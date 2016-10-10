@@ -1,5 +1,7 @@
 package com.elong.nb.test;
 
+import org.apache.http.impl.cookie.DateUtils;
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 public class SyncIncrTestCase {
@@ -19,5 +21,8 @@ public class SyncIncrTestCase {
 //		} catch (Exception e) {
 //			e.printStackTrace();
 //		}
+		
+        String dateValue = "1476096000099";//"2016-10-10T18:40:00.0998750+08:00";
+        System.out.println(DateTime.parse(dateValue).toDate().getTime());
 	}
 }
