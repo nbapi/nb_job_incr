@@ -152,9 +152,9 @@ public class IncrRateRepository {
 			}
 			endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,successCount = " + successCount);
+			changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");
 		}
-
-		changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");
+		
 		return changID;
 	}
 
