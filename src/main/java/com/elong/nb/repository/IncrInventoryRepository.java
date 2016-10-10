@@ -238,10 +238,7 @@ public class IncrInventoryRepository {
 	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows) {
 		String threadName = Thread.currentThread().getName();
 		try {
-			long startTime = new Date().getTime();
 			boolean isFileterd = this.filteredSHotelIds.contains(changeModel.getHotelID());
-			long endTime = new Date().getTime();
-			logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",filteredSHotelIds.contains");
 			if (isFileterd) {
 				// logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;
@@ -270,9 +267,9 @@ public class IncrInventoryRepository {
 			request.setBeginTime(changeModel.getBeginTime());
 			request.setEndTime(changeModel.getEndTime());
 			request.setRoomTypeIDs(changeModel.getRoomTypeID());
-			startTime = new Date().getTime();
+			long startTime = new Date().getTime();
 			GetInventoryChangeDetailResponse response = productForPartnerServiceContract.getInventoryChangeDetail(request);
-			endTime = new Date().getTime();
+			long endTime = new Date().getTime();
 			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
 

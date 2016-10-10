@@ -28,12 +28,11 @@
 	</select>
 
 	<!-- 批量插入IncrInventory -->
-	<insert id="bulkInsert" parameterType="java.util.List"
-		useGeneratedKeys="false">
-		(IncrID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime)
+	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
+		insert into
+		JIncrInventory(IncrID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime)
 		values
-		<foreach collection="list" item="incrInventory" index="index"
-			separator=",">
+		<foreach collection="list" item="incrInventory" index="index" separator=",">
 			(
 			#{incrInventory.IncrID,jdbcType=BIGINT},
 			#{incrInventory.ChangeID,jdbcType=BIGINT},
