@@ -3,7 +3,7 @@
  *     
  * Copyrights (C) 2016艺龙旅行网保留所有权利
  */
-package com.elong.nb.incrcontroller;
+package com.elong.nb.controller;
 
 import java.util.Date;
 
