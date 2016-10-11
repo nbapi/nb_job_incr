@@ -36,6 +36,13 @@ public class HttpUtil {
 	protected static Logger logger = LogManager.getLogger(HttpUtil.class);
 	private static Gson gson = new Gson();
 
+	/** 
+	 *
+	 * @param reqUrl
+	 * @param reqData
+	 * @return
+	 * @throws Exception
+	 */
 	public static String httpPost(String reqUrl, String reqData) throws Exception {
 		HttpURLConnection conn = null;
 		BufferedReader reader = null;
@@ -85,6 +92,12 @@ public class HttpUtil {
 		}
 	}
 
+	/** 
+	 *
+	 * @param url
+	 * @return
+	 * @throws Exception
+	 */
 	public static ResponseResult httpGet(String url) throws Exception {
 		ResponseResult result = new ResponseResult();
 		BufferedReader in = null;
@@ -125,6 +138,12 @@ public class HttpUtil {
 		return result;
 	}
 
+	/** 
+	 *
+	 * @param reqUrl
+	 * @return
+	 * @throws Exception
+	 */
 	public static String httpGetData(String reqUrl) throws Exception {
 		HttpURLConnection conn = null;
 		BufferedReader in = null;

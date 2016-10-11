@@ -45,7 +45,7 @@ public class IncrRateRepository {
 	private Set<String> filteredSHotelIds = new HashSet<String>();
 
 	@Resource
-	private M_SRelationRepository msRelationRepository;
+	private MSRelationRepository msRelationRepository;
 
 	@Resource
 	private CommonRepository commonRepository;

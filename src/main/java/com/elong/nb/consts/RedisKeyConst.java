@@ -21,7 +21,7 @@ import com.elong.nb.cache.ICacheKey;
  * @version		1.0  
  * @since		JDK1.7
  */
-public interface RedisKeyConst {
+public class RedisKeyConst {
 
 	public static final String KEY_ID_S_M = "data.ms.sid_mid";
 	public static final String KEY_ID_M_S = "data.ms.mid_sid";

@@ -22,7 +22,7 @@ import com.elong.nb.agent.NorthBoundForAPIService.INorthBoundForAPIService;
 import com.elong.nb.agent.NorthBoundForAPIService.MSRelation;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
-import com.elong.nb.model.NB_M_SRelation;
+import com.elong.nb.model.NBMSRelation;
 
 /**
  *
@@ -38,32 +38,43 @@ import com.elong.nb.model.NB_M_SRelation;
  * @since		JDK1.7
  */
 @Repository
-public class M_SRelationRepository {
+public class MSRelationRepository {
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
 	private INorthBoundForAPIService northBoundForAPIService;
 
+	/** 
+	 * 获取sHotelID对应的mHotelID
+	 *
+	 * @param sHotelID
+	 * @return
+	 */
 	public String getMHotelId(String sHotelID) {
 		String res = redisManager.hashGet(RedisKeyConst.KEY_ID_S_M_CacheKey, sHotelID);
-
 		if (StringUtils.isEmpty(res)) {
 			if (!redisManager.exists(RedisKeyConst.KEY_ID_S_M_CacheKey)) {
 				return sHotelID;
 			}
 		}
-		if (StringUtils.isEmpty(res))
+		if (StringUtils.isEmpty(res)) {
 			res = sHotelID;
+		}
 		return res;
 	}
 
+	/** 
+	 * 缓存去掉已关闭的酒店关联，M酒店和S酒店
+	 *
+	 * @param mhotelId
+	 */
 	public void resetHotelMSCache(String mhotelId) {
-		List<NB_M_SRelation> relatioins = getMSHotelRelation(mhotelId, null);
+		List<NBMSRelation> relatioins = getMSHotelRelation(mhotelId, null);
 		// region 去掉已关闭的酒店关联，M酒店和S酒店
-		List<NB_M_SRelation> noClosedHotel = new ArrayList<NB_M_SRelation>();
+		List<NBMSRelation> noClosedHotel = new ArrayList<NBMSRelation>();
 		if (relatioins != null && relatioins.size() > 0) {
-			for (NB_M_SRelation ms : relatioins) {
+			for (NBMSRelation ms : relatioins) {
 				// 注意：在这里1代表酒店已关闭
 				if (ms.getMStatus() == "1" || ms.getSStatus() == "1") {
 					redisManager.hdel(RedisKeyConst.KEY_ID_S_M_CacheKey, ms.getSHotelID());
@@ -78,30 +89,36 @@ public class M_SRelationRepository {
 
 		if (relatioins != null && relatioins.size() > 0) {
 			// region 新映射
-			Map<String, List<NB_M_SRelation>> map = new HashMap<String, List<NB_M_SRelation>>();
-			for (NB_M_SRelation ms : relatioins) {
+			Map<String, List<NBMSRelation>> map = new HashMap<String, List<NBMSRelation>>();
+			for (NBMSRelation ms : relatioins) {
 				if (ms == null)
 					continue;
 				redisManager.hashPut(RedisKeyConst.KEY_Hotel_S_M_CacheKey, ms.getSHotelID(), JSON.toJSONString(ms));
 
 				if (ms == null || !StringUtils.equals("0", ms.getSStatus()))
 					continue;
-				List<NB_M_SRelation> valList = map.get(ms.getMHotelID());
+				List<NBMSRelation> valList = map.get(ms.getMHotelID());
 				if (valList == null) {
-					valList = new ArrayList<NB_M_SRelation>();
+					valList = new ArrayList<NBMSRelation>();
 				}
 				valList.add(ms);
 				map.put(ms.getMHotelID(), valList);
 			}
 
-			for (Map.Entry<String, List<NB_M_SRelation>> entry : map.entrySet()) {
+			for (Map.Entry<String, List<NBMSRelation>> entry : map.entrySet()) {
 				redisManager.hashPut(RedisKeyConst.KEY_Hotel_M_S_CacheKey, entry.getKey(), JSON.toJSONString(entry.getValue()));
 			}
 		}
 	}
 
-	private List<NB_M_SRelation> getMSHotelRelation(String mHotelId, String sHotelId) {
-		List<NB_M_SRelation> nbm_slist = new ArrayList<NB_M_SRelation>();
+	/** 
+	 *
+	 * @param mHotelId
+	 * @param sHotelId
+	 * @return
+	 */
+	private List<NBMSRelation> getMSHotelRelation(String mHotelId, String sHotelId) {
+		List<NBMSRelation> nbmsList = new ArrayList<NBMSRelation>();
 
 		GetMSRelationRequest req = new GetMSRelationRequest();
 		req.setMHotelID(mHotelId);
@@ -109,18 +126,18 @@ public class M_SRelationRepository {
 		GetMSRelationResponse res = northBoundForAPIService.getMHotelSHotelRelations(req);
 		if (res != null && res.getRelations() != null && res.getRelations().getMSRelation() != null
 				&& res.getRelations().getMSRelation().size() > 0) {
-			for (MSRelation m_s : res.getRelations().getMSRelation()) {
-				NB_M_SRelation nbm_s = new NB_M_SRelation();
-				nbm_s.setMHotelID(m_s.getMHotelID());
-				nbm_s.setMStatus(m_s.getMStatus());
-				nbm_s.setSHotelID(m_s.getSHotelID());
-				nbm_s.setSStatus(m_s.getSStatus());
-				nbm_s.setSSupplierTypeID(m_s.getSSupplierType());
-				nbm_s.setSSupplierID(m_s.getSSupplierID());
-				nbm_slist.add(nbm_s);
+			for (MSRelation msRelation : res.getRelations().getMSRelation()) {
+				NBMSRelation nbm_s = new NBMSRelation();
+				nbm_s.setMHotelID(msRelation.getMHotelID());
+				nbm_s.setMStatus(msRelation.getMStatus());
+				nbm_s.setSHotelID(msRelation.getSHotelID());
+				nbm_s.setSStatus(msRelation.getSStatus());
+				nbm_s.setSSupplierTypeID(msRelation.getSSupplierType());
+				nbm_s.setSSupplierID(msRelation.getSSupplierID());
+				nbmsList.add(nbm_s);
 			}
 		}
-		return nbm_slist;
+		return nbmsList;
 	}
 
 }

@@ -8,7 +8,6 @@ package com.elong.nb.util;
 import org.joda.time.DateTime;
 
 /**
- * (类型功能说明描述)
  *
  * <p>
  * 修改历史:											<br>  
@@ -23,10 +22,20 @@ import org.joda.time.DateTime;
  */
 public class XsdDateTimeConverter {
 
+    /** 
+     *
+     * @param dateTime
+     * @return
+     */
     public static DateTime unmarshal(String dateTime) {
         return new DateTime(dateTime);
     }
 
+    /** 
+     *
+     * @param dateTime
+     * @return
+     */
     public static String marshal(DateTime dateTime) {
         return dateTime.toString();
     }

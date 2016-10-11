@@ -27,6 +27,10 @@ public enum OrderChangeStatusEnum {
 
 	private String code;
 
+	/**   
+	 *   
+	 * @param code   
+	 */
 	private OrderChangeStatusEnum(String code) {
 		this.code = code;
 	}

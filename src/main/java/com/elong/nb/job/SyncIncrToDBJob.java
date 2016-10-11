@@ -33,6 +33,14 @@ public class SyncIncrToDBJob{
 
 	private static final Log logger = LogFactory.getLog(SyncIncrToDBJob.class);
 
+	/** 
+	 * job执行入口
+	 *
+	 * @param param
+	 * @return
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 */
 	public TaskResult execute(String param) throws ClientProtocolException, IOException {
 		TaskResult r = new TaskResult();
 		try {

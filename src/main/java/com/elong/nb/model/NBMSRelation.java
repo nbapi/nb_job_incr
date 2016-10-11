@@ -21,7 +21,7 @@ import org.joda.time.DateTime;
  * @version		1.0  
  * @since		JDK1.7
  */
-public class NB_M_SRelation {
+public class NBMSRelation {
 
 	private String SHotelID;
 	private String SStatus;

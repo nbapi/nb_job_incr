@@ -29,19 +29,18 @@ import com.elong.nb.model.bean.IncrInventory;
 public interface IncrInventoryDao {
 
 	/** 
-	 * 删除过期IncrInventory
+	 * 删除过期IncrInventory,params包含expireDate、limit
 	 *
-	 * @param expireDate
-	 * @param limit
+	 * @param params
 	 * @return 返回删除数量
 	 */
 	public int deleteExpireIncrData(Map<String, Object> params);
 
 	/** 
-	 * 
-	 * @param changTime 获取大于指定changeTime的最早发生变化的库存增量
-	 * @param incrID 获取大于指定incrID的maxRecordCount条库存增量
-	 * @param maxRecordCount
+	 * changTime 获取大于指定changeTime的最早发生变化的库存增量
+	 * incrID 获取大于指定incrID的maxRecordCount条库存增量
+	 * maxRecordCount 	
+	 * @param params
 	 * @return
 	 */
 	public List<IncrInventory> getIncrInventories(Map<String, Object> params);

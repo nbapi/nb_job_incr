@@ -74,7 +74,7 @@ public class IncrInventoryRepository {
 	private IProductForPartnerServiceContract productForPartnerServiceContractForList;
 
 	@Resource
-	private M_SRelationRepository msRelationRepository;
+	private MSRelationRepository msRelationRepository;
 
 	@Resource
 	private CommonRepository commonRepository;
@@ -146,9 +146,9 @@ public class IncrInventoryRepository {
 		if (changeList != null && changeList.size() > 0) {
 			startTime = new Date().getTime();
 			// 解决订阅库延时问题，获取明细时延时3分钟
-			String InventoryChangeDelayMinutes = PropertiesHelper.getEnvProperties("InventoryChangeDelayMinutes", "config").toString();
-			InventoryChangeDelayMinutes = StringUtils.isEmpty(InventoryChangeDelayMinutes) ? "10" : InventoryChangeDelayMinutes;
-			DateTime lastTime = DateTime.now().minusMinutes(1 * Integer.valueOf(InventoryChangeDelayMinutes));
+			String inventoryChangeDelayMinutes = PropertiesHelper.getEnvProperties("InventoryChangeDelayMinutes", "config").toString();
+			inventoryChangeDelayMinutes = StringUtils.isEmpty(inventoryChangeDelayMinutes) ? "10" : inventoryChangeDelayMinutes;
+			DateTime lastTime = DateTime.now().minusMinutes(1 * Integer.valueOf(inventoryChangeDelayMinutes));
 			for (InventoryChangeModel item : changeList) {
 				if (item == null || item.getUpdateTime() == null)
 					continue;
@@ -159,7 +159,7 @@ public class IncrInventoryRepository {
 			changeList = filterChangeList;
 			int filterChangeListSize = filterChangeList == null ? 0 : filterChangeList.size();
 			logger.info("filterChangeList size = " + filterChangeListSize + ",after dohandler InventoryChangeDelayMinutes = "
-					+ InventoryChangeDelayMinutes);
+					+ inventoryChangeDelayMinutes);
 			endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",dohandler InventoryChangeDelay");
 		}
@@ -244,6 +244,12 @@ public class IncrInventoryRepository {
 		return changID;
 	}
 
+	/** 
+	 * 处理InventoryChangeModel
+	 *
+	 * @param changeModel
+	 * @param rows
+	 */
 	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows) {
 		String threadName = Thread.currentThread().getName();
 		try {
@@ -282,9 +288,9 @@ public class IncrInventoryRepository {
 			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
 
-			List<ResourceInventoryState> ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
+			List<ResourceInventoryState> resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			// retry
-			if (ResourceInventoryStateList == null || ResourceInventoryStateList.size() == 0) {
+			if (resourceInventoryStateList == null || resourceInventoryStateList.size() == 0) {
 				// logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
 				if (isToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
 					startTime = new Date().getTime();
@@ -296,16 +302,16 @@ public class IncrInventoryRepository {
 				}
 			}
 			// startTime = new Date().getTime();
-			String MHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
+			String mHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
 			// endTime = new Date().getTime();
 			// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
-			ResourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
-			if (ResourceInventoryStateList != null && ResourceInventoryStateList.size() > 0) {
+			resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
+			if (resourceInventoryStateList != null && resourceInventoryStateList.size() > 0) {
 				// startTime = new Date().getTime();
-				for (ResourceInventoryState detail : ResourceInventoryStateList) {
+				for (ResourceInventoryState detail : resourceInventoryStateList) {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
-						row.put("HotelID", MHotelId);
+						row.put("HotelID", mHotelId);
 						row.put("RoomTypeID", detail.getRoomTypeID());
 						row.put("HotelCode", detail.getHotelID());
 						row.put("Status", detail.getStatus() == 0);
@@ -331,7 +337,7 @@ public class IncrInventoryRepository {
 				while (date.compareTo(changeModel.getEndTime()) < 0) {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
-						row.put("HotelID", MHotelId);
+						row.put("HotelID", mHotelId);
 						row.put("RoomTypeID", changeModel.getRoomTypeID());
 						row.put("HotelCode", changeModel.getHotelID());
 						row.put("Status", false);

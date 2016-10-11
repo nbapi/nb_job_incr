@@ -46,7 +46,7 @@ public class IncrStateRepository {
 	private SqlServerDataDao sqlServerDataDao;
 
 	@Resource
-	private M_SRelationRepository msRelationRepository;
+	private MSRelationRepository msRelationRepository;
 
 	/** 
 	 * 删除过期增量数据

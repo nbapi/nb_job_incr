@@ -114,10 +114,10 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		Map<String, Object> incrOrderMap = convertMap(bodyJsonObj);
 
 		// 判断是否推送V状态
-		String FilterOrderFromStrV = PropertiesHelper.getEnvProperties("FilterOrderFromStrV", "config").toString();
-		if (StringUtils.isNotEmpty(FilterOrderFromStrV)) {
+		String filterOrderFromStrV = PropertiesHelper.getEnvProperties("FilterOrderFromStrV", "config").toString();
+		if (StringUtils.isNotEmpty(filterOrderFromStrV)) {
 			startTime = new Date().getTime();
-			String[] orderFroms = StringUtils.split(FilterOrderFromStrV, ",", -1);
+			String[] orderFroms = StringUtils.split(filterOrderFromStrV, ",", -1);
 			String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
 			String status = incrOrderMap.get("Status").toString();
 			endTime = new Date().getTime();
@@ -235,9 +235,9 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		try {
 			String orderTimestamp = (String) sourceMap.get("orderTimestamp");
-			Date ChangeTime = DateUtils.parseDate(orderTimestamp, new String[] { "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd HH:mm:ss:SSS",
+			Date changeTime = DateUtils.parseDate(orderTimestamp, new String[] { "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd HH:mm:ss:SSS",
 					"yyyy-MM-dd HH:mm:ss" });
-			targetMap.put("ChangeTime", ChangeTime);
+			targetMap.put("ChangeTime", changeTime);
 		} catch (ParseException e) {
 			logger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
@@ -248,15 +248,15 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		targetMap.put("Status", sourceMap.get("status"));
 		try {
 			String checkInDate = (String) sourceMap.get("checkInDate");
-			Date ArrivalDate = DateUtils.parseDate(checkInDate, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
-			targetMap.put("ArrivalDate", ArrivalDate);
+			Date arrivalDate = DateUtils.parseDate(checkInDate, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
+			targetMap.put("ArrivalDate", arrivalDate);
 		} catch (ParseException e) {
 			logger.error("checkInDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 		try {
 			String checkOutDate = (String) sourceMap.get("checkOutDate");
-			Date DepartureDate = DateUtils.parseDate(checkOutDate, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
-			targetMap.put("DepartureDate", DepartureDate);
+			Date departureDate = DateUtils.parseDate(checkOutDate, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
+			targetMap.put("DepartureDate", departureDate);
 		} catch (ParseException e) {
 			logger.error("checkOutDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}

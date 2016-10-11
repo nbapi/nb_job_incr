@@ -12,6 +12,9 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * 线程池工具类
  *
@@ -27,6 +30,8 @@ import java.util.concurrent.TimeUnit;
  * @since		JDK1.7
  */
 public class ExecutorUtils {
+	
+	private static final Log logger = LogFactory.getLog(ExecutorUtils.class);
 
 	private static RejectedExecutionHandler rejectedExecutionHandler = new RejectedExecutionHandler() {
 		@Override
@@ -35,12 +40,19 @@ public class ExecutorUtils {
 				try {
 					executor.getQueue().put(r);
 				} catch (InterruptedException e) {
-					// should not be interrupted
+					logger.error(e.getMessage(), e);
 				}
 			}
 		}
 	};
 
+	/** 
+	 * 创建线程池 
+	 *
+	 * @param maximumPoolSize 最大线程数
+	 * @param queueLenght	最大任务数
+	 * @return
+	 */
 	public static ExecutorService newSelfThreadPool(int maximumPoolSize, int queueLenght) {
 		return new ThreadPoolExecutor(0, maximumPoolSize, 60L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(queueLenght),
 				Executors.defaultThreadFactory(), rejectedExecutionHandler);

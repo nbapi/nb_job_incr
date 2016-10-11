@@ -5,9 +5,7 @@
  */
 package com.elong.nb.util;
 
-import java.beans.IntrospectionException;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.CodingErrorAction;
@@ -30,11 +28,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.xml.sax.SAXException;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParser;
 
 /**
  * HttpClient工具类
@@ -54,24 +47,29 @@ public class HttpClientUtils {
 
 	private static final Log logger = LogFactory.getLog(HttpClientUtils.class);
 
-	protected Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	private static CloseableHttpClient client = generateHttpClient();
 
-	public String toFormatJson(String jsonStr) {
-		return gson.toJson(new JsonParser().parse(jsonStr));
-	}
-
-	public void formatSaveJson(String jsonStr, String savePath) throws IOException, SAXException, IntrospectionException {
-		System.out.println(jsonStr);
-		String format_json = toFormatJson(jsonStr);
-		System.out.println(format_json);
-	}
-
-	protected static CloseableHttpClient client = generateHttpClient();
-
+	/** 
+	 * "application/json"的 post
+	 *
+	 * @param reqUrl
+	 * @param reqData
+	 * @return
+	 * @throws Exception
+	 */
 	public static String httpPost(String reqUrl, String reqData) throws Exception {
 		return httpPost(reqUrl, reqData, "application/json");
 	}
 
+	/** 
+	 * 可指定contentType的 post
+	 *
+	 * @param reqUrl
+	 * @param reqData
+	 * @param contentType
+	 * @return
+	 * @throws Exception
+	 */
 	public static String httpPost(String reqUrl, String reqData, String contentType) throws Exception {
 		long startTime = System.currentTimeMillis();
 		URI uri = new URI(reqUrl);
@@ -96,6 +94,11 @@ public class HttpClientUtils {
 		return new String(outputStream.toByteArray());
 	}
 
+	/** 
+	 * 生成HttpClient
+	 *
+	 * @return
+	 */
 	private static CloseableHttpClient generateHttpClient() {
 		Registry<ConnectionSocketFactory> socketFactory = RegistryBuilder.<ConnectionSocketFactory> create()
 				.register("http", PlainConnectionSocketFactory.INSTANCE).build();

@@ -54,6 +54,11 @@ public class SyncIncrOrdersController {
 
 	private boolean sendConfirmMessage = true;
 
+	/** 
+	 * 控制是否同步IncrOrder
+	 *
+	 * @return
+	 */
 	@RequestMapping(value = "/changeSendConfirmMessage", method = RequestMethod.GET)
 	public @ResponseBody String changeSendConfirmMessage() {
 		sendConfirmMessage = !sendConfirmMessage;
