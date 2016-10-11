@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.model.OrderMessageResponse;
 import com.elong.nb.service.IIncrOrderService;
+import com.elong.nb.service.INoticeService;
+import com.elong.nb.util.DateUtils;
 
 /**
  * IncrOrder同步Controller
@@ -45,6 +48,9 @@ public class SyncIncrOrdersController {
 
 	@Resource
 	private IIncrOrderService incrOrderService;
+	
+	@Resource
+	private INoticeService noticeService;
 
 	private boolean sendConfirmMessage = true;
 
@@ -81,6 +87,7 @@ public class SyncIncrOrdersController {
 								logger.info(Thread.currentThread().getName() + " end to handlerMessage.");
 							} catch (Exception e) {
 								logger.error("SyncIncrOrders,Controller,handlerMessage error = " + e.getMessage(), e);
+								noticeService.sendMessage("SyncIncrOrders,Controller,handlerMessage error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 							}
 						}
 					});
@@ -94,6 +101,7 @@ public class SyncIncrOrdersController {
 			logger.error("SyncIncrOrders,Controller,error = " + e.getMessage(), e);
 			messageResponse.setResponseCode(OrderMessageResponse.FAILURE);
 			messageResponse.setExceptionMessage(e.getMessage());
+			noticeService.sendMessage("SyncInventoryToDB,error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 		}
 		String result = JSON.toJSONString(messageResponse);
 		logger.info("SyncIncrOrders,Controller,result = " + result);

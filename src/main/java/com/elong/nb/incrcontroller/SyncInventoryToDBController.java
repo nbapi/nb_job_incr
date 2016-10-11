@@ -9,6 +9,7 @@ import java.util.Date;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.model.ResponseResult;
 import com.elong.nb.service.IIncrInventoryService;
+import com.elong.nb.service.INoticeService;
+import com.elong.nb.util.DateUtils;
 
 /**
  * IncrInventory同步Controller
@@ -39,6 +42,9 @@ public class SyncInventoryToDBController {
 
 	@Resource
 	private IIncrInventoryService incrInventoryService;
+	
+	@Resource
+	private INoticeService noticeService;
 
 	/** 
 	 * 同步IncrInventory到数据库
@@ -59,6 +65,7 @@ public class SyncInventoryToDBController {
 			logger.error("SyncInventoryToDB,Controller,error = " + e.getMessage(), e);
 			result.setCode(ResponseResult.FAILURE);
 			result.setMessage(e.getMessage());
+			noticeService.sendMessage("SyncInventoryToDB,error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 		}
 		long endTime = new Date().getTime();
 		logger.info("SyncInventoryToDB,Controller,use time = " + (endTime - startTime) + "ms");

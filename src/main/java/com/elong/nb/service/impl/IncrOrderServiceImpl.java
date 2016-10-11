@@ -31,6 +31,7 @@ import com.elong.nb.model.enums.OrderChangeStatusEnum;
 import com.elong.nb.repository.CommonRepository;
 import com.elong.nb.repository.IncrOrderRepository;
 import com.elong.nb.service.IIncrOrderService;
+import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.HttpClientUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
@@ -61,6 +62,9 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 	@Resource
 	private CommonRepository commonRepository;
+	
+	@Resource
+	private INoticeService noticeService;
 
 	/** 
 	 * 处理订单中心消息
@@ -101,6 +105,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		JSONObject jsonObj = JSON.parseObject(result);
 		int retcode = (int) jsonObj.get("retcode");
 		if (retcode != 0) {
+			noticeService.sendMessage("getOrder from orderCenter error:" + com.elong.nb.util.DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), "getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 			throw new IllegalStateException("getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 		}
 		JSONObject bodyJsonObj = jsonObj.getJSONObject("body");

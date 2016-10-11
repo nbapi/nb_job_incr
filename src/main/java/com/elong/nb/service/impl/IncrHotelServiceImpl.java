@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.repository.IncrHotelRepository;
 import com.elong.nb.service.IIncrHotelService;
+import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.DateUtils;
 
 import edu.emory.mathcs.backport.java.util.Collections;
@@ -53,6 +55,9 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 
 	@Resource
 	private IncrHotelRepository incrHotelRepository;
+	
+	@Resource
+	private INoticeService noticeService;
 
 	/** 
 	 * 同步酒店增量
@@ -111,7 +116,8 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 						incrHotelRepository.syncIncrHotelToDB(hotels);
 					}
 				} catch (Exception e) {
-					logger.error("incr.SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
+					logger.error("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
+					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrInventory' error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});
@@ -156,6 +162,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
+					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrRate' error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});

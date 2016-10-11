@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -34,6 +35,8 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.IProductForPartnerSer
 import com.elong.nb.agent.ProductForPartnerServiceContract.InventoryChangeModel;
 import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
 import com.elong.nb.dao.IncrInventoryDao;
+import com.elong.nb.service.INoticeService;
+import com.elong.nb.util.DateUtils;
 import com.elong.nb.util.ExecutorUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
@@ -75,6 +78,9 @@ public class IncrInventoryRepository {
 
 	@Resource
 	private CommonRepository commonRepository;
+	
+	@Resource
+	private INoticeService noticeService;
 
 	/** 
 	 * 删除过期增量数据
@@ -349,6 +355,7 @@ public class IncrInventoryRepository {
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
+			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
 			throw new IllegalStateException(ex);
 		}
 	}
