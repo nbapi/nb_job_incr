@@ -96,16 +96,16 @@ public class IncrStateRepository {
 				params.put("startNum", startNum);
 				params.put("endNum", endNum);
 				logger.info("getDataList,params = " + params + ",type = " + type);
-				List<Map<String, Object>> hotelIdDataList = getDataList(params, type);
-				int resultSize = hotelIdDataList == null ? 0 : hotelIdDataList.size();
+				List<Map<String, Object>> dataList = getDataList(params, type);
+				int resultSize = dataList == null ? 0 : dataList.size();
 				logger.info("getDataList,result size = " + resultSize);
-				if (hotelIdDataList == null || hotelIdDataList.size() == 0)
+				if (dataList == null || dataList.size() == 0)
 					continue;
 
 				if (StringUtils.equals("HotelId", type) || StringUtils.equals("HotelCode", type)) {
 					long starTime = new Date().getTime();
 					// M和S酒店增量过来的，需要处理一下关系Redis
-					for (Map<String, Object> row : hotelIdDataList) {
+					for (Map<String, Object> row : dataList) {
 						// 处理一下酒店关联HotelId是M酒店
 						if (row == null || row.get("HotelId") == null || StringUtils.isEmpty((String) row.get("HotelId")))
 							continue;
@@ -117,7 +117,7 @@ public class IncrStateRepository {
 					long enTime = new Date().getTime();
 					logger.info("use time = " + (enTime - starTime) + ",msRelationRepository.resetHotelMSCache.");
 				}
-				int count = incrStateDao.bulkInsert(hotelIdDataList);
+				int count = incrStateDao.bulkInsert(dataList);
 				logger.info("IncrState BulkInsert successfully,count = " + count + ",type = " + type);
 			}
 		}

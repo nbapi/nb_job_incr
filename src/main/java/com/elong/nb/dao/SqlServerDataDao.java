@@ -8,8 +8,6 @@ package com.elong.nb.dao;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.annotations.Param;
-
 import com.elong.nb.db.DataSource;
 import com.elong.nb.model.NBMSRelation;
 
@@ -158,10 +156,10 @@ public interface SqlServerDataDao {
 	/** 
 	 * 指定mhotelId的所有ms关系数据
 	 *
-	 * @param mHotelId
+	 * @param params
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_13")
-	public List<NBMSRelation> getMSRelationData(@Param("mHotelId") String mHotelId);
+	public List<NBMSRelation> getMSRelationData(Map<String, Object> params);
 
 }

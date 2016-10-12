@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import com.alibaba.fastjson.JSON;
@@ -37,6 +38,8 @@ import com.elong.nb.model.NBMSRelation;
  */
 @Repository
 public class MSRelationRepository {
+
+	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
@@ -71,7 +74,11 @@ public class MSRelationRepository {
 	 * @param mhotelId
 	 */
 	public void resetHotelMSCache(String mhotelId) {
-		List<NBMSRelation> relatioins = sqlServerDataDao.getMSRelationData(mhotelId);
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("mhotelId", mhotelId);
+		List<NBMSRelation> relatioins = sqlServerDataDao.getMSRelationData(params);
+		int recordCount = relatioins == null ? 0 : relatioins.size();
+		logger.info("resetHotelMSCache,sqlServerDataDao.getMSRelationData,mhotelId = " + mhotelId + ",recordCount = " + recordCount);
 
 		// region 去掉已关闭的酒店关联，M酒店和S酒店
 		List<NBMSRelation> noClosedHotel = new ArrayList<NBMSRelation>();
@@ -88,6 +95,8 @@ public class MSRelationRepository {
 			}
 		}
 		relatioins = noClosedHotel;
+		recordCount = relatioins == null ? 0 : relatioins.size();
+		logger.info("resetHotelMSCache,noClosedHotel,recordCount = " + recordCount);
 
 		if (relatioins != null && relatioins.size() > 0) {
 			// region 新映射
@@ -112,5 +121,4 @@ public class MSRelationRepository {
 			}
 		}
 	}
-
 }
