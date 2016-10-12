@@ -9,6 +9,18 @@
 		</layout>
 	</appender>
 
+	<!-- OrderCenter appender -->
+	<appender name="OrderCenterAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="file" value="${catalina.home}/logs/syncIncrlog/OrderCenter.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
 	<!-- NoticeService appender -->
 	<appender name="NoticeServiceAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="file" value="${catalina.home}/logs/syncIncrlog/NoticeService.log" />
@@ -206,6 +218,12 @@
 		<appender-ref ref="actionLogEntityAppender" />
 	</logger>
 
+
+	<!-- OrderCenter 日志器 -->
+	<logger name="OrderCenterLogger" additivity="false">
+		<level value="info" />
+		<appender-ref ref="OrderCenterAppender" />
+	</logger>
 	<!-- NoticeService 日志器 -->
 	<logger name="NoticeServiceLogger" additivity="false">
 		<level value="info" />

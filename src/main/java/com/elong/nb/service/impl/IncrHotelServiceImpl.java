@@ -28,7 +28,7 @@ import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.repository.IncrHotelRepository;
 import com.elong.nb.service.IIncrHotelService;
 import com.elong.nb.service.INoticeService;
-import com.elong.nb.util.DateUtils;
+import com.elong.nb.util.DateHandlerUtils;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -69,7 +69,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 	public void syncHotelToDB() {
 		// 删除30小时以前的数据
 		long startTime = new Date().getTime();
-		int count = incrHotelRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
+		int count = incrHotelRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
 		long endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",IncrHotel delete successfully.count = " + count);
 
@@ -89,7 +89,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 						List<IncrInventory> inventorys = null;
 						startTime = new Date().getTime();
 						if (hotel == null) {
-							inventorys = incrHotelRepository.getIncrInventories(DateUtils.getCacheExpireDate(), MaxRecordCount);
+							inventorys = incrHotelRepository.getIncrInventories(DateHandlerUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
 							inventorys = incrHotelRepository.getIncrInventories(hotel.TriggerID, MaxRecordCount);
 						}
@@ -117,7 +117,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
-					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrInventory' error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrInventory' error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});
@@ -134,7 +134,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 						List<IncrRate> rates = null;
 						startTime = new Date().getTime();
 						if (hotel == null) {
-							rates = incrHotelRepository.getIncrRates(DateUtils.getCacheExpireDate(), MaxRecordCount);
+							rates = incrHotelRepository.getIncrRates(DateHandlerUtils.getCacheExpireDate(), MaxRecordCount);
 						} else {
 							rates = incrHotelRepository.getIncrRates(hotel.TriggerID, MaxRecordCount);
 						}
@@ -162,7 +162,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
-					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrRate' error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrRate' error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});

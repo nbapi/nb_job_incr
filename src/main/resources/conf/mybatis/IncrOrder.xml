@@ -11,6 +11,15 @@
 		</where>
 		LIMIT #{limit}
 	</delete>
+	
+	<!-- 获取最大IncrID的订单增量 -->
+	<select id="getLastIncrOrder" resultType="incrOrder">
+		select * from IncrOrder
+		<where>
+			<if test="orderId != null and !orderId.equals('')">and OrderId =#{orderId} </if>
+		</where>
+		order by ChangeTime desc limit 0,1
+	</select>
 
 	<!-- 插入IncrOrder -->
 	<insert id="insert" parameterType="java.util.Map" useGeneratedKeys="false">

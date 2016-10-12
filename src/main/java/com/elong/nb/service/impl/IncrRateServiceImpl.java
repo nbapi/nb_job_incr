@@ -17,7 +17,7 @@ import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
 import com.elong.nb.repository.IncrRateRepository;
 import com.elong.nb.service.IIncrRateService;
-import com.elong.nb.util.DateUtils;
+import com.elong.nb.util.DateHandlerUtils;
 
 /**
  * IncrRate服务接口实现
@@ -53,7 +53,7 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	public void syncRatesToDB() {
 		// 删除过期数据
 		long startTime = new Date().getTime();
-		int count = incrRateRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
+		int count = incrRateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
 		long endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",IncrRate delete successfully.count = " + count);
 

@@ -36,7 +36,7 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.InventoryChangeModel;
 import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.service.INoticeService;
-import com.elong.nb.util.DateUtils;
+import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
@@ -361,7 +361,7 @@ public class IncrInventoryRepository {
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
-			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
+			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
 		}
 	}
 

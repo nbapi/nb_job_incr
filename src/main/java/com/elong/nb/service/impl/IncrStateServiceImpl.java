@@ -19,7 +19,7 @@ import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
 import com.elong.nb.repository.IncrStateRepository;
 import com.elong.nb.service.IIncrStateService;
-import com.elong.nb.util.DateUtils;
+import com.elong.nb.util.DateHandlerUtils;
 
 /**
  * IncrState服务接口实现
@@ -55,7 +55,7 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	public void syncStateToDB() {
 		if (DateTime.now().getHourOfDay() == 1 && DateTime.now().getMinuteOfHour() < 10) {
 			// 删除过期数据
-			int count = incrStateRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
+			int count = incrStateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
 			logger.info("IncrState delete successfully, count = " + count);
 		}
 
@@ -68,9 +68,9 @@ public class IncrStateServiceImpl implements IIncrStateService {
 		}
 		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.StateSyncTimeKey_CacheKey.getKey());
 		startTime = (startTime == null) ? new Date() : startTime;
-		Date endTime = DateUtils.getOffsetDate(Calendar.MINUTE, -5);
-		logger.info("SyncRatesToDB,startTime = " + DateUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss") + ",endTime = "
-				+ DateUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss"));
+		Date endTime = DateHandlerUtils.getOffsetDate(Calendar.MINUTE, -5);
+		logger.info("SyncRatesToDB,startTime = " + DateHandlerUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss") + ",endTime = "
+				+ DateHandlerUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss"));
 		if (endTime.compareTo(startTime) > 0) {
 			syncStateToDB(startTime, endTime);
 			redisManager.put(RedisKeyConst.StateSyncTimeKey_CacheKey, endTime);
@@ -87,8 +87,8 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	 * @param endTime
 	 */
 	private void syncStateToDB(Date startTime, Date endTime) {
-		String startTimeStr = DateUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss");
-		String endTimeStr = DateUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss");
+		String startTimeStr = DateHandlerUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss");
+		String endTimeStr = DateHandlerUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss");
 		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "HotelId");
 		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "HotelCode");
 		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "RoomId");

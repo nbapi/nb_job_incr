@@ -50,22 +50,6 @@ public interface IncrOrderDao {
 	public IncrOrder getLastIncrOrder(Map<String, Object> paramMap);
 
 	/** 
-	 * 获取大于指定lastTime的最早发生变化的订单增量
-	 *
-	 * @param paramMap
-	 * @return
-	 */
-	public IncrOrder getOneIncrOrder(Map<String, Object> paramMap);
-
-	/** 
-	 * 获取大于指定lastId的maxRecordCount条订单增量
-	 *
-	 * @param paramMap
-	 * @return
-	 */
-	public List<IncrOrder> getIncrOrders(Map<String, Object> paramMap);
-
-	/** 
 	 * 插入IncrOrder
 	 *
 	 * @param incrOrderMap

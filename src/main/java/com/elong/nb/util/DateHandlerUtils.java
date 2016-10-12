@@ -1,5 +1,5 @@
 /**   
- * @(#)DateUtils.java	2016年9月20日	下午5:03:37	   
+ * @(#)DateHandlerUtils.java	2016年9月20日	下午5:03:37	   
  *     
  * Copyrights (C) 2016艺龙旅行网保留所有权利
  */
@@ -23,7 +23,23 @@ import java.util.Date;
  * @version		1.0  
  * @since		JDK1.7
  */
-public class DateUtils {
+public class DateHandlerUtils {
+
+	/** 
+	 * 获取指定类型偏移值后的日期
+	 *
+	 * @param date
+	 * @param type
+	 * @param value
+	 * @param pattern
+	 * @return
+	 */
+	public static String getOffsetDateStr(Date date, int type, int value, String pattern) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(type, value);
+		return formatDate(calendar.getTime(), pattern);
+	}
 
 	/** 
 	 * 获取指定类型偏移值后的日期

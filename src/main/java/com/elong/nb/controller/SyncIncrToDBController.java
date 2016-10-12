@@ -21,13 +21,14 @@ import com.alibaba.fastjson.JSON;
 import com.elong.nb.model.ResponseResult;
 import com.elong.nb.service.IIncrHotelService;
 import com.elong.nb.service.IIncrInventoryService;
+import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.IIncrRateService;
 import com.elong.nb.service.IIncrStateService;
 import com.elong.nb.service.INoticeService;
-import com.elong.nb.util.DateUtils;
+import com.elong.nb.util.DateHandlerUtils;
 
 /**
- * IncrHotel、IncrRate、IncrInventory、IncrState同步Controller
+ * IncrHotel、IncrRate、IncrInventory、IncrState、IncrOrder(兜底)同步Controller
  *
  * <p>
  * 修改历史:											<br>  
@@ -58,10 +59,13 @@ public class SyncIncrToDBController {
 	private IIncrStateService incrStateService;
 
 	@Resource
+	private IIncrOrderService incrOrderService;
+
+	@Resource
 	private INoticeService noticeService;
 
 	/** 
-	 * 同步IncrHotel到数据库
+	 * 同步Incr到数据库
 	 *
 	 * @return
 	 */
@@ -82,6 +86,8 @@ public class SyncIncrToDBController {
 				incrRateService.syncRatesToDB();
 			} else if (StringUtils.equals("SyncStateToDB", pathVariable)) {
 				incrStateService.syncStateToDB();
+			} else if (StringUtils.equals("SyncOrderToDB", pathVariable)) {
+				incrOrderService.syncOrderToDB();
 			} else {
 				logger.info(pathVariable + ",is not supportted.");
 				result.setMessage(pathVariable + ",is not supportted.");
@@ -91,7 +97,7 @@ public class SyncIncrToDBController {
 			logger.error(pathVariable + ",Controller,error = " + e.getMessage(), e);
 			result.setCode(ResponseResult.FAILURE);
 			result.setMessage(e.getMessage());
-			noticeService.sendMessage(pathVariable + ",error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"),
+			noticeService.sendMessage(pathVariable + ",error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"),
 					ExceptionUtils.getFullStackTrace(e));
 		}
 		long endTime = new Date().getTime();

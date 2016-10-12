@@ -16,7 +16,7 @@ import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
 import com.elong.nb.repository.IncrInventoryRepository;
 import com.elong.nb.service.IIncrInventoryService;
-import com.elong.nb.util.DateUtils;
+import com.elong.nb.util.DateHandlerUtils;
 
 /**
  * IncrInventory服务接口实现
@@ -52,7 +52,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	public void syncInventoryToDB() {
 		// 删除30小时以前的数据
 		long startTime = new Date().getTime();
-		int count = incrInventoryRepository.deleteExpireIncrData(DateUtils.getDBExpireDate());
+		int count = incrInventoryRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
 		logger.info("IncrInventory delete successfully.count = " + count);
 		long endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",IncrInventory delete successfully.count = " + count);
@@ -79,7 +79,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		}
 		if (changeID == 0) {
 			long startTime = new Date().getTime();
-			changeID = incrInventoryRepository.getInventoryChangeMinID(DateUtils.getCacheExpireDate());
+			changeID = incrInventoryRepository.getInventoryChangeMinID(DateHandlerUtils.getCacheExpireDate());
 			logger.info("get changeID = " + changeID + ",from wcf [ProductForPartnerServiceContract.getInventoryChangeMinID]");
 			long endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",incrInventoryRepository.getInventoryChangeMinID");

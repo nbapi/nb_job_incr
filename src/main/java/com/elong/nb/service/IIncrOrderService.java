@@ -5,8 +5,6 @@
  */
 package com.elong.nb.service;
 
-import java.util.Map;
-
 import com.elong.nb.model.OrderMessageResponse;
 
 /**
@@ -26,6 +24,12 @@ import com.elong.nb.model.OrderMessageResponse;
 public interface IIncrOrderService {
 
 	/** 
+	 * 同步订单增量（兜底：在订单组主动推送消息挂调时）
+	 *
+	 */
+	public void syncOrderToDB();
+
+	/** 
 	 * 检查订单中心消息 
 	 *
 	 * @param message
@@ -39,13 +43,5 @@ public interface IIncrOrderService {
 	 * @param message
 	 */
 	public void handlerMessage(String message);
-
-	/** 
-	 * 获取订单数据转换为IncrOrder需要格式
-	 *
-	 * @param sourceMap
-	 * @return
-	 */
-	public Map<String, Object> convertMap(Map<String, Object> sourceMap);
 
 }

@@ -23,7 +23,7 @@ import com.alibaba.fastjson.JSON;
 import com.elong.nb.model.OrderMessageResponse;
 import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.INoticeService;
-import com.elong.nb.util.DateUtils;
+import com.elong.nb.util.DateHandlerUtils;
 
 /**
  * IncrOrder同步Controller
@@ -89,7 +89,7 @@ public class SyncIncrOrdersController {
 								incrOrderService.handlerMessage(message);
 							} catch (Exception e) {
 								logger.error("SyncIncrOrders,Controller,handlerMessage error = " + e.getMessage(), e);
-								noticeService.sendMessage("SyncIncrOrders,Controller,handlerMessage error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+								noticeService.sendMessage("SyncIncrOrders,Controller,handlerMessage error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 							}
 						}
 					});
@@ -103,7 +103,7 @@ public class SyncIncrOrdersController {
 			logger.error("SyncIncrOrders,Controller,error = " + e.getMessage(), e);
 			messageResponse.setResponseCode(OrderMessageResponse.FAILURE);
 			messageResponse.setExceptionMessage(e.getMessage());
-			noticeService.sendMessage("SyncInventoryToDB,error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+			noticeService.sendMessage("SyncInventoryToDB,error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 		}
 		String result = JSON.toJSONString(messageResponse);
 		logger.info("SyncIncrOrders,Controller,result = " + result);

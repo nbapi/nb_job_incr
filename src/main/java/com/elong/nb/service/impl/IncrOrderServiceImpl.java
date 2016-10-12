@@ -7,6 +7,7 @@ package com.elong.nb.service.impl;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,16 +24,21 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.elong.nb.dao.IncrOrderDao;
+import com.elong.nb.model.BriefOrder;
+import com.elong.nb.model.OrderCenterResult;
 import com.elong.nb.model.OrderFromResult;
 import com.elong.nb.model.OrderMessageResponse;
+import com.elong.nb.model.bean.IncrOrder;
 import com.elong.nb.model.enums.OrderChangeStatusEnum;
 import com.elong.nb.repository.CommonRepository;
 import com.elong.nb.repository.IncrOrderRepository;
 import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.INoticeService;
-import com.elong.nb.util.HttpClientUtils;
+import com.elong.nb.service.OrderCenterService;
+import com.elong.nb.util.DateHandlerUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
@@ -62,7 +68,10 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 	@Resource
 	private CommonRepository commonRepository;
-	
+
+	@Resource
+	private OrderCenterService orderCenterService;
+
 	@Resource
 	private INoticeService noticeService;
 
@@ -77,34 +86,19 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	public void handlerMessage(final String message) {
 		// 删除30小时以前的数据
 		long startTime = new Date().getTime();
-		int count = incrOrderRepository.deleteExpireIncrData(com.elong.nb.util.DateUtils.getDBExpireDate());
+		int count = incrOrderRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
 		long endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
 
-		// 构建请求参数
+		// 订单中心获取订单
 		Map<String, Object> map = JSON.parseObject(message);
 		Integer orderId = (Integer) map.get("orderId");
-		String reqData = "{ \"orderId\":%d,\"fields\":\"sumPrice,status,roomCount,proxy,sourceOrderId,orderFrom,checkOutDate,checkInDate,cardNo\" }";
-		reqData = String.format(reqData, orderId);
-
-		// 从订单中心获取订单数据
-		startTime = new Date().getTime();
-		String reqUrl = PropertiesHelper.getEnvProperties("GetOrderUrlFromOrderCenter", "config").toString();
-		logger.info("httpPost,reqUrl = " + reqUrl);
-		logger.info("httpPost,reqData = " + reqData);
-		String result = null;
-		try {
-			result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
-		} catch (Exception e) {
-			throw new IllegalStateException("getOrder from orderCenter error = " + e.getMessage());
-		}
-		logger.info("httpPost,result = " + result);
-		endTime = new Date().getTime();
-		logger.info("use time = " + (endTime - startTime) + ",httpPost");
+		String result = orderCenterService.getOrder(orderId);
 		JSONObject jsonObj = JSON.parseObject(result);
 		int retcode = (int) jsonObj.get("retcode");
 		if (retcode != 0) {
-			noticeService.sendMessage("getOrder from orderCenter error:" + com.elong.nb.util.DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), "getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
+			noticeService.sendMessage("getOrder from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"),
+					"getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 			throw new IllegalStateException("getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 		}
 		JSONObject bodyJsonObj = jsonObj.getJSONObject("body");
@@ -113,34 +107,11 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		Map<String, Object> incrOrderMap = convertMap(bodyJsonObj);
 
 		// 判断是否推送V状态
-		String filterOrderFromStrV = PropertiesHelper.getEnvProperties("FilterOrderFromStrV", "config").toString();
-		if (StringUtils.isNotEmpty(filterOrderFromStrV)) {
-			startTime = new Date().getTime();
-			String[] orderFroms = StringUtils.split(filterOrderFromStrV, ",", -1);
-			String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
-			String status = incrOrderMap.get("Status").toString();
-			endTime = new Date().getTime();
-			logger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
-			if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)) {
-				logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
-						+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
-				return;
-			}
-		}
+		if (!isPullVStatus(incrOrderMap))
+			return;
 
 		// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
-		String cardNo = (incrOrderMap.get("CardNo") == null) ? StringUtils.EMPTY : incrOrderMap.get("CardNo").toString();
-		if (StringUtils.equals("49", cardNo)) {
-			startTime = new Date().getTime();
-			OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
-			if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {
-				incrOrderMap.put("ProxyId", orderProxy.getData().getProxyId());
-				incrOrderMap.put("CardNo", orderProxy.getData().getCardNo());
-				incrOrderMap.put("Status", "D");
-			}
-			endTime = new Date().getTime();
-			logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
-		}
+		handlerMap(incrOrderMap);
 
 		// 保存到IncrOrder表
 		logger.info("insert incrOrder = " + incrOrderMap);
@@ -221,15 +192,119 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	}
 
 	/** 
+	 * 同步订单增量（兜底：在订单组主动推送消息挂调时）
+	 * 
+	 *
+	 * @see com.elong.nb.service.IIncrOrderService#syncOrderToDB()    
+	 */
+	@Override
+	public void syncOrderToDB() {
+		// 查询前2分钟至前1分钟
+		Date endTimeDate = new Date();
+		String startTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -2, "yyyy-MM-dd HH:mm:ss");
+		String endTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -1, "yyyy-MM-dd HH:mm:ss");
+		String getBriefOrdersResult = orderCenterService.getBriefOrdersByTimestamp(startTimestamp, endTimestamp);
+		OrderCenterResult orderCenterResult = JSON.parseObject(getBriefOrdersResult, OrderCenterResult.class);
+
+		// 未查到数据，跳过
+		if (orderCenterResult == null || orderCenterResult.getRetcode() != 0 || orderCenterResult.getBody() == null) {
+			logger.info("syncOrderToDB ignore,due to retDesc = " + orderCenterResult.getRetdesc()
+					+ " from getBriefOrdersByTimestamp,endTimestamp = " + endTimestamp);
+			return;
+		}
+		List<BriefOrder> orders = orderCenterResult.getBody().getOrders();
+		// 未查到数据，跳过
+		if (orders == null || orders.size() == 0) {
+			logger.info("syncOrderToDB ignore,due to orders is null or empfy from getBriefOrdersByTimestamp,endTimestamp = " + endTimestamp);
+			return;
+		}
+
+		List<Long> orderIds = findOrderIds(orders);
+		// 没有需要主动查询的订单号，跳过
+		if (orderIds == null || orderIds.size() == 0) {
+			logger.info("syncOrderToDB ignore,due to orderIdList is null or empfy which not be found in OrderMessage,endTimestamp = "
+					+ endTimestamp);
+			return;
+		}
+
+		logger.info("syncOrderToDB,orderIds size = " + orderIds.size() + ",endTimestamp = " + endTimestamp);
+		String getOrderResult = orderCenterService.getOrders(orderIds);
+		JSONObject jsonObj = JSON.parseObject(getOrderResult);
+		int retcode = (int) jsonObj.get("retcode");
+		// 批量获取订单失败，跳过
+		if (retcode != 0) {
+			logger.info("getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc") + ",endTimestamp = "
+					+ endTimestamp);
+			noticeService.sendMessage("getOrders from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"),
+					"getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
+			return;
+		}
+		JSONArray bodyJsonArray = jsonObj.getJSONArray("body");
+		if (bodyJsonArray == null || bodyJsonArray.size() == 0) {
+			logger.info("syncOrderToDB ignore,due to bodyJsonArray is null or empfy from getOrders,endTimestamp = " + endTimestamp);
+			return;
+		}
+		int successCount = 0;
+		for (int i = 0; i < bodyJsonArray.size(); i++) {
+			Map<String, Object> sourceMap = bodyJsonArray.getJSONObject(i);
+			// 转换为IncrOrder需要格式
+			Map<String, Object> incrOrderMap = convertMap(sourceMap);
+			// 判断是否推送V状态
+			if (!isPullVStatus(incrOrderMap))
+				return;
+			// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
+			handlerMap(incrOrderMap);
+			// 保存到IncrOrder表
+			successCount += incrOrderDao.insert(incrOrderMap);
+		}
+		logger.info("syncOrderToDB,Insert incrOrder successfully.successCount = " + successCount);
+	}
+
+	/** 
+	 * 查找需要批量查询的数据
+	 *
+	 * @param orders
+	 * @return
+	 */
+	private List<Long> findOrderIds(List<BriefOrder> orders) {
+		List<Long> orderIdList = new ArrayList<Long>();
+		for (BriefOrder order : orders) {
+			if (order == null || StringUtils.isEmpty(order.getStatus()))
+				continue;
+			if (!OrderChangeStatusEnum.containCode(order.getStatus()))
+				continue;
+
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("orderId", order.getOrderId());
+			IncrOrder incrOrder = incrOrderDao.getLastIncrOrder(params);
+			// 工作库不存在该订单时，兜底查询
+			if (incrOrder == null) {
+				orderIdList.add(order.getOrderId());
+				continue;
+			}
+			Date orderTimestamp = null;
+			try {
+				orderTimestamp = DateUtils.parseDate(order.getOrderTimestamp(), new String[] { "yyyy-MM-dd HH:mm:ss.SSS",
+						"yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
+			} catch (ParseException e) {
+				logger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
+			}
+			// 工作库时间小于订单时间戳时,兜底查询
+			if (orderTimestamp != null && incrOrder.getChangeTime().before(orderTimestamp)) {
+				orderIdList.add(order.getOrderId());
+			}
+		}
+		return orderIdList;
+	}
+
+	/** 
 	 * 获取订单数据转换为IncrOrder需要格式
 	 *
 	 * @param sourceMap
 	 * @return 
 	 *
-	 * @see com.elong.nb.service.IIncrOrderService#convertMap(java.util.Map)    
 	 */
-	@Override
-	public Map<String, Object> convertMap(Map<String, Object> sourceMap) {
+	private Map<String, Object> convertMap(Map<String, Object> sourceMap) {
 		Map<String, Object> targetMap = new HashMap<String, Object>();
 
 		try {
@@ -266,6 +341,50 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		targetMap.put("ProxyId", sourceMap.get("proxy"));
 		targetMap.put("InsertTime", new Date());
 		return targetMap;
+	}
+
+	/** 
+	 * 是否推送V状态
+	 *
+	 * @param incrOrderMap
+	 * @return
+	 */
+	public boolean isPullVStatus(Map<String, Object> incrOrderMap) {
+		String filterOrderFromStrV = PropertiesHelper.getEnvProperties("FilterOrderFromStrV", "config").toString();
+		if (StringUtils.isNotEmpty(filterOrderFromStrV)) {
+			long startTime = new Date().getTime();
+			String[] orderFroms = StringUtils.split(filterOrderFromStrV, ",", -1);
+			String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
+			String status = incrOrderMap.get("Status").toString();
+			long endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
+			if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)) {
+				logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
+						+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** 
+	 * 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
+	 *
+	 * @param incrOrderMap
+	 */
+	private void handlerMap(Map<String, Object> incrOrderMap) {
+		String cardNo = (incrOrderMap.get("CardNo") == null) ? StringUtils.EMPTY : incrOrderMap.get("CardNo").toString();
+		if (StringUtils.equals("49", cardNo)) {
+			long startTime = new Date().getTime();
+			OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
+			if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {
+				incrOrderMap.put("ProxyId", orderProxy.getData().getProxyId());
+				incrOrderMap.put("CardNo", orderProxy.getData().getCardNo());
+				incrOrderMap.put("Status", "D");
+			}
+			long endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
+		}
 	}
 
 }
