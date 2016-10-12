@@ -16,12 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import com.alibaba.fastjson.JSON;
-import com.elong.nb.agent.NorthBoundForAPIService.GetMSRelationRequest;
-import com.elong.nb.agent.NorthBoundForAPIService.GetMSRelationResponse;
 import com.elong.nb.agent.NorthBoundForAPIService.INorthBoundForAPIService;
-import com.elong.nb.agent.NorthBoundForAPIService.MSRelation;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
+import com.elong.nb.dao.SqlServerDataDao;
 import com.elong.nb.model.NBMSRelation;
 
 /**
@@ -44,6 +42,9 @@ public class MSRelationRepository {
 
 	@Resource
 	private INorthBoundForAPIService northBoundForAPIService;
+
+	@Resource
+	private SqlServerDataDao sqlServerDataDao;
 
 	/** 
 	 * 获取sHotelID对应的mHotelID
@@ -70,7 +71,8 @@ public class MSRelationRepository {
 	 * @param mhotelId
 	 */
 	public void resetHotelMSCache(String mhotelId) {
-		List<NBMSRelation> relatioins = getMSHotelRelation(mhotelId, null);
+		List<NBMSRelation> relatioins = sqlServerDataDao.getMSRelationData(mhotelId);
+
 		// region 去掉已关闭的酒店关联，M酒店和S酒店
 		List<NBMSRelation> noClosedHotel = new ArrayList<NBMSRelation>();
 		if (relatioins != null && relatioins.size() > 0) {
@@ -109,35 +111,6 @@ public class MSRelationRepository {
 				redisManager.hashPut(RedisKeyConst.KEY_Hotel_M_S_CacheKey, entry.getKey(), JSON.toJSONString(entry.getValue()));
 			}
 		}
-	}
-
-	/** 
-	 *
-	 * @param mHotelId
-	 * @param sHotelId
-	 * @return
-	 */
-	private List<NBMSRelation> getMSHotelRelation(String mHotelId, String sHotelId) {
-		List<NBMSRelation> nbmsList = new ArrayList<NBMSRelation>();
-
-		GetMSRelationRequest req = new GetMSRelationRequest();
-		req.setMHotelID(mHotelId);
-		req.setSHotelID(sHotelId);
-		GetMSRelationResponse res = northBoundForAPIService.getMHotelSHotelRelations(req);
-		if (res != null && res.getRelations() != null && res.getRelations().getMSRelation() != null
-				&& res.getRelations().getMSRelation().size() > 0) {
-			for (MSRelation msRelation : res.getRelations().getMSRelation()) {
-				NBMSRelation nbm_s = new NBMSRelation();
-				nbm_s.setMHotelID(msRelation.getMHotelID());
-				nbm_s.setMStatus(msRelation.getMStatus());
-				nbm_s.setSHotelID(msRelation.getSHotelID());
-				nbm_s.setSStatus(msRelation.getSStatus());
-				nbm_s.setSSupplierTypeID(msRelation.getSSupplierType());
-				nbm_s.setSSupplierID(msRelation.getSSupplierID());
-				nbmsList.add(nbm_s);
-			}
-		}
-		return nbmsList;
 	}
 
 }

@@ -413,5 +413,28 @@
 				</if>
 			</where> '   
 	</select>
+	
+	<select id="getMSRelationData" resultType="nbMSRelation">
+		usp_execute_sql_prod 
+         'SELECT
+				a.hotel_id MHotelID,
+				a.hotel_status MStatus,
+				c.hotel_id SHotelID,
+				c.isreserve SStatus, 
+				e.SupplierID SSupplierID,
+				e.CooperationType SSupplierTypeID
+			FROM
+				mhotelbase a
+			INNER JOIN mhotelshotelrelation b ON a.hotel_id = b.mhotelid
+			INNER JOIN hotel c ON b.shotelid = c.hotel_id
+			INNER JOIN hotel_supplier d ON c.hotel_id = d.hotelid
+			INNER JOIN supplier e ON d.supplierID = e.SupplierID
+			<where>
+				<if test="mhotelId != null and !mhotelId.equals('')">
+					<![CDATA[ and a.hotel_id = ''${mhotelId}'' ]]>
+				</if>
+			</where>
+			' 
+	</select>
 
 </mapper>

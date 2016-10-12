@@ -103,16 +103,19 @@ public class IncrStateRepository {
 					continue;
 
 				if (StringUtils.equals("HotelId", type) || StringUtils.equals("HotelCode", type)) {
+					long starTime = new Date().getTime();
 					// M和S酒店增量过来的，需要处理一下关系Redis
 					for (Map<String, Object> row : hotelIdDataList) {
 						// 处理一下酒店关联HotelId是M酒店
 						if (row == null || row.get("HotelId") == null || StringUtils.isEmpty((String) row.get("HotelId")))
 							continue;
 
-						// String mhotelid = (String) row.get("HotelId");
+						String mhotelid = (String) row.get("HotelId");
 						// 1表示open酒店打开,重置Redis,0关闭清除redis
-						// M_SRelationRepository.ResetHotelMSCache(mhotelid);//TODO 暂时注掉，wcf调不通，待产品组提供新接口
+						msRelationRepository.resetHotelMSCache(mhotelid);
 					}
+					long enTime = new Date().getTime();
+					logger.info("use time = " + (enTime - starTime) + ",msRelationRepository.resetHotelMSCache.");
 				}
 				int count = incrStateDao.bulkInsert(hotelIdDataList);
 				logger.info("IncrState BulkInsert successfully,count = " + count + ",type = " + type);

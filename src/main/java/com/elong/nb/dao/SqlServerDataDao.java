@@ -8,7 +8,10 @@ package com.elong.nb.dao;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.elong.nb.db.DataSource;
+import com.elong.nb.model.NBMSRelation;
 
 /**
  * PriceInfo_track数据组件
@@ -151,5 +154,14 @@ public interface SqlServerDataDao {
 	 */
 	@DataSource("dataSource_sqlserver_13")
 	public List<Map<String, Object>> getRatePlanPolicyData(Map<String, Object> params);
+	
+	/** 
+	 * 指定mhotelId的所有ms关系数据
+	 *
+	 * @param mHotelId
+	 * @return
+	 */
+	@DataSource("dataSource_sqlserver_13")
+	public List<NBMSRelation> getMSRelationData(@Param("mHotelId") String mHotelId);
 
 }
