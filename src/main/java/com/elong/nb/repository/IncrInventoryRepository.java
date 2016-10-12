@@ -362,7 +362,6 @@ public class IncrInventoryRepository {
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
 			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
-			throw new IllegalStateException(ex);
 		}
 	}
 

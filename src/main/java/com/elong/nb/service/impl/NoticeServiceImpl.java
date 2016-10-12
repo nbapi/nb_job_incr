@@ -9,9 +9,8 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.DateUtils;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.elong.nb.service.INoticeService;
@@ -35,7 +34,7 @@ import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 @Service
 public class NoticeServiceImpl implements INoticeService {
 
-	private static final Log logger = LogFactory.getLog(NoticeServiceImpl.class);
+	private static final Logger logger = Logger.getLogger("NoticeServiceLogger");
 
 	private ExecutorService executorService = Executors.newFixedThreadPool(5);
 

@@ -9,6 +9,18 @@
 		</layout>
 	</appender>
 
+	<!-- NoticeService appender -->
+	<appender name="NoticeServiceAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="file" value="${catalina.home}/logs/syncIncrlog/NoticeService.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
 	<!-- biglog appender -->
 	<appender name="BigLogAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="file" value="${catalina.home}/logs/biglog/biglog.log" />
@@ -194,6 +206,11 @@
 		<appender-ref ref="actionLogEntityAppender" />
 	</logger>
 
+	<!-- NoticeService 日志器 -->
+	<logger name="NoticeServiceLogger" additivity="false">
+		<level value="info" />
+		<appender-ref ref="NoticeServiceAppender" />
+	</logger>
 	<!-- biglog日志器 -->
 	<logger name="biglog" additivity="false">
 		<level value="info" />

@@ -76,7 +76,6 @@ public class SyncIncrOrdersController {
 		long startTime = new Date().getTime();
 		OrderMessageResponse messageResponse = null;
 		try {
-			logger.info("SyncIncrOrders,Controller,start.");
 			final String message = request.getParameter("message");
 			logger.info("SyncIncrOrders,Controller,message = " + message);
 
@@ -87,9 +86,7 @@ public class SyncIncrOrdersController {
 					executor.submit(new Runnable() {
 						public void run() {
 							try {
-								logger.info(Thread.currentThread().getName() + " begin to handlerMessage.");
 								incrOrderService.handlerMessage(message);
-								logger.info(Thread.currentThread().getName() + " end to handlerMessage.");
 							} catch (Exception e) {
 								logger.error("SyncIncrOrders,Controller,handlerMessage error = " + e.getMessage(), e);
 								noticeService.sendMessage("SyncIncrOrders,Controller,handlerMessage error:" + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
