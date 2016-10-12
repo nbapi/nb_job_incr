@@ -72,7 +72,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	@Override
 	public String getOrder(Integer orderId) {
 		Map<String, Object> reqParams = new HashMap<String, Object>();
-		reqParams.put("orderIds", orderId);
+		reqParams.put("orderId", orderId);
 		reqParams.put("fields", "sumPrice,status,roomCount,proxy,sourceOrderId,orderFrom,checkOutDate,checkInDate,cardNo");
 
 		String reqUrl = PropertiesHelper.getEnvProperties("GetOrderUrlFromOrderCenter", "config").toString();
@@ -119,7 +119,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 		} catch (Exception e) {
 			throw new IllegalStateException("getOrderData from orderCenter error = " + e.getMessage());
 		}
-		logger.info("httpPost getOrderData,result = " + result);
+		// logger.info("httpPost getOrderData,result = " + result);
 		long endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",httpPost getOrderData");
 		return result;
