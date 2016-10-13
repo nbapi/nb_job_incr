@@ -85,12 +85,6 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 */
 	@Override
 	public void handlerMessage(final String message) {
-		// 删除30小时以前的数据
-		long startTime = new Date().getTime();
-		int count = incrOrderRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		long endTime = new Date().getTime();
-		logger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
-
 		// 订单中心获取订单
 		Map<String, Object> map = JSON.parseObject(message);
 		Integer orderId = (Integer) map.get("orderId");
@@ -120,8 +114,9 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		// 保存到IncrOrder表
 		logger.info("insert incrOrder = " + incrOrderMap);
-		startTime = new Date().getTime();
+		long startTime = new Date().getTime();
 		incrOrderDao.insert(incrOrderMap);
+		long endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",insert incrOrder successfully.");
 	}
 
@@ -204,6 +199,12 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 */
 	@Override
 	public void syncOrderToDB() {
+		// 删除30小时以前的数据
+		long startTime = new Date().getTime();
+		int count = incrOrderRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+		long endTime = new Date().getTime();
+		logger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
+
 		// 查询前2分钟至前1分钟
 		Date endTimeDate = new Date();
 		String startTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -2, "yyyy-MM-dd HH:mm:ss");
