@@ -56,7 +56,7 @@ public class NoticeServiceImpl implements INoticeService {
 					String alertName = PropertiesHelper.getEnvProperties("service.alertName", "service").toString();
 					String alertUrlParam = getAlertUrlParam(alertName, title, content);
 					logger.info("sendMessage,params = " + alertUrlParam);
-					String result = HttpClientUtils.httpPost(alertBaseUrl, alertUrlParam);
+					String result = HttpClientUtils.post(alertBaseUrl, alertUrlParam);
 					logger.info("sendMessage,result = " + result);
 				} catch (Exception e) {
 					logger.error("sendMessage,error = " + e.getMessage(), e);
