@@ -103,7 +103,7 @@ public class SyncIncrOrdersController {
 			logger.error("SyncIncrOrders,Controller,error = " + e.getMessage(), e);
 			messageResponse.setResponseCode(OrderMessageResponse.FAILURE);
 			messageResponse.setExceptionMessage(e.getMessage());
-			noticeService.sendMessage("SyncInventoryToDB,error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+			noticeService.sendMessage("SyncInventoryToDB,error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 		}
 		String result = JSON.toJSONString(messageResponse);
 		logger.info("SyncIncrOrders,Controller,result = " + result);

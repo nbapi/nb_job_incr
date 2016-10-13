@@ -361,7 +361,7 @@ public class IncrInventoryRepository {
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
-			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
+			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
 		}
 	}
 

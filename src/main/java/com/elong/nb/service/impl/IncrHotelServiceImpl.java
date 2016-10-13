@@ -117,7 +117,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
-					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrInventory' error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrInventory' error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});
@@ -162,7 +162,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
-					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrRate' error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrRate' error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});

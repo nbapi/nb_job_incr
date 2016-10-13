@@ -87,7 +87,8 @@ public class SyncIncrToDBController {
 			} else if (StringUtils.equals("SyncStateToDB", pathVariable)) {
 				incrStateService.syncStateToDB();
 			} else if (StringUtils.equals("SyncOrderToDB", pathVariable)) {
-				incrOrderService.syncOrderToDB();
+//				incrOrderService.syncOrderToDB();
+				throw new IllegalAccessException("test exception");
 			} else {
 				logger.info(pathVariable + ",is not supportted.");
 				result.setMessage(pathVariable + ",is not supportted.");
@@ -97,7 +98,7 @@ public class SyncIncrToDBController {
 			logger.error(pathVariable + ",Controller,error = " + e.getMessage(), e);
 			result.setCode(ResponseResult.FAILURE);
 			result.setMessage(e.getMessage());
-			noticeService.sendMessage(pathVariable + ",error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"),
+			noticeService.sendMessage(pathVariable + ",error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
 					ExceptionUtils.getFullStackTrace(e));
 		}
 		long endTime = new Date().getTime();

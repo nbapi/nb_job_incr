@@ -55,9 +55,9 @@ public class NoticeServiceImpl implements INoticeService {
 					String alertBaseUrl = PropertiesHelper.getEnvProperties("service.alertService", "service").toString();
 					String alertName = PropertiesHelper.getEnvProperties("service.alertName", "service").toString();
 					String alertUrlParam = getAlertUrlParam(title, content, alertName);
-					logger.debug("sendMessage,params = " + alertUrlParam);
+					logger.info("sendMessage,params = " + alertUrlParam);
 					String result = HttpClientUtils.httpPost(alertBaseUrl, alertUrlParam);
-					logger.debug("sendMessage,result = " + result);
+					logger.info("sendMessage,result = " + result);
 				} catch (Exception e) {
 					logger.error("sendMessage,error = " + e.getMessage(), e);
 				}
@@ -76,7 +76,7 @@ public class NoticeServiceImpl implements INoticeService {
 	private String getAlertUrlParam(String alertName, String title, String content) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("alertName=").append(alertName);
-		sb.append("&alertTitle=").append(title + ",alertTime = " + DateUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"));
+		sb.append("&alertTitle=").append(title + ",alertTime = " + DateUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		sb.append("&alertContent=").append(content);
 		return sb.toString();
 	}

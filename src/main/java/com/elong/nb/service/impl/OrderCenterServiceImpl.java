@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -106,23 +107,29 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	 *
 	 */
 	private String getOrderData(Map<String, Object> reqParams, String reqUrl) {
-		// 构建请求参数
-		String reqData = JSON.toJSONString(reqParams);
-
-		// 从订单中心获取订单数据
-		long startTime = new Date().getTime();
-		logger.info("httpPost getOrderData,reqUrl = " + reqUrl);
-		logger.info("httpPost getOrderData,reqData = " + reqData);
-		String result = null;
 		try {
-			result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
+			// 构建请求参数
+			String reqData = JSON.toJSONString(reqParams);
+
+			// 从订单中心获取订单数据
+			long startTime = new Date().getTime();
+			logger.info("httpPost getOrderData,reqUrl = " + reqUrl);
+			logger.info("httpPost getOrderData,reqData = " + reqData);
+			String result = null;
+			try {
+				result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
+			} catch (Exception e) {
+				throw new IllegalStateException("getOrderData from orderCenter error = " + e.getMessage());
+			}
+			// logger.info("httpPost getOrderData,result = " + result);
+			long endTime = new Date().getTime();
+			logger.info("use time = " + (endTime - startTime) + ",httpPost getOrderData");
+			return result;
 		} catch (Exception e) {
-			throw new IllegalStateException("getOrderData from orderCenter error = " + e.getMessage());
+			logger.error("getOrderData from orderCenter error = " + e.getMessage(), e);
+			noticeService.sendMessage("getOrderData from orderCenter error", ExceptionUtils.getFullStackTrace(e));
+			return null;
 		}
-		// logger.info("httpPost getOrderData,result = " + result);
-		long endTime = new Date().getTime();
-		logger.info("use time = " + (endTime - startTime) + ",httpPost getOrderData");
-		return result;
 	}
 
 }

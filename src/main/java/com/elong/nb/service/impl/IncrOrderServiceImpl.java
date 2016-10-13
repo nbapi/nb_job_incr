@@ -18,6 +18,7 @@ import javax.annotation.Resource;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -94,10 +95,14 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		Map<String, Object> map = JSON.parseObject(message);
 		Integer orderId = (Integer) map.get("orderId");
 		String result = orderCenterService.getOrder(orderId);
+		if (StringUtils.isEmpty(result)) {
+			logger.error("getOrder from orderCenter error:result is null or empty. ");
+			return;
+		}
 		JSONObject jsonObj = JSON.parseObject(result);
 		int retcode = (int) jsonObj.get("retcode");
 		if (retcode != 0) {
-			noticeService.sendMessage("getOrder from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"),
+			noticeService.sendMessage("getOrder from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
 					"getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 			throw new IllegalStateException("getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 		}
@@ -204,7 +209,15 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		String startTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -2, "yyyy-MM-dd HH:mm:ss");
 		String endTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -1, "yyyy-MM-dd HH:mm:ss");
 		String getBriefOrdersResult = orderCenterService.getBriefOrdersByTimestamp(startTimestamp, endTimestamp);
-		OrderCenterResult orderCenterResult = JSON.parseObject(getBriefOrdersResult, OrderCenterResult.class);
+		OrderCenterResult orderCenterResult = null;
+		try {
+			orderCenterResult = JSON.parseObject(getBriefOrdersResult, OrderCenterResult.class);
+		} catch (Exception e) {
+			logger.error("JSON.parseObject error = " + e.getMessage() + ",getBriefOrdersResult = " + getBriefOrdersResult);
+			noticeService.sendMessage("JSON.parseObject error = " + e.getMessage() + ",getBriefOrdersResult = " + getBriefOrdersResult,
+					ExceptionUtils.getFullStackTrace(e));
+			return;
+		}
 
 		// 未查到数据，跳过
 		if (orderCenterResult == null || orderCenterResult.getRetcode() != 0 || orderCenterResult.getBody() == null) {
@@ -229,13 +242,17 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		logger.info("syncOrderToDB,orderIds size = " + orderIds.size() + ",endTimestamp = " + endTimestamp);
 		String getOrderResult = orderCenterService.getOrders(orderIds);
+		if (StringUtils.isEmpty(getOrderResult)) {
+			logger.error("getOrders from orderCenter error:getOrderResult is null or empty. ");
+			return;
+		}
 		JSONObject jsonObj = JSON.parseObject(getOrderResult);
 		int retcode = (int) jsonObj.get("retcode");
 		// 批量获取订单失败，跳过
 		if (retcode != 0) {
 			logger.info("getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc") + ",endTimestamp = "
 					+ endTimestamp);
-			noticeService.sendMessage("getOrders from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "YYYY-MM-DD HH:mm:ss"),
+			noticeService.sendMessage("getOrders from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
 					"getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 			return;
 		}
