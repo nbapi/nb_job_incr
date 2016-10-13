@@ -333,7 +333,6 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			targetMap.put("ChangeTime", changeTime);
 		} catch (ParseException e) {
 			logger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
-			jobLogger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 
 		targetMap.put("OrderId", sourceMap.get("orderId"));
@@ -346,7 +345,6 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			targetMap.put("ArrivalDate", arrivalDate);
 		} catch (ParseException e) {
 			logger.error("checkInDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
-			jobLogger.error("checkInDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 		try {
 			String checkOutDate = (String) sourceMap.get("checkOutDate");
@@ -354,7 +352,6 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			targetMap.put("DepartureDate", departureDate);
 		} catch (ParseException e) {
 			logger.error("checkOutDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
-			jobLogger.error("checkOutDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 		targetMap.put("TotalPrice", sourceMap.get("sumPrice"));
 		targetMap.put("NumberOfRooms", sourceMap.get("roomCount"));
@@ -380,11 +377,8 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			String status = incrOrderMap.get("Status").toString();
 			long endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
-			jobLogger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
 			if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)) {
 				logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
-						+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
-				jobLogger.info("status = " + status + ",orderFrom = " + currentOrderFrom
 						+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
 				return false;
 			}
@@ -409,7 +403,6 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			}
 			long endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
-			jobLogger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
 		}
 	}
 
