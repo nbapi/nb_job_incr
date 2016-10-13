@@ -97,9 +97,10 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		JSONObject jsonObj = JSON.parseObject(result);
 		int retcode = (int) jsonObj.get("retcode");
 		if (retcode != 0) {
+			logger.error("getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 			noticeService.sendMessage("getOrder from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
 					"getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
-			throw new IllegalStateException("getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
+			return;
 		}
 		JSONObject bodyJsonObj = jsonObj.getJSONObject("body");
 
@@ -270,7 +271,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			Map<String, Object> incrOrderMap = convertMap(sourceMap);
 			// 判断是否推送V状态
 			if (!isPullVStatus(incrOrderMap))
-				return;
+				continue;
 			// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
 			handlerMap(incrOrderMap);
 			// 保存到IncrOrder表
