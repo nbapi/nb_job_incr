@@ -372,12 +372,12 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	public boolean isPullVStatus(Map<String, Object> incrOrderMap) {
 		String filterOrderFromStrV = PropertiesHelper.getEnvProperties("FilterOrderFromStrV", "config").toString();
 		if (StringUtils.isNotEmpty(filterOrderFromStrV)) {
-			long startTime = new Date().getTime();
+//			long startTime = new Date().getTime();
 			String[] orderFroms = StringUtils.split(filterOrderFromStrV, ",", -1);
 			String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
 			String status = incrOrderMap.get("Status").toString();
-			long endTime = new Date().getTime();
-			logger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
+//			long endTime = new Date().getTime();
+//			logger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
 			if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)) {
 				logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
 						+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
@@ -395,15 +395,15 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	private void handlerMap(Map<String, Object> incrOrderMap) {
 		String cardNo = (incrOrderMap.get("CardNo") == null) ? StringUtils.EMPTY : incrOrderMap.get("CardNo").toString();
 		if (StringUtils.equals("49", cardNo)) {
-			long startTime = new Date().getTime();
+//			long startTime = new Date().getTime();
 			OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
 			if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {
 				incrOrderMap.put("ProxyId", orderProxy.getData().getProxyId());
 				incrOrderMap.put("CardNo", orderProxy.getData().getCardNo());
 				incrOrderMap.put("Status", "D");
 			}
-			long endTime = new Date().getTime();
-			logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
+//			long endTime = new Date().getTime();
+//			logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
 		}
 	}
 

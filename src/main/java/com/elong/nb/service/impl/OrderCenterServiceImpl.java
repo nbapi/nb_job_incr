@@ -5,7 +5,6 @@
  */
 package com.elong.nb.service.impl;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,9 +111,9 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 			String reqData = JSON.toJSONString(reqParams);
 
 			// 从订单中心获取订单数据
-			long startTime = new Date().getTime();
-			logger.info("httpPost getOrderData,reqUrl = " + reqUrl);
-			logger.info("httpPost getOrderData,reqData = " + reqData);
+//			long startTime = new Date().getTime();
+//			logger.info("httpPost getOrderData,reqUrl = " + reqUrl);
+//			logger.info("httpPost getOrderData,reqData = " + reqData);
 			String result = null;
 			try {
 				result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
@@ -122,8 +121,8 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 				throw new IllegalStateException("getOrderData from orderCenter error = " + e.getMessage());
 			}
 			// logger.info("httpPost getOrderData,result = " + result);
-			long endTime = new Date().getTime();
-			logger.info("use time = " + (endTime - startTime) + ",httpPost getOrderData");
+//			long endTime = new Date().getTime();
+//			logger.info("use time = " + (endTime - startTime) + ",httpPost getOrderData");
 			return result;
 		} catch (Exception e) {
 			logger.error("getOrderData from orderCenter error = " + e.getMessage(), e);

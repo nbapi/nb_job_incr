@@ -76,11 +76,12 @@ public class SyncIncrOrdersController {
 		long startTime = new Date().getTime();
 		OrderMessageResponse messageResponse = null;
 		try {
+			logger.info("SyncIncrOrders,Controller,start.");
 			final String message = request.getParameter("message");
-			logger.info("SyncIncrOrders,Controller,message = " + message);
+//			logger.info("SyncIncrOrders,Controller,message = " + message);
 
 			messageResponse = incrOrderService.checkMessage(message);
-			logger.info("SyncIncrOrders,Controller,checkMessage finished");
+//			logger.info("SyncIncrOrders,Controller,checkMessage finished");
 			if (sendConfirmMessage) {
 				if (OrderMessageResponse.SUCCESS.equals(messageResponse.getResponseCode())) {
 					executor.submit(new Runnable() {
