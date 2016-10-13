@@ -60,6 +60,7 @@ import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 public class IncrOrderServiceImpl implements IIncrOrderService {
 
 	private static final Logger logger = Logger.getLogger("IncrOrderLogger");
+	private static final Logger jobLogger = Logger.getLogger("IncrOrderJobLogger");
 
 	@Resource
 	private IncrOrderDao incrOrderDao;
@@ -203,7 +204,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		long startTime = new Date().getTime();
 		int count = incrOrderRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
 		long endTime = new Date().getTime();
-		logger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
+		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
 
 		// 查询前3分钟至前2分钟
 		Date endTimeDate = new Date();
@@ -214,7 +215,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		try {
 			orderCenterResult = JSON.parseObject(getBriefOrdersResult, OrderCenterResult.class);
 		} catch (Exception e) {
-			logger.error("JSON.parseObject error = " + e.getMessage() + ",getBriefOrdersResult = " + getBriefOrdersResult);
+			jobLogger.error("JSON.parseObject error = " + e.getMessage() + ",getBriefOrdersResult = " + getBriefOrdersResult);
 			noticeService.sendMessage("JSON.parseObject error = " + e.getMessage() + ",getBriefOrdersResult = " + getBriefOrdersResult,
 					ExceptionUtils.getFullStackTrace(e));
 			return;
@@ -222,36 +223,36 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		// 未查到数据，跳过
 		if (orderCenterResult == null || orderCenterResult.getRetcode() != 0 || orderCenterResult.getBody() == null) {
-			logger.info("syncOrderToDB ignore,due to retDesc = " + orderCenterResult.getRetdesc()
+			jobLogger.info("syncOrderToDB ignore,due to retDesc = " + orderCenterResult.getRetdesc()
 					+ " from getBriefOrdersByTimestamp,endTimestamp = " + endTimestamp);
 			return;
 		}
 		List<BriefOrder> orders = orderCenterResult.getBody().getOrders();
 		// 未查到数据，跳过
 		if (orders == null || orders.size() == 0) {
-			logger.info("syncOrderToDB ignore,due to orders is null or empfy from getBriefOrdersByTimestamp,endTimestamp = " + endTimestamp);
+			jobLogger.info("syncOrderToDB ignore,due to orders is null or empfy from getBriefOrdersByTimestamp,endTimestamp = " + endTimestamp);
 			return;
 		}
 
 		List<Long> orderIds = findOrderIds(orders);
 		// 没有需要主动查询的订单号，跳过
 		if (orderIds == null || orderIds.size() == 0) {
-			logger.info("syncOrderToDB ignore,due to orderIdList is null or empfy which not be found in OrderMessage,endTimestamp = "
+			jobLogger.info("syncOrderToDB ignore,due to orderIdList is null or empfy which not be found in OrderMessage,endTimestamp = "
 					+ endTimestamp);
 			return;
 		}
 
-		logger.info("syncOrderToDB,orderIds size = " + orderIds.size() + ",endTimestamp = " + endTimestamp);
+		jobLogger.info("syncOrderToDB,orderIds size = " + orderIds.size() + ",endTimestamp = " + endTimestamp);
 		String getOrderResult = orderCenterService.getOrders(orderIds);
 		if (StringUtils.isEmpty(getOrderResult)) {
-			logger.error("getOrders from orderCenter error:getOrderResult is null or empty. ");
+			jobLogger.error("getOrders from orderCenter error:getOrderResult is null or empty. ");
 			return;
 		}
 		JSONObject jsonObj = JSON.parseObject(getOrderResult);
 		int retcode = (int) jsonObj.get("retcode");
 		// 批量获取订单失败，跳过
 		if (retcode != 0) {
-			logger.info("getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc") + ",endTimestamp = "
+			jobLogger.info("getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc") + ",endTimestamp = "
 					+ endTimestamp);
 			noticeService.sendMessage("getOrders from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
 					"getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
@@ -259,7 +260,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		}
 		JSONArray bodyJsonArray = jsonObj.getJSONArray("body");
 		if (bodyJsonArray == null || bodyJsonArray.size() == 0) {
-			logger.info("syncOrderToDB ignore,due to bodyJsonArray is null or empfy from getOrders,endTimestamp = " + endTimestamp);
+			jobLogger.info("syncOrderToDB ignore,due to bodyJsonArray is null or empfy from getOrders,endTimestamp = " + endTimestamp);
 			return;
 		}
 		int successCount = 0;
@@ -275,7 +276,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			// 保存到IncrOrder表
 			successCount += incrOrderDao.insert(incrOrderMap);
 		}
-		logger.info("syncOrderToDB,Insert incrOrder successfully.successCount = " + successCount);
+		jobLogger.info("syncOrderToDB,Insert incrOrder successfully.successCount = " + successCount);
 	}
 
 	/** 
@@ -332,6 +333,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			targetMap.put("ChangeTime", changeTime);
 		} catch (ParseException e) {
 			logger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
+			jobLogger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 
 		targetMap.put("OrderId", sourceMap.get("orderId"));
@@ -344,6 +346,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			targetMap.put("ArrivalDate", arrivalDate);
 		} catch (ParseException e) {
 			logger.error("checkInDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
+			jobLogger.error("checkInDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 		try {
 			String checkOutDate = (String) sourceMap.get("checkOutDate");
@@ -351,6 +354,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			targetMap.put("DepartureDate", departureDate);
 		} catch (ParseException e) {
 			logger.error("checkOutDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
+			jobLogger.error("checkOutDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 		targetMap.put("TotalPrice", sourceMap.get("sumPrice"));
 		targetMap.put("NumberOfRooms", sourceMap.get("roomCount"));
@@ -376,8 +380,11 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			String status = incrOrderMap.get("Status").toString();
 			long endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
+			jobLogger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
 			if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)) {
 				logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
+						+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
+				jobLogger.info("status = " + status + ",orderFrom = " + currentOrderFrom
 						+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
 				return false;
 			}
@@ -402,6 +409,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			}
 			long endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
+			jobLogger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
 		}
 	}
 
