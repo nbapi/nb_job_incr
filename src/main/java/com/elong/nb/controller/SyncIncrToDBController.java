@@ -87,8 +87,7 @@ public class SyncIncrToDBController {
 			} else if (StringUtils.equals("SyncStateToDB", pathVariable)) {
 				incrStateService.syncStateToDB();
 			} else if (StringUtils.equals("SyncOrderToDB", pathVariable)) {
-//				incrOrderService.syncOrderToDB();
-				throw new IllegalAccessException("test exception");
+				incrOrderService.syncOrderToDB();
 			} else {
 				logger.info(pathVariable + ",is not supportted.");
 				result.setMessage(pathVariable + ",is not supportted.");
