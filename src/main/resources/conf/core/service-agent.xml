@@ -20,7 +20,7 @@
 		</jaxws:properties>
 	</jaxws:client>
 	<http-conf:conduit name="{http://tempuri.org/}IProductForNBServiceContractPort.http-conduit">
-		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="10000" ReceiveTimeout="10000" />
+		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="${services.productForNBServiceContract.connectionTimeout}" ReceiveTimeout="${services.productForNBServiceContract.receiveTimeout}" />
 	</http-conf:conduit>
 
 	<!--ProductForPartnerServiceContract -->
@@ -31,7 +31,7 @@
 		</jaxws:properties>
 	</jaxws:client>
 	<http-conf:conduit name="{http://tempuri.org/}IProductForPartnerServiceContractPort.http-conduit">
-		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="10000" ReceiveTimeout="10000" />
+		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="${services.productForPartnerServiceContract.connectionTimeout}" ReceiveTimeout="${services.productForPartnerServiceContract.receiveTimeout}" />
 	</http-conf:conduit>
 
 	<!--ISupplierServiceContract -->
@@ -41,7 +41,7 @@
 		</jaxws:properties>
 	</jaxws:client>
 	<http-conf:conduit name="{http://tempuri.org/}ISupplierServiceContractPort.http-conduit">
-		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="10000" ReceiveTimeout="10000" />
+		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="50000" ReceiveTimeout="50000" />
 	</http-conf:conduit>
 
 	<!-- INorthBoundForAPIService -->
@@ -52,7 +52,7 @@
 		</jaxws:properties>
 	</jaxws:client>
 	<http-conf:conduit name="{http://tempuri.org/}INorthBoundForAPIServicePort.http-conduit">
-		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="10000" ReceiveTimeout="10000" />
+		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="50000" ReceiveTimeout="50000" />
 	</http-conf:conduit>
 
 	<!-- SHotelService -->
