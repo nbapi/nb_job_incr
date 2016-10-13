@@ -17,8 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.elong.nb.dao.IncrOrderDao;
 import com.elong.nb.dao.SqlServerDataDao;
@@ -56,7 +54,6 @@ public class IncrOrderRepository {
 	 * @param table
 	 * @param expireDate
 	 */
-	@Transactional(propagation = Propagation.REQUIRED)
 	public int deleteExpireIncrData(Date expireDate) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrOrder DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
