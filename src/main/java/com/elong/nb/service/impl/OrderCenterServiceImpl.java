@@ -114,12 +114,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 //			long startTime = new Date().getTime();
 //			logger.info("httpPost getOrderData,reqUrl = " + reqUrl);
 //			logger.info("httpPost getOrderData,reqData = " + reqData);
-			String result = null;
-			try {
-				result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
-			} catch (Exception e) {
-				throw new IllegalStateException("getOrderData from orderCenter error = " + e.getMessage());
-			}
+			String result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
 			// logger.info("httpPost getOrderData,result = " + result);
 //			long endTime = new Date().getTime();
 //			logger.info("use time = " + (endTime - startTime) + ",httpPost getOrderData");
