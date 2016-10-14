@@ -313,7 +313,9 @@ public class IncrInventoryRepository {
 			String mHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
 			// endTime = new Date().getTime();
 			// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
-			resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
+			if (response != null && response.getResourceInventoryStateList() != null) {
+				resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
+			}
 			if (resourceInventoryStateList != null && resourceInventoryStateList.size() > 0) {
 				// startTime = new Date().getTime();
 				for (ResourceInventoryState detail : resourceInventoryStateList) {
