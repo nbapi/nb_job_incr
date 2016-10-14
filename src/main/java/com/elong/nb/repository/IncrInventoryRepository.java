@@ -78,7 +78,7 @@ public class IncrInventoryRepository {
 
 	@Resource
 	private CommonRepository commonRepository;
-	
+
 	@Resource
 	private INoticeService noticeService;
 
@@ -283,12 +283,20 @@ public class IncrInventoryRepository {
 			request.setEndTime(changeModel.getEndTime());
 			request.setRoomTypeIDs(changeModel.getRoomTypeID());
 			long startTime = new Date().getTime();
-			GetInventoryChangeDetailResponse response = productForPartnerServiceContract.getInventoryChangeDetail(request);
+			GetInventoryChangeDetailResponse response = null;
+			try {
+				response = productForPartnerServiceContract.getInventoryChangeDetail(request);
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);// 异常吃掉，下面会重试
+			}
 			long endTime = new Date().getTime();
 			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
 
-			List<ResourceInventoryState> resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
+			List<ResourceInventoryState> resourceInventoryStateList = null;
+			if (response != null && response.getResourceInventoryStateList() != null) {
+				resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
+			}
 			// retry
 			if (resourceInventoryStateList == null || resourceInventoryStateList.size() == 0) {
 				// logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
@@ -361,7 +369,9 @@ public class IncrInventoryRepository {
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
-			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
+			noticeService.sendMessage(
+					threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:"
+							+ DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
 		}
 	}
 
