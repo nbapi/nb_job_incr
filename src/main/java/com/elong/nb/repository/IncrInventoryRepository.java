@@ -322,7 +322,9 @@ public class IncrInventoryRepository {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
 						row.put("HotelID", mHotelId);
-						row.put("RoomTypeID", detail.getRoomTypeID());
+						// TODO 临时处理，需修改表字段长度。后续改回来
+						row.put("RoomTypeID",
+								detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail.getRoomTypeID());
 						row.put("HotelCode", detail.getHotelID());
 						row.put("Status", detail.getStatus() == 0);
 						row.put("AvailableDate", detail.getAvailableTime() == null ? null : detail.getAvailableTime().toDate());
@@ -348,7 +350,9 @@ public class IncrInventoryRepository {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
 						row.put("HotelID", mHotelId);
-						row.put("RoomTypeID", changeModel.getRoomTypeID());
+						// TODO 临时处理，需修改表字段长度。后续改回来
+						row.put("RoomTypeID", changeModel.getRoomTypeID().length() > 50 ? changeModel.getRoomTypeID().substring(0, 50)
+								: changeModel.getRoomTypeID());
 						row.put("HotelCode", changeModel.getHotelID());
 						row.put("Status", false);
 						row.put("AvailableDate", date == null ? null : date.toDate());
