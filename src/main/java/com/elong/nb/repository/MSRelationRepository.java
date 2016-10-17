@@ -98,27 +98,28 @@ public class MSRelationRepository {
 		recordCount = relatioins == null ? 0 : relatioins.size();
 		logger.info("resetHotelMSCache,noClosedHotel,recordCount = " + recordCount);
 
-		if (relatioins != null && relatioins.size() > 0) {
-			// region 新映射
-			Map<String, List<NBMSRelation>> map = new HashMap<String, List<NBMSRelation>>();
-			for (NBMSRelation ms : relatioins) {
-				if (ms == null)
-					continue;
-				redisManager.hashPut(RedisKeyConst.KEY_Hotel_S_M_CacheKey, ms.getSHotelID(), JSON.toJSONString(ms));
+		if (relatioins == null || relatioins.size() == 0)
+			return;
 
-				if (ms == null || !StringUtils.equals("0", ms.getSStatus()))
-					continue;
-				List<NBMSRelation> valList = map.get(ms.getMHotelID());
-				if (valList == null) {
-					valList = new ArrayList<NBMSRelation>();
-				}
-				valList.add(ms);
-				map.put(ms.getMHotelID(), valList);
-			}
+		// region 新映射
+		Map<String, List<NBMSRelation>> map = new HashMap<String, List<NBMSRelation>>();
+		for (NBMSRelation ms : relatioins) {
+			if (ms == null)
+				continue;
+			redisManager.hashPut(RedisKeyConst.KEY_Hotel_S_M_CacheKey, ms.getSHotelID(), JSON.toJSONString(ms));
 
-			for (Map.Entry<String, List<NBMSRelation>> entry : map.entrySet()) {
-				redisManager.hashPut(RedisKeyConst.KEY_Hotel_M_S_CacheKey, entry.getKey(), JSON.toJSONString(entry.getValue()));
+			if (ms == null || !StringUtils.equals("0", ms.getSStatus()))
+				continue;
+			List<NBMSRelation> valList = map.get(ms.getMHotelID());
+			if (valList == null) {
+				valList = new ArrayList<NBMSRelation>();
 			}
+			valList.add(ms);
+			map.put(ms.getMHotelID(), valList);
+		}
+
+		for (Map.Entry<String, List<NBMSRelation>> entry : map.entrySet()) {
+			redisManager.hashPut(RedisKeyConst.KEY_Hotel_M_S_CacheKey, entry.getKey(), JSON.toJSONString(entry.getValue()));
 		}
 	}
 }
