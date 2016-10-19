@@ -5,23 +5,11 @@
  */
 package com.elong.nb.repository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
-import com.alibaba.fastjson.JSON;
-import com.elong.nb.agent.NorthBoundForAPIService.INorthBoundForAPIService;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.consts.RedisKeyConst;
-import com.elong.nb.dao.SqlServerDataDao;
-import com.elong.nb.model.NBMSRelation;
 
 /**
  *
@@ -39,15 +27,7 @@ import com.elong.nb.model.NBMSRelation;
 @Repository
 public class MSRelationRepository {
 
-	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
-
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
-
-	@Resource
-	private INorthBoundForAPIService northBoundForAPIService;
-
-	@Resource
-	private SqlServerDataDao sqlServerDataDao;
 
 	/** 
 	 * 获取sHotelID对应的mHotelID
@@ -56,70 +36,11 @@ public class MSRelationRepository {
 	 * @return
 	 */
 	public String getMHotelId(String sHotelID) {
-		String res = redisManager.hashGet(RedisKeyConst.KEY_ID_S_M_CacheKey, sHotelID);
-		if (StringUtils.isEmpty(res)) {
-			if (!redisManager.exists(RedisKeyConst.KEY_ID_S_M_CacheKey)) {
-				return sHotelID;
-			}
+		if (!redisManager.exists(RedisKeyConst.KEY_ID_S_M_CacheKey)) {
+			return sHotelID;
 		}
-		if (StringUtils.isEmpty(res)) {
-			res = sHotelID;
-		}
-		return res;
+		String mHotelID = redisManager.hashGet(RedisKeyConst.KEY_ID_S_M_CacheKey, sHotelID);
+		return StringUtils.isEmpty(mHotelID) ? sHotelID : mHotelID;
 	}
 
-	/** 
-	 * 缓存去掉已关闭的酒店关联，M酒店和S酒店
-	 *
-	 * @param mhotelId
-	 */
-	public void resetHotelMSCache(String mhotelId) {
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("mhotelId", mhotelId);
-		List<NBMSRelation> relatioins = sqlServerDataDao.getMSRelationData(params);
-		int recordCount = relatioins == null ? 0 : relatioins.size();
-		logger.info("resetHotelMSCache,sqlServerDataDao.getMSRelationData,mhotelId = " + mhotelId + ",recordCount = " + recordCount);
-
-		// region 去掉已关闭的酒店关联，M酒店和S酒店
-		List<NBMSRelation> noClosedHotel = new ArrayList<NBMSRelation>();
-		if (relatioins != null && relatioins.size() > 0) {
-			for (NBMSRelation ms : relatioins) {
-				// 注意：在这里1代表酒店已关闭
-				if (ms.getMStatus() == "1" || ms.getSStatus() == "1") {
-					redisManager.hdel(RedisKeyConst.KEY_ID_S_M_CacheKey, ms.getSHotelID());
-					// m对应s的关系也要清掉
-					redisManager.hdel(RedisKeyConst.KEY_ID_M_S_CacheKey, ms.getMHotelID());
-					continue;
-				}
-				noClosedHotel.add(ms);
-			}
-		}
-		relatioins = noClosedHotel;
-		recordCount = relatioins == null ? 0 : relatioins.size();
-		logger.info("resetHotelMSCache,noClosedHotel,recordCount = " + recordCount);
-
-		if (relatioins == null || relatioins.size() == 0)
-			return;
-
-		// region 新映射
-		Map<String, List<NBMSRelation>> map = new HashMap<String, List<NBMSRelation>>();
-		for (NBMSRelation ms : relatioins) {
-			if (ms == null)
-				continue;
-			redisManager.hashPut(RedisKeyConst.KEY_Hotel_S_M_CacheKey, ms.getSHotelID(), JSON.toJSONString(ms));
-
-			if (ms == null || !StringUtils.equals("0", ms.getSStatus()))
-				continue;
-			List<NBMSRelation> valList = map.get(ms.getMHotelID());
-			if (valList == null) {
-				valList = new ArrayList<NBMSRelation>();
-			}
-			valList.add(ms);
-			map.put(ms.getMHotelID(), valList);
-		}
-
-		for (Map.Entry<String, List<NBMSRelation>> entry : map.entrySet()) {
-			redisManager.hashPut(RedisKeyConst.KEY_Hotel_M_S_CacheKey, entry.getKey(), JSON.toJSONString(entry.getValue()));
-		}
-	}
 }

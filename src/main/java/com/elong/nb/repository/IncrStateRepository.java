@@ -45,9 +45,6 @@ public class IncrStateRepository {
 	@Resource
 	private SqlServerDataDao sqlServerDataDao;
 
-	@Resource
-	private MSRelationRepository msRelationRepository;
-
 	/** 
 	 * 删除过期增量数据
 	 * @param table
@@ -102,21 +99,6 @@ public class IncrStateRepository {
 				if (dataList == null || dataList.size() == 0)
 					continue;
 
-				if (StringUtils.equals("HotelId", type) || StringUtils.equals("HotelCode", type)) {
-					long starTime = new Date().getTime();
-					// M和S酒店增量过来的，需要处理一下关系Redis
-					for (Map<String, Object> row : dataList) {
-						// 处理一下酒店关联HotelId是M酒店
-						if (row == null || row.get("HotelId") == null || StringUtils.isEmpty((String) row.get("HotelId")))
-							continue;
-
-						String mhotelid = (String) row.get("HotelId");
-						// 1表示open酒店打开,重置Redis,0关闭清除redis
-						msRelationRepository.resetHotelMSCache(mhotelid);
-					}
-					long enTime = new Date().getTime();
-					logger.info("use time = " + (enTime - starTime) + ",msRelationRepository.resetHotelMSCache.");
-				}
 				int count = incrStateDao.bulkInsert(dataList);
 				logger.info("IncrState BulkInsert successfully,count = " + count + ",type = " + type);
 			}
