@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.elong.nb.cache.RedisManager;
-import com.elong.nb.consts.RedisKeyConst;
+import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.repository.IncrRateRepository;
 import com.elong.nb.service.IIncrRateService;
 import com.elong.nb.util.DateHandlerUtils;
@@ -58,11 +58,11 @@ public class IncrRateServiceImpl implements IIncrRateService {
 		logger.info("use time = " + (endTime - startTime) + ",IncrRate delete successfully.count = " + count);
 
 		startTime = new Date().getTime();
-		String changIDStr = redisManager.getStr(RedisKeyConst.KEY_Rate_LastID_CacheKey);
+		String changIDStr = redisManager.getStr(RedisKeyConst.CacheKey_KEY_Rate_LastID);
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
 		endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",get changID = " + changID + ",from redis key = "
-				+ RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
+				+ RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());
 
 		while (true) {
 			startTime = new Date().getTime();
@@ -73,10 +73,10 @@ public class IncrRateServiceImpl implements IIncrRateService {
 				break;
 			else {
 				startTime = new Date().getTime();
-				redisManager.put(RedisKeyConst.KEY_Rate_LastID_CacheKey, newChangID);
+				redisManager.put(RedisKeyConst.CacheKey_KEY_Rate_LastID, newChangID);
 				endTime = new Date().getTime();
 				logger.info("use time = " + (endTime - startTime) + ",put newChangID = " + newChangID + ",to redis key = "
-						+ RedisKeyConst.KEY_Rate_LastID_CacheKey.getKey());
+						+ RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());
 				changID = newChangID;
 			}
 		}

@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.elong.nb.cache.RedisManager;
-import com.elong.nb.consts.RedisKeyConst;
+import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.repository.IncrInventoryRepository;
 import com.elong.nb.service.IIncrInventoryService;
 import com.elong.nb.util.DateHandlerUtils;
@@ -71,11 +71,11 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	public void syncInventoryToDB(long changeID) {
 		if (changeID == 0) {
 			long startTime = new Date().getTime();
-			changeID = Long.valueOf(redisManager.getStr(RedisKeyConst.KEY_Inventory_LastID_CacheKey));
-			logger.info("get changeID = " + changeID + ",from redis key = " + RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey());
+			changeID = Long.valueOf(redisManager.getStr(RedisKeyConst.CacheKey_KEY_Inventory_LastID));
+			logger.info("get changeID = " + changeID + ",from redis key = " + RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
 			long endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",get value from redis key = "
-					+ RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey());
+					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
 		}
 		if (changeID == 0) {
 			long startTime = new Date().getTime();
@@ -94,8 +94,8 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		if (incred > 0) {
 			// 更新LastID
 			startTime = new Date().getTime();
-			redisManager.put(RedisKeyConst.KEY_Inventory_LastID_CacheKey, newLastChgID);
-			logger.info("put to redis key = " + RedisKeyConst.KEY_Inventory_LastID_CacheKey.getKey() + ",value = " + newLastChgID);
+			redisManager.put(RedisKeyConst.CacheKey_KEY_Inventory_LastID, newLastChgID);
+			logger.info("put to redis key = " + RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);
 			endTime = new Date().getTime();
 			logger.info("use time = " + (endTime - startTime) + ",put to redis key" + ",incred = " + incred);
 			if (incred > 100) {

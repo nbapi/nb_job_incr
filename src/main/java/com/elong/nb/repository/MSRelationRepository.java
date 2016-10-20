@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import com.elong.nb.cache.RedisManager;
-import com.elong.nb.consts.RedisKeyConst;
+import com.elong.nb.common.model.RedisKeyConst;
 
 /**
  *
@@ -36,10 +36,10 @@ public class MSRelationRepository {
 	 * @return
 	 */
 	public String getMHotelId(String sHotelID) {
-		if (!redisManager.exists(RedisKeyConst.KEY_ID_S_M_CacheKey)) {
+		if (!redisManager.exists(RedisKeyConst.CacheKey_KEY_ID_S_M)) {
 			return sHotelID;
 		}
-		String mHotelID = redisManager.hashGet(RedisKeyConst.KEY_ID_S_M_CacheKey, sHotelID);
+		String mHotelID = redisManager.hashGet(RedisKeyConst.CacheKey_KEY_ID_S_M, sHotelID);
 		return StringUtils.isEmpty(mHotelID) ? sHotelID : mHotelID;
 	}
 

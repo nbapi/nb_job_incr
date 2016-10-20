@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
-import com.elong.nb.consts.RedisKeyConst;
+import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.model.OrderFromResult;
 import com.elong.nb.util.HttpUtil;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
@@ -95,17 +95,7 @@ public class CommonRepository {
 	public OrderFromResult getProxyInfoByOrderFrom(int orderFromId) {
 		OrderFromResult orderFromResult = null;
 		final String minitorKey = MessageFormat.format(RedisKeyConst.KEY_Proxy_CardNo_OrderFrom, orderFromId + "");
-		ICacheKey cacheKey = new ICacheKey() {
-			@Override
-			public String getKey() {
-				return minitorKey;
-			}
-
-			@Override
-			public int getExpirationTime() {
-				return -1;
-			}
-		};
+		ICacheKey cacheKey = RedisManager.getCacheKey(minitorKey);
 		boolean exists = redisManager.exists(cacheKey);
 		logger.info("getProxyInfoByOrderFrom,redis exists key = " + minitorKey + ",exists = " + exists);
 		if (exists) {
