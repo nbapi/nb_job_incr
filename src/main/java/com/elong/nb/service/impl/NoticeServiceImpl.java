@@ -9,11 +9,11 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.http.client.utils.DateUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.elong.nb.service.INoticeService;
+import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.HttpClientUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
@@ -76,7 +76,7 @@ public class NoticeServiceImpl implements INoticeService {
 	private String getAlertUrlParam(String alertName, String title, String content) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("alertName=").append(alertName);
-		sb.append("&alertTitle=").append(title + ",alertTime = " + DateUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+		sb.append("&alertTitle=").append(title + ",alertTime = " + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		sb.append("&alertContent=").append(content);
 		return sb.toString();
 	}

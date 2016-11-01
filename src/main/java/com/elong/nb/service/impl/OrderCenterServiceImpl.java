@@ -106,9 +106,10 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	 *
 	 */
 	private String getOrderData(Map<String, Object> reqParams, String reqUrl) {
+		String reqData = null;
 		try {
 			// 构建请求参数
-			String reqData = JSON.toJSONString(reqParams);
+			reqData = JSON.toJSONString(reqParams);
 
 			// 从订单中心获取订单数据
 //			long startTime = new Date().getTime();
@@ -121,7 +122,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 			return result;
 		} catch (Exception e) {
 			logger.error("getOrderData from orderCenter error = " + e.getMessage(), e);
-			noticeService.sendMessage("getOrderData from orderCenter error", ExceptionUtils.getFullStackTrace(e));
+			noticeService.sendMessage("getOrderData from orderCenter error", "reqData = " + reqData + ".\n" + ExceptionUtils.getFullStackTrace(e));
 			return null;
 		}
 	}

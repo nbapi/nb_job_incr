@@ -94,11 +94,19 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			logger.error("getOrder from orderCenter error:result is null or empty. ");
 			return;
 		}
-		JSONObject jsonObj = JSON.parseObject(result);
+		JSONObject jsonObj = null;;
+		try {
+			jsonObj = JSON.parseObject(result);
+		} catch (Exception e) {
+			logger.error("getOrder result doesn't parse by JSON.parseObject,result = " + result);
+			noticeService.sendMessage("getOrder result doesn't parse by JSON.parseObject",
+					"getOrder result doesn't parse by JSON.parseObject,result = " + result);
+			return;
+		}
 		int retcode = (int) jsonObj.get("retcode");
 		if (retcode != 0) {
 			logger.error("getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
-			noticeService.sendMessage("getOrder from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
+			noticeService.sendMessage("getOrder from orderCenter error",
 					"getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 			return;
 		}

@@ -26,6 +26,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.springframework.stereotype.Repository;
 
+import com.alibaba.fastjson.JSON;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailRequest;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailResponse;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeListRequest;
@@ -36,7 +37,6 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.InventoryChangeModel;
 import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.service.INoticeService;
-import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
@@ -252,6 +252,7 @@ public class IncrInventoryRepository {
 	 */
 	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows) {
 		String threadName = Thread.currentThread().getName();
+		GetInventoryChangeDetailRequest request = null;
 		try {
 			boolean isFileterd = this.filteredSHotelIds.contains(changeModel.getHotelID());
 			if (isFileterd) {
@@ -277,7 +278,7 @@ public class IncrInventoryRepository {
 			}
 			// #endregion
 
-			GetInventoryChangeDetailRequest request = new GetInventoryChangeDetailRequest();
+			request = new GetInventoryChangeDetailRequest();
 			request.setHotelID(changeModel.getHotelID());
 			request.setBeginTime(changeModel.getBeginTime());
 			request.setEndTime(changeModel.getEndTime());
@@ -375,9 +376,8 @@ public class IncrInventoryRepository {
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
-			noticeService.sendMessage(
-					threadName + ":SyncInventoryToDB,doHandlerChangeModel,error:"
-							+ DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(ex));
+			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error",
+					"request = " + JSON.toJSONString(request) + ".\n" + ExceptionUtils.getFullStackTrace(ex));
 		}
 	}
 
