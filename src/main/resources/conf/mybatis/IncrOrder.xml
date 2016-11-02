@@ -17,6 +17,7 @@
 		select * from IncrOrder
 		<where>
 			<if test="orderId != null and !orderId.equals('')">and OrderId =#{orderId} </if>
+			<if test="status != null and !status.equals('')">and Status =#{status} </if>
 		</where>
 		order by ChangeTime desc limit 0,1
 	</select>

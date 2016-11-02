@@ -317,6 +317,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("orderId", order.getOrderId());
+			params.put("status", order.getStatus());
 			IncrOrder incrOrder = incrOrderDao.getLastIncrOrder(params);
 			// 工作库不存在该订单时，兜底查询
 			if (incrOrder == null) {
