@@ -23,7 +23,52 @@ import org.apache.commons.lang3.StringUtils;
  */
 public enum OrderChangeStatusEnum {
 
-	V("V"),N("N"), A("A"), F("F"), C("C"), Z("Z"), D("D"), B("B"), O("O"), G("G"), U("U"), H("H"), B1("B1"), B2("B2"), B3("B3"), S("S");
+	/* 已确认 confirmed */
+	A("A"),
+
+	/* NO SHOW */
+	B("B"),
+
+	/* 有预订未查到 */
+	B1("B1"),
+
+	/* 待查 */
+	B2("B2"),
+
+	/* 暂不确定 */
+	B3("B3"),
+
+	/* 已结帐 paid */
+	C("C"),
+
+	/* 删除 delete */
+	D("D"),
+
+	Z("Z"),
+
+	/* 已入住 already checked in */
+	F("F"),
+
+	/* 变价 price changed */
+	G("G"),
+
+	/* 变更 alteration */
+	H("H"),
+
+	/* 新单 new order */
+	N("N"),
+
+	/* 满房 fully booked */
+	O("O"),
+
+	/* 特殊 special */
+	S("S"),
+
+	/* 特殊满房 special N/A */
+	U("U"),
+
+	/* 已审 under processing */
+	V("V");
 
 	private String code;
 

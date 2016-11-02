@@ -78,7 +78,7 @@ public class SyncIncrOrdersController {
 		try {
 			logger.info("SyncIncrOrders,Controller,start.");
 			final String message = request.getParameter("message");
-//			logger.info("SyncIncrOrders,Controller,message = " + message);
+			logger.info("SyncIncrOrders,Controller,message = " + message);
 
 			messageResponse = incrOrderService.checkMessage(message);
 //			logger.info("SyncIncrOrders,Controller,checkMessage finished");

@@ -215,10 +215,10 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		long endTime = new Date().getTime();
 		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
 
-		// 查询前3分钟至前2分钟
+		// 查询前3分钟至前1分钟
 		Date endTimeDate = new Date();
 		String startTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -3, "yyyy-MM-dd HH:mm:ss");
-		String endTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -2, "yyyy-MM-dd HH:mm:ss");
+		String endTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -1, "yyyy-MM-dd HH:mm:ss");
 		String getBriefOrdersResult = orderCenterService.getBriefOrdersByTimestamp(startTimestamp, endTimestamp);
 		OrderCenterResult orderCenterResult = null;
 		try {
