@@ -34,15 +34,15 @@
 	</appender>
 
 	<!-- biglog appender -->
-	<appender name="BigLogAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+	<appender name="BigLogAppender" class="org.apache.log4j.DailyRollingFileAppender">
 		<param name="file" value="${catalina.home}/logs/biglog/biglog.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd-HH'.log'" />
+		<param name="Append" value="true" />
+		<param name="encoding" value="utf-8" />
+		<param name="threshold" value="info" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%m%n" />
 		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="INFO" />
-		</filter>
 	</appender>
 
 	<!--IncrCommon appender -->
