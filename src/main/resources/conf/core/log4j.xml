@@ -38,7 +38,7 @@
 		<param name="file" value="${catalina.home}/logs/biglog/biglog.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd-HH'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+			<param name="ConversionPattern" value="%m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />
