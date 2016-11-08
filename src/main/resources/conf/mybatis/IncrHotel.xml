@@ -17,7 +17,7 @@
 	<select id="getLastHotel" resultType="incrHotel">
 		select * from IncrHotel
 		<where>
-			<if test="_parameter != null and !_parameter.equals('')"> and Triggera = #{_parameter} </if>
+			<if test="_parameter != null and !_parameter.equals('')"> and `Trigger` = #{_parameter} </if>
 		</where>
 		order by IncrID desc limit 0,1
 	</select>
@@ -26,7 +26,7 @@
 	<insert id="bulkInsert" parameterType="java.util.List"
 		useGeneratedKeys="false">
 		insert into IncrHotel
-		(IncrID,HotelID,StartDate,EndDate,Triggera,TriggerID,ChangeTime,InsertTime)
+		(IncrID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime)
 		values
 		<foreach collection="list" item="incrHotel" index="index"
 			separator=",">
