@@ -44,17 +44,6 @@
 		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="50000" ReceiveTimeout="50000" />
 	</http-conf:conduit>
 
-	<!-- INorthBoundForAPIService -->
-	<jaxws:client id="northBoundForAPIService" serviceClass="com.elong.nb.agent.NorthBoundForAPIService.INorthBoundForAPIService"
-		address="${services.INorthBoundForAPIService.address}">
-		<jaxws:properties>
-			<entry key="set-jaxb-validation-event-handler" value="false" />
-		</jaxws:properties>
-	</jaxws:client>
-	<http-conf:conduit name="{http://tempuri.org/}INorthBoundForAPIServicePort.http-conduit">
-		<http-conf:client Connection="close" MaxRetransmits="1" AllowChunking="false" ConnectionTimeout="50000" ReceiveTimeout="50000" />
-	</http-conf:conduit>
-
 	<!-- SHotelService -->
 	<jaxws:client id="shotelService" serviceClass="com.elong.nb.agent.SHotelService.ISHotelServiceContract" address="${services.shotelService.address}">
 		<jaxws:properties>
