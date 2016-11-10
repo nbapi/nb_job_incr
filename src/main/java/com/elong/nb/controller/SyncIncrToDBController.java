@@ -63,15 +63,68 @@ public class SyncIncrToDBController {
 
 	@Resource
 	private INoticeService noticeService;
+	
+	/** 
+	 * 酒店增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/SyncHotelToDB")
+	private @ResponseBody String syncHotelToDB(HttpServletRequest request) {
+		return syncIncrDataToDB(request, "SyncHotelToDB");
+	}
+	
+	/** 
+	 * 库存增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/SyncInventoryToDB")
+	private @ResponseBody String syncInventoryToDB(HttpServletRequest request) {
+		return syncIncrDataToDB(request, "SyncInventoryToDB");
+	}
+	
+	/** 
+	 * 房价增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/SyncRatesToDB")
+	private @ResponseBody String syncRatesToDB(HttpServletRequest request) {
+		return syncIncrDataToDB(request, "SyncRatesToDB");
+	}
+	
+	/** 
+	 * 状态增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/SyncStateToDB")
+	private @ResponseBody String syncStateToDB(HttpServletRequest request) {
+		return syncIncrDataToDB(request, "SyncStateToDB");
+	}
+	
+	/** 
+	 * 订单增量兜底job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/SyncOrderToDB")
+	private @ResponseBody String syncOrderToDB(HttpServletRequest request) {
+		return syncIncrDataToDB(request, "SyncOrderToDB");
+	}
 
 	/** 
 	 * 同步Incr到数据库
 	 *
 	 * @return
 	 */
-	@RequestMapping(value = "/Sync*ToDB")
-	public @ResponseBody String syncIncrDataToDB(HttpServletRequest request) {
-		String pathVariable = request.getRequestURI().replaceAll(request.getContextPath(), "").replaceFirst("/", "");
+	private String syncIncrDataToDB(HttpServletRequest request,String pathVariable) {
 		long startTime = new Date().getTime();
 		ResponseResult result = new ResponseResult();
 		try {
@@ -104,4 +157,5 @@ public class SyncIncrToDBController {
 		logger.info(pathVariable + ",Controller,use time = " + (endTime - startTime) + "ms");
 		return JSON.toJSONString(result);
 	}
+	
 }
