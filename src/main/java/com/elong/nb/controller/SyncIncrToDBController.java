@@ -71,7 +71,7 @@ public class SyncIncrToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncHotelToDB")
-	private @ResponseBody String syncHotelToDB(HttpServletRequest request) {
+	public @ResponseBody String syncHotelToDB(HttpServletRequest request) {
 		return syncIncrDataToDB(request, "SyncHotelToDB");
 	}
 	
@@ -82,7 +82,7 @@ public class SyncIncrToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncInventoryToDB")
-	private @ResponseBody String syncInventoryToDB(HttpServletRequest request) {
+	public @ResponseBody String syncInventoryToDB(HttpServletRequest request) {
 		return syncIncrDataToDB(request, "SyncInventoryToDB");
 	}
 	
@@ -93,7 +93,7 @@ public class SyncIncrToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncRatesToDB")
-	private @ResponseBody String syncRatesToDB(HttpServletRequest request) {
+	public @ResponseBody String syncRatesToDB(HttpServletRequest request) {
 		return syncIncrDataToDB(request, "SyncRatesToDB");
 	}
 	
@@ -104,7 +104,7 @@ public class SyncIncrToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncStateToDB")
-	private @ResponseBody String syncStateToDB(HttpServletRequest request) {
+	public @ResponseBody String syncStateToDB(HttpServletRequest request) {
 		return syncIncrDataToDB(request, "SyncStateToDB");
 	}
 	
@@ -115,7 +115,7 @@ public class SyncIncrToDBController {
 	 * @return
 	 */
 	@RequestMapping(value = "/SyncOrderToDB")
-	private @ResponseBody String syncOrderToDB(HttpServletRequest request) {
+	public @ResponseBody String syncOrderToDB(HttpServletRequest request) {
 		return syncIncrDataToDB(request, "SyncOrderToDB");
 	}
 
