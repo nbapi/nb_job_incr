@@ -20,5 +20,7 @@ if [ ! -d "$BASEDIR/$TOMCAT_NAME" ]; then
  exit 0
 else
  $BASEDIR/$TOMCAT_NAME/bin/stop_tomcat.sh
+ #####tomcat关闭后等待10s，为了彻底关闭占用jdbc、thread等资源#####
+ sleep 10
  exit $?
 fi
