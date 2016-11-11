@@ -7,9 +7,8 @@ package com.elong.nb.job;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.log4j.Logger;
 
 import com.elong.hotel.schedule.entity.TaskResult;
 import com.elong.nb.model.ResponseResult;
@@ -31,7 +30,7 @@ import com.elong.nb.util.HttpUtil;
  */
 public class SyncIncrToDBJob{
 
-	private static final Log logger = LogFactory.getLog(SyncIncrToDBJob.class);
+	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
 
 	/** 
 	 * job执行入口
