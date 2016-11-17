@@ -5,16 +5,15 @@
 	<delete id="deleteExpireIncrData">
 		delete from IncrOrder
 		<where>
-			<if test="expireDate != null">
-				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			<if test="startTime != null and endTime != null">
+				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
 			</if>
 		</where>
-		LIMIT #{limit}
 	</delete>
 	
 	<!-- 获取最大IncrID的订单增量 -->
 	<select id="getLastIncrOrder" resultType="incrOrder">
-		select * from IncrOrder
+		select IncrId,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime,affiliateconfirmationid from IncrOrder
 		<where>
 			<if test="orderId != null and !orderId.equals('')">and OrderId =#{orderId} </if>
 			<if test="status != null and !status.equals('')">and Status =#{status} </if>
@@ -55,7 +54,7 @@
 			#{incrOrder.ChangeTime},
 			#{incrOrder.OrderId,jdbcType=BIGINT},
 			#{incrOrder.Status,jdbcType=VARCHAR},
-			#{AffiliateConfirmationId,jdbcType=VARCHAR},
+			#{incrOrder.AffiliateConfirmationId,jdbcType=VARCHAR},
 			#{incrOrder.ArrivalDate},
 			#{incrOrder.DepartureDate},
 			#{incrOrder.TotalPrice,jdbcType=DOUBLE},

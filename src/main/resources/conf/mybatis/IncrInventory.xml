@@ -6,16 +6,15 @@
 	<delete id="deleteExpireIncrData">
 		delete from IncrInventory
 		<where>
-			<if test="expireDate != null">
-				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			<if test="startTime != null and endTime != null">
+				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
 			</if>
 		</where>
-		LIMIT #{limit}
 	</delete>
 
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条库存增量 -->
 	<select id="getIncrInventories" resultType="incrInventory">
-		select * from IncrInventory
+		select IncrID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime from IncrInventory
 		<where>
 			<if test="changeTime != null and !changeTime.equals('')">
 				<![CDATA[ and ChangeTime > #{changeTime} ]]>

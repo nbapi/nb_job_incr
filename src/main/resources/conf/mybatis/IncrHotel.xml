@@ -6,16 +6,15 @@
 	<delete id="deleteExpireIncrData">
 		delete from IncrHotel
 		<where>
-			<if test="expireDate != null">
-				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			<if test="startTime != null and endTime != null">
+				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
 			</if>
 		</where>
-		limit #{limit}
 	</delete>
 
 	<!-- 获取trigger的最后一条IncrHotel -->
 	<select id="getLastHotel" resultType="incrHotel">
-		select * from IncrHotel
+		select IncrID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime from IncrHotel
 		<where>
 			<if test="_parameter != null and !_parameter.equals('')"> and `Trigger` = #{_parameter} </if>
 		</where>

@@ -6,6 +6,7 @@
 package com.elong.nb.repository;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Repository;
 
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.SqlServerDataDao;
+import com.elong.nb.util.DateHandlerUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
@@ -65,18 +67,25 @@ public class IncrRateRepository {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrRate DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
-		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("expireDate", expireDate);
-		params.put("limit", limit);
+		Date startTime = DateHandlerUtils.getOffsetDate(Calendar.HOUR_OF_DAY, -1);
+		Date endTime = expireDate;
+		params.put("startTime", startTime);
+		params.put("endTime", endTime);
 		int result = 0;
-		int count = 0;
-		count = incrRateDao.deleteExpireIncrData(params);
+		int count = incrRateDao.deleteExpireIncrData(params);
 		result += count;
-		while (count == limit) {
+
+		int i = 1;
+		while (count != 0) {
+			endTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -(i++));
+			startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -i);
+			params.put("startTime", startTime);
+			params.put("endTime", endTime);
 			count = incrRateDao.deleteExpireIncrData(params);
+			logger.info("IncrRate delete successfully,successCount = " + count + ",endTime = " + endTime);
+			result += count;
 		}
-		logger.info("IncrRate delete successfully,expireDate = " + expireDate);
 		return result;
 	}
 

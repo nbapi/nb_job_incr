@@ -40,6 +40,20 @@ public class DateHandlerUtils {
 		calendar.add(type, value);
 		return formatDate(calendar.getTime(), pattern);
 	}
+	
+	/** 
+	 * 获取指定类型偏移值后的日期
+	 *
+	 * @param type Calendar.HOUR 等等
+	 * @param value 偏移值
+	 * @return
+	 */
+	public static Date getOffsetDate(Date date, int type, int value) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(type, value);
+		return calendar.getTime();
+	}
 
 	/** 
 	 * 获取指定类型偏移值后的日期

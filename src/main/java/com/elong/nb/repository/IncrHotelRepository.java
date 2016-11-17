@@ -5,6 +5,7 @@
  */
 package com.elong.nb.repository;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
+import com.elong.nb.util.DateHandlerUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
@@ -60,18 +62,25 @@ public class IncrHotelRepository {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrHotel DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
-		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("expireDate", expireDate);
-		params.put("limit", limit);
+		Date startTime = DateHandlerUtils.getOffsetDate(Calendar.HOUR_OF_DAY, -1);
+		Date endTime = expireDate;
+		params.put("startTime", startTime);
+		params.put("endTime", endTime);
 		int result = 0;
-		int count = 0;
-		count = incrHotelDao.deleteExpireIncrData(params);
+		int count = incrHotelDao.deleteExpireIncrData(params);
 		result += count;
-		while (count == limit) {
+
+		int i = 1;
+		while (count != 0) {
+			endTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -(i++));
+			startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -i);
+			params.put("startTime", startTime);
+			params.put("endTime", endTime);
 			count = incrHotelDao.deleteExpireIncrData(params);
+			logger.info("IncrHotel delete successfully,successCount = " + count + ",endTime = " + endTime);
+			result += count;
 		}
-		logger.info("IncrHotel delete successfully,expireDate = " + expireDate);
 		return result;
 	}
 

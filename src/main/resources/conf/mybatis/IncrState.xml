@@ -19,11 +19,10 @@
 	<delete id="deleteExpireIncrData">
 		delete from IncrState
 		<where>
-			<if test="expireDate != null">
-				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			<if test="startTime != null and endTime != null">
+				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
 			</if>
 		</where>
-		LIMIT #{limit}
 	</delete>
 
 	<!-- 批量插入IncrState -->

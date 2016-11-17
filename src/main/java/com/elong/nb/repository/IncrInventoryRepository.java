@@ -6,6 +6,7 @@
 package com.elong.nb.repository;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -37,6 +38,7 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.InventoryChangeModel;
 import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.service.INoticeService;
+import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
@@ -91,18 +93,25 @@ public class IncrInventoryRepository {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrInventory DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
-		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("expireDate", expireDate);
-		params.put("limit", limit);
+		Date startTime = DateHandlerUtils.getOffsetDate(Calendar.HOUR_OF_DAY, -1);
+		Date endTime = expireDate;
+		params.put("startTime", startTime);
+		params.put("endTime", endTime);
 		int result = 0;
-		int count = 0;
-		count = incrInventoryDao.deleteExpireIncrData(params);
+		int count = incrInventoryDao.deleteExpireIncrData(params);
 		result += count;
-		while (count == limit) {
+
+		int i = 1;
+		while (count != 0) {
+			endTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -(i++));
+			startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -i);
+			params.put("startTime", startTime);
+			params.put("endTime", endTime);
 			count = incrInventoryDao.deleteExpireIncrData(params);
+			logger.info("IncrInventory delete successfully,successCount = " + count + ",endTime = " + endTime);
+			result += count;
 		}
-		logger.info("IncrInventory delete successfully,expireDate = " + expireDate);
 		return result;
 	}
 

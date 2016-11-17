@@ -6,16 +6,15 @@
 	<delete id="deleteExpireIncrData">
 		delete from IncrRate
 		<where>
-			<if test="expireDate != null">
-				<![CDATA[ and ChangeTime < #{expireDate} ]]>
+			<if test="startTime != null and endTime != null">
+				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
 			</if>
 		</where>
-		LIMIT #{limit}
 	</delete>
 
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条IncrRate -->
 	<select id="getIncrRates" resultType="incrRate">
-		select * from IncrRate
+		select IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID from IncrRate
 		<where>
 			<if test="changeTime != null and !changeTime.equals('')">
 				<![CDATA[ and ChangeTime > #{changeTime} ]]>

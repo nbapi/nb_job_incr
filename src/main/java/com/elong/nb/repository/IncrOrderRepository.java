@@ -6,6 +6,7 @@
 package com.elong.nb.repository;
 
 import java.text.MessageFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Repository;
 import com.elong.nb.dao.IncrOrderDao;
 import com.elong.nb.dao.SqlServerDataDao;
 import com.elong.nb.model.OrderFromResult;
+import com.elong.nb.util.DateHandlerUtils;
 
 /**
  *
@@ -58,18 +60,25 @@ public class IncrOrderRepository {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrOrder DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
-		int limit = 10000;
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("expireDate", expireDate);
-		params.put("limit", limit);
+		Date startTime = DateHandlerUtils.getOffsetDate(Calendar.HOUR_OF_DAY, -1);
+		Date endTime = expireDate;
+		params.put("startTime", startTime);
+		params.put("endTime", endTime);
 		int result = 0;
-		int count = 0;
-		count = incrOrderDao.deleteExpireIncrData(params);
+		int count = incrOrderDao.deleteExpireIncrData(params);
 		result += count;
-		while (count == limit) {
+
+		int i = 1;
+		while (count != 0) {
+			endTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -(i++));
+			startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -i);
+			params.put("startTime", startTime);
+			params.put("endTime", endTime);
 			count = incrOrderDao.deleteExpireIncrData(params);
+			logger.info("IncrOrder delete successfully,successCount = " + count + ",endTime = " + endTime);
+			result += count;
 		}
-		logger.info("IncrOrder delete successfully,expireDate = " + expireDate);
 		return result;
 	}
 
