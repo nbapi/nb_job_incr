@@ -94,7 +94,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			logger.error("getOrder from orderCenter error:result is null or empty. ");
 			return;
 		}
-		JSONObject jsonObj = null;;
+		JSONObject jsonObj = null;
 		try {
 			jsonObj = JSON.parseObject(result);
 		} catch (Exception e) {
@@ -359,8 +359,21 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		}
 
 		targetMap.put("OrderId", sourceMap.get("orderId"));
-		targetMap.put("AffiliateConfirmationId",
-				sourceMap.get("sourceOrderId") == null ? StringUtils.EMPTY : sourceMap.get("sourceOrderId"));
+
+		try {
+			String affiliateConfirmationId = StringUtils.EMPTY;
+			Object nbGuid = sourceMap.get("nbGuid");
+			String nbGuidStr = (nbGuid == null) ? StringUtils.EMPTY : (String) nbGuid;
+			if (StringUtils.isNotEmpty(nbGuidStr)) {
+				String[] values = StringUtils.split(nbGuidStr, "|", -1);
+				if (values.length > 0) {
+					affiliateConfirmationId = values[0];
+				}
+			}
+			targetMap.put("AffiliateConfirmationId", affiliateConfirmationId);
+		} catch (Exception e) {
+			logger.error("AffiliateConfirmationId doHandler error " + e.getMessage(), e);
+		}
 		targetMap.put("Status", sourceMap.get("status"));
 		try {
 			String checkInDate = (String) sourceMap.get("checkInDate");
