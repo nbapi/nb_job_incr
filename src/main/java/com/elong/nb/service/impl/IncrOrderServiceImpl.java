@@ -215,6 +215,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		long endTime = new Date().getTime();
 		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
 
+		startTime = new Date().getTime();
 		// 查询前3分钟至前1分钟
 		Date endTimeDate = new Date();
 		String startTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -3, "yyyy-MM-dd HH:mm:ss");
@@ -229,6 +230,8 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 					ExceptionUtils.getFullStackTrace(e));
 			return;
 		}
+		endTime = new Date().getTime();
+		jobLogger.info("use time = " + (endTime - startTime) + ",orderCenterService.getBriefOrdersByTimestamp and parseResult.");
 
 		// 未查到数据，跳过
 		if (orderCenterResult == null || orderCenterResult.getRetcode() != 0 || orderCenterResult.getBody() == null) {
@@ -280,12 +283,16 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			}
 			bodyJsonArray.addAll(jsonObj.getJSONArray("body"));
 		}
+		endTime = new Date().getTime();
+		jobLogger.info("use time = " + (endTime - startTime) + ",orderCenterService.getOrders and parseResult.");
 
 		if (bodyJsonArray == null || bodyJsonArray.size() == 0) {
 			jobLogger.warn("syncOrderToDB ignore,due to bodyJsonArray is null or empfy from getOrders,endTimestamp = " + endTimestamp);
 			return;
 		}
-		int successCount = 0;
+		
+		startTime = new Date().getTime();
+		List<Map<String, Object>> incrOrders = new ArrayList<Map<String, Object>>();
 		for (int i = 0; i < bodyJsonArray.size(); i++) {
 			Map<String, Object> sourceMap = bodyJsonArray.getJSONObject(i);
 			// 转换为IncrOrder需要格式
@@ -296,9 +303,26 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
 			handlerMap(incrOrderMap);
 			// 保存到IncrOrder表
-			successCount += incrOrderDao.insert(incrOrderMap);
+			incrOrders.add(incrOrderMap);
 		}
-		jobLogger.info("syncOrderToDB,Insert incrOrder successfully.successCount = " + successCount);
+		endTime = new Date().getTime();
+		jobLogger.info("use time = " + (endTime - startTime) + ",convertMap,vStatus,HandlerMap and so on");
+
+		// 批量插入IncrOrder
+		int incrOrderCount = incrOrders.size();
+		int successCount = 0;
+		jobLogger.info("IncrOrder BulkInsert start,recordCount = " + incrOrderCount);
+		String incrOrderBatchSize = PropertiesHelper.getEnvProperties("IncrOrderBatchSize", "config").toString();
+		int batchSize = StringUtils.isEmpty(incrOrderBatchSize) ? 50 : Integer.valueOf(incrOrderBatchSize);
+		int batchCount = (int) Math.ceil(incrOrderCount * 1.0 / pageSize);
+		startTime = new Date().getTime();
+		for (int batchIndex = 1; batchIndex <= batchCount; batchIndex++) {
+			int startNum = (batchIndex - 1) * batchSize;
+			int endNum = batchIndex * batchSize > incrOrderCount ? incrOrderCount : batchIndex * batchSize;
+			successCount += incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
+		}
+		endTime = new Date().getTime();
+		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder BulkInsert,successCount = " + successCount);
 	}
 
 	/** 
@@ -308,6 +332,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 * @return
 	 */
 	private List<Long> findOrderIds(List<BriefOrder> orders) {
+		long startTime = new Date().getTime();
 		List<Long> orderIdList = new ArrayList<Long>();
 		for (BriefOrder order : orders) {
 			if (order == null || StringUtils.isEmpty(order.getStatus()))
@@ -329,13 +354,15 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 				orderTimestamp = DateUtils.parseDate(order.getOrderTimestamp(), new String[] { "yyyy-MM-dd HH:mm:ss.SSS",
 						"yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
 			} catch (ParseException e) {
-				logger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
+				jobLogger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 			}
 			// 工作库时间小于订单时间戳时,兜底查询
 			if (orderTimestamp != null && incrOrder.getChangeTime().before(orderTimestamp)) {
 				orderIdList.add(order.getOrderId());
 			}
 		}
+		long endTime = new Date().getTime();
+		jobLogger.info("use time = " + (endTime - startTime) + ",findOrderIds,orderIdList size = " + orderIdList.size());
 		return orderIdList;
 	}
 
