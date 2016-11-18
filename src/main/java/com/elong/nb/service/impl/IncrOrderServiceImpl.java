@@ -290,7 +290,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			jobLogger.warn("syncOrderToDB ignore,due to bodyJsonArray is null or empfy from getOrders,endTimestamp = " + endTimestamp);
 			return;
 		}
-		
+
 		startTime = new Date().getTime();
 		List<Map<String, Object>> incrOrders = new ArrayList<Map<String, Object>>();
 		for (int i = 0; i < bodyJsonArray.size(); i++) {
@@ -395,6 +395,10 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 				String[] values = StringUtils.split(nbGuidStr, "|", -1);
 				if (values.length > 0) {
 					affiliateConfirmationId = values[0];
+				}
+				// 下次数据库申请增加长度
+				if (StringUtils.length(affiliateConfirmationId) > 50) {
+					affiliateConfirmationId = StringUtils.substring(affiliateConfirmationId, 0, 50);
 				}
 			}
 			targetMap.put("AffiliateConfirmationId", affiliateConfirmationId);
