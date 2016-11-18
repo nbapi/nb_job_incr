@@ -94,8 +94,8 @@ public class IncrInventoryRepository {
 			throw new IllegalArgumentException("IncrInventory DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
 		Map<String, Object> params = new HashMap<String, Object>();
-		Date startTime = DateHandlerUtils.getOffsetDate(Calendar.HOUR_OF_DAY, -1);
 		Date endTime = expireDate;
+		Date startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -1);
 		params.put("startTime", startTime);
 		params.put("endTime", endTime);
 		int result = 0;

@@ -63,8 +63,8 @@ public class IncrHotelRepository {
 			throw new IllegalArgumentException("IncrHotel DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
 		Map<String, Object> params = new HashMap<String, Object>();
-		Date startTime = DateHandlerUtils.getOffsetDate(Calendar.HOUR_OF_DAY, -1);
 		Date endTime = expireDate;
+		Date startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -1);
 		params.put("startTime", startTime);
 		params.put("endTime", endTime);
 		int result = 0;
@@ -174,7 +174,7 @@ public class IncrHotelRepository {
 		if (hotels == null || hotels.size() == 0)
 			return;
 		int recordCount = hotels.size();
-		if(recordCount > 0){
+		if (recordCount > 0) {
 			int successCount = 0;
 			logger.info("IncrHotel BulkInsert start,recordCount = " + recordCount);
 			String incrHotelBatchSize = PropertiesHelper.getEnvProperties("IncrHotelBatchSize", "config").toString();
