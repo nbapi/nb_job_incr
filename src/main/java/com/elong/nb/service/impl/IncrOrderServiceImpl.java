@@ -394,7 +394,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			if (StringUtils.isNotEmpty(nbGuidStr)) {
 				String[] values = StringUtils.split(nbGuidStr, "|", -1);
 				if (values.length > 0) {
-					affiliateConfirmationId = values[0];
+					affiliateConfirmationId = values[0].trim();
 				}
 				// 下次数据库申请增加长度
 				if (StringUtils.length(affiliateConfirmationId) > 50) {
