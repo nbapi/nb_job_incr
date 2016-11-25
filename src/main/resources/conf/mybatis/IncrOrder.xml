@@ -24,13 +24,14 @@
 	<!-- 插入IncrOrder -->
 	<insert id="insert" parameterType="java.util.Map" useGeneratedKeys="false">
 		insert into IncrOrder
-		(IncrID,ChangeTime,OrderId,Status,affiliateconfirmationid,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
+		(IncrID,ChangeTime,OrderId,Status,payStatus,affiliateconfirmationid,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
 		values
 		(
 		#{IncrID,jdbcType=BIGINT},
 		#{ChangeTime},
 		#{OrderId,jdbcType=BIGINT},
 		#{Status,jdbcType=VARCHAR},
+		#{payStatus,jdbcType=TINYINT},
 		#{AffiliateConfirmationId,jdbcType=VARCHAR},
 		#{ArrivalDate},
 		#{DepartureDate},
@@ -46,7 +47,7 @@
 	<!-- 批量插入IncrOrder -->
 	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
 		insert into IncrOrder
-		(IncrID,ChangeTime,OrderId,Status,affiliateconfirmationid,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
+		(IncrID,ChangeTime,OrderId,Status,payStatus,affiliateconfirmationid,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
 		values
 		<foreach collection="list" item="incrOrder" index="index" separator=",">
 			(
@@ -54,6 +55,7 @@
 			#{incrOrder.ChangeTime},
 			#{incrOrder.OrderId,jdbcType=BIGINT},
 			#{incrOrder.Status,jdbcType=VARCHAR},
+			#{incrOrder.payStatus,jdbcType=TINYINT},
 			#{incrOrder.AffiliateConfirmationId,jdbcType=VARCHAR},
 			#{incrOrder.ArrivalDate},
 			#{incrOrder.DepartureDate},

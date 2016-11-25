@@ -73,7 +73,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	public String getOrder(Integer orderId) {
 		Map<String, Object> reqParams = new HashMap<String, Object>();
 		reqParams.put("orderId", orderId);
-		reqParams.put("fields", "sumPrice,status,roomCount,proxy,nbGuid,orderFrom,checkOutDate,checkInDate,cardNo");
+		reqParams.put("fields", "sumPrice,status,payStatus,roomCount,proxy,nbGuid,orderFrom,checkOutDate,checkInDate,cardNo");
 
 		String reqUrl = PropertiesHelper.getEnvProperties("GetOrderUrlFromOrderCenter", "config").toString();
 		return getOrderData(reqParams, reqUrl);
@@ -91,7 +91,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	public String getOrders(List<Long> orderIds) {
 		Map<String, Object> reqParams = new HashMap<String, Object>();
 		reqParams.put("orderIds", orderIds);
-		reqParams.put("fields", "sumPrice,status,roomCount,proxy,nbGuid,orderFrom,checkOutDate,checkInDate,cardNo");
+		reqParams.put("fields", "sumPrice,status,payStatus,roomCount,proxy,nbGuid,orderFrom,checkOutDate,checkInDate,cardNo");
 
 		String reqUrl = PropertiesHelper.getEnvProperties("GetOrdersUrlFromOrderCenter", "config").toString();
 		return getOrderData(reqParams, reqUrl);

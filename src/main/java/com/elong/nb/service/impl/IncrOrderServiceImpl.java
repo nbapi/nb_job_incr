@@ -8,6 +8,7 @@ package com.elong.nb.service.impl;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -89,31 +90,17 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		// 订单中心获取订单
 		Map<String, Object> map = JSON.parseObject(message);
 		Integer orderId = (Integer) map.get("orderId");
-		String result = orderCenterService.getOrder(orderId);
-		if (StringUtils.isEmpty(result)) {
-			logger.error("getOrder from orderCenter error:result is null or empty. ");
-			return;
+		Map<String, Object> incrOrderMap = getIncrOrderMap(orderId);
+		int count = 0;
+		while (!compareOrder(map, incrOrderMap) && count++ < 100) {
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+			}
+			incrOrderMap = getIncrOrderMap(orderId);
 		}
-		JSONObject jsonObj = null;
-		try {
-			jsonObj = JSON.parseObject(result);
-		} catch (Exception e) {
-			logger.error("getOrder result doesn't parse by JSON.parseObject,result = " + result);
-			noticeService.sendMessage("getOrder result doesn't parse by JSON.parseObject",
-					"getOrder result doesn't parse by JSON.parseObject,result = " + result);
+		if (MapUtils.isEmpty(incrOrderMap))
 			return;
-		}
-		int retcode = (int) jsonObj.get("retcode");
-		if (retcode != 0) {
-			logger.error("getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
-			noticeService.sendMessage("getOrder from orderCenter error",
-					"getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
-			return;
-		}
-		JSONObject bodyJsonObj = jsonObj.getJSONObject("body");
-
-		// 转换为IncrOrder需要格式
-		Map<String, Object> incrOrderMap = convertMap(bodyJsonObj);
 
 		// 判断是否推送V状态
 		if (!isPullVStatus(incrOrderMap))
@@ -128,6 +115,83 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		incrOrderDao.insert(incrOrderMap);
 		long endTime = new Date().getTime();
 		logger.info("use time = " + (endTime - startTime) + ",insert incrOrder successfully.");
+	}
+
+	/** 
+	 * 判断orderMap信息是否是messageMap信息的对应版
+	 *
+	 * @param messageMap 推送消息订单信息
+	 * @param orderMap	getOrder获取订单信息
+	 * @return
+	 */
+	private boolean compareOrder(Map<String, Object> messageMap, Map<String, Object> orderMap) {
+		if (MapUtils.isEmpty(messageMap) || MapUtils.isEmpty(orderMap))
+			return false;
+
+		Integer messageOrderId = (Integer) messageMap.get("orderId");
+		String messageStatus = (String) messageMap.get("status");
+		Date messageOrderTimestamp = null;
+		try {
+			String orderTimestamp = (String) messageMap.get("orderTimestamp");
+			messageOrderTimestamp = DateUtils.parseDate(orderTimestamp,
+					new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.SSS" });
+		} catch (ParseException e) {
+		}
+
+		Integer orderId = (Integer) orderMap.get("OrderId");
+		String status = (String) orderMap.get("Status");
+		Date changeTime = (Date) orderMap.get("ChangeTime");
+
+		if (messageOrderId.intValue() != orderId.intValue()) {
+			logger.info("compareOrder result = false,due to orderId. messageOrderId = " + messageOrderId + ",orderId = " + orderId);
+			return false;
+		}
+		if (!StringUtils.equals(messageStatus, status)) {
+			logger.info("compareOrder result = false,due to status. messageStatus = " + messageStatus + ",status = " + status
+					+ ",messageOrderId = " + messageOrderId);
+			return false;
+		}
+		if (changeTime == null || changeTime.before(messageOrderTimestamp)) {
+			logger.info("compareOrder result = false,due to changeTime. messageOrderTimestamp = " + messageOrderTimestamp
+					+ ",changeTime = " + changeTime + ",messageOrderId = " + messageOrderId);
+			return false;
+		}
+		return true;
+	}
+
+	/** 
+	 * 获取消息指定orderId的IncrOrderMap。
+	 *
+	 * @param orderId
+	 * @return
+	 */
+	private Map<String, Object> getIncrOrderMap(Integer orderId) {
+		String result = orderCenterService.getOrder(orderId);
+		if (StringUtils.isEmpty(result)) {
+			logger.error("getOrder from orderCenter error:result is null or empty. ");
+			return Collections.emptyMap();
+		}
+		JSONObject jsonObj = null;
+		try {
+			jsonObj = JSON.parseObject(result);
+		} catch (Exception e) {
+			logger.error("getOrder result doesn't parse by JSON.parseObject,result = " + result);
+			noticeService.sendMessage("getOrder result doesn't parse by JSON.parseObject",
+					"getOrder result doesn't parse by JSON.parseObject,result = " + result);
+			return Collections.emptyMap();
+		}
+		int retcode = (int) jsonObj.get("retcode");
+		if (retcode != 0) {
+			logger.error("getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
+			noticeService.sendMessage("getOrder from orderCenter error",
+					"getOrder from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
+			return Collections.emptyMap();
+		}
+		JSONObject bodyJsonObj = jsonObj.getJSONObject("body");
+
+		// 转换为IncrOrder需要格式
+		Map<String, Object> incrOrderMap = convertMap(bodyJsonObj);
+		return incrOrderMap;
 	}
 
 	/** 
@@ -386,6 +450,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		}
 
 		targetMap.put("OrderId", sourceMap.get("orderId"));
+		targetMap.put("payStatus", sourceMap.get("payStatus") == null ? -1 : sourceMap.get("payStatus"));
 
 		try {
 			String affiliateConfirmationId = StringUtils.EMPTY;
@@ -435,7 +500,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 * @param incrOrderMap
 	 * @return
 	 */
-	public boolean isPullVStatus(Map<String, Object> incrOrderMap) {
+	private boolean isPullVStatus(Map<String, Object> incrOrderMap) {
 		String filterOrderFromStrV = PropertiesHelper.getEnvProperties("FilterOrderFromStrV", "config").toString();
 		if (StringUtils.isNotEmpty(filterOrderFromStrV)) {
 			// long startTime = new Date().getTime();
