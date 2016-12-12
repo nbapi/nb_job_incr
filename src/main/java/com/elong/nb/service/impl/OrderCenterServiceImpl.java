@@ -73,7 +73,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	public String getOrder(Integer orderId) {
 		Map<String, Object> reqParams = new HashMap<String, Object>();
 		reqParams.put("orderId", orderId);
-		reqParams.put("fields", "sumPrice,status,payStatus,roomCount,proxy,nbGuid,orderFrom,checkOutDate,checkInDate,cardNo");
+		reqParams.put("fields", "sumPrice,payStatus,proxy,nbGuid,orderFrom,cardNo");
 
 		String reqUrl = PropertiesHelper.getEnvProperties("GetOrderUrlFromOrderCenter", "config").toString();
 		return getOrderData(reqParams, reqUrl);
