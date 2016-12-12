@@ -88,7 +88,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	 * @see com.elong.nb.service.OrderCenterService#getOrders(java.util.List)    
 	 */
 	@Override
-	public String getOrders(List<Long> orderIds) {
+	public String getOrders(List<Object> orderIds) {
 		Map<String, Object> reqParams = new HashMap<String, Object>();
 		reqParams.put("orderIds", orderIds);
 		reqParams.put("fields", "sumPrice,status,payStatus,roomCount,proxy,nbGuid,orderFrom,checkOutDate,checkInDate,cardNo");

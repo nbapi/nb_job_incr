@@ -28,7 +28,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.elong.nb.dao.IncrOrderDao;
-import com.elong.nb.model.BriefOrder;
 import com.elong.nb.model.OrderCenterResult;
 import com.elong.nb.model.OrderFromResult;
 import com.elong.nb.model.OrderMessageResponse;
@@ -238,19 +237,26 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		// 未查到数据，跳过
 		if (orderCenterResult == null || orderCenterResult.getRetcode() != 0 || orderCenterResult.getBody() == null) {
-			jobLogger.warn("syncOrderToDB ignore,due to retDesc = " + orderCenterResult.getRetdesc()
+			jobLogger.warn("syncOrderToDB ignore,due to retDesc = " + (orderCenterResult==null?null:orderCenterResult.getRetdesc())
 					+ " from getBriefOrdersByTimestamp,endTimestamp = " + endTimestamp);
 			return;
 		}
-		List<BriefOrder> orders = orderCenterResult.getBody().getOrders();
+		List<Map<String,Object>> orders = orderCenterResult.getBody().getOrders();
 		// 未查到数据，跳过
 		if (orders == null || orders.size() == 0) {
 			jobLogger.warn("syncOrderToDB ignore,due to orders is null or empfy from getBriefOrdersByTimestamp,endTimestamp = "
 					+ endTimestamp);
 			return;
 		}
+		
+		Map<Object,Map<String,Object>> tempMap = new HashMap<Object, Map<String,Object>>();
+		for (Map<String,Object> orderMap : orders) {
+			if (orderMap == null || orderMap.size() == 0)
+				continue;
+			tempMap.put(orderMap.get("orderId"), orderMap);
+		}
 
-		List<Long> orderIds = findOrderIds(orders);
+		List<Object> orderIds = findOrderIds(orders);
 		// 没有需要主动查询的订单号，跳过
 		if (orderIds == null || orderIds.size() == 0) {
 			jobLogger.warn("syncOrderToDB ignore,due to orderIdList is null or empfy which not be found in OrderMessage,endTimestamp = "
@@ -297,7 +303,14 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		startTime = new Date().getTime();
 		List<Map<String, Object>> incrOrders = new ArrayList<Map<String, Object>>();
 		for (int i = 0; i < bodyJsonArray.size(); i++) {
-			Map<String, Object> sourceMap = bodyJsonArray.getJSONObject(i);
+			Map<String, Object> jsonOrderMap = bodyJsonArray.getJSONObject(i);
+			
+			Object orderId = jsonOrderMap.get("orderId");
+			Map<String,Object> briefOrderMap = tempMap.get(orderId);
+			
+			Map<String,Object> sourceMap = new HashMap<String, Object>();
+			sourceMap.putAll(jsonOrderMap);
+			sourceMap.putAll(briefOrderMap);
 			// 转换为IncrOrder需要格式
 			Map<String, Object> incrOrderMap = convertMap(sourceMap);
 			// 判断是否推送V状态
@@ -334,34 +347,38 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 * @param orders
 	 * @return
 	 */
-	private List<Long> findOrderIds(List<BriefOrder> orders) {
+	private List<Object> findOrderIds(List<Map<String,Object>> orders) {
 		long startTime = new Date().getTime();
-		List<Long> orderIdList = new ArrayList<Long>();
-		for (BriefOrder order : orders) {
-			if (order == null || StringUtils.isEmpty(order.getStatus()))
+		List<Object> orderIdList = new ArrayList<Object>();
+		for (Map<String,Object> orderMap : orders) {
+			if (orderMap == null || orderMap.size() == 0)
 				continue;
-			if (!OrderChangeStatusEnum.containCode(order.getStatus()))
+			
+			String status = (String)orderMap.get("status");
+			if (StringUtils.isEmpty(status)||!OrderChangeStatusEnum.containCode(status))
 				continue;
 
+			Object orderId = orderMap.get("orderId");
 			Map<String, Object> params = new HashMap<String, Object>();
-			params.put("orderId", order.getOrderId());
-			params.put("status", order.getStatus());
+			params.put("orderId", orderId);
+			params.put("status", status);
 			IncrOrder incrOrder = incrOrderDao.getLastIncrOrder(params);
 			// 工作库不存在该订单时，兜底查询
 			if (incrOrder == null) {
-				orderIdList.add(order.getOrderId());
+				orderIdList.add(orderId);
 				continue;
 			}
 			Date orderTimestamp = null;
 			try {
-				orderTimestamp = DateUtils.parseDate(order.getOrderTimestamp(), new String[] { "yyyy-MM-dd HH:mm:ss.SSS",
+				String orderTimestampStr = (String)orderMap.get("orderTimestamp");
+				orderTimestamp = DateUtils.parseDate(orderTimestampStr, new String[] { "yyyy-MM-dd HH:mm:ss.SSS",
 						"yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
 			} catch (ParseException e) {
 				jobLogger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 			}
 			// 工作库时间小于订单时间戳时,兜底查询
 			if (orderTimestamp != null && incrOrder.getChangeTime().before(orderTimestamp)) {
-				orderIdList.add(order.getOrderId());
+				orderIdList.add(orderId);
 			}
 		}
 		long endTime = new Date().getTime();

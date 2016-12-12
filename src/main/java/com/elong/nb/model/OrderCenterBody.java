@@ -6,6 +6,7 @@
 package com.elong.nb.model;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -24,7 +25,7 @@ public class OrderCenterBody {
 
 	private boolean hasNext;
 	
-	private List<BriefOrder> orders;
+	private List<Map<String,Object>> orders;
 
 	/**   
 	 * 得到hasNext的值   
@@ -49,7 +50,7 @@ public class OrderCenterBody {
 	 *   
 	 * @return orders的值
 	 */
-	public List<BriefOrder> getOrders() {
+	public List<Map<String,Object>> getOrders() {
 		return orders;
 	}
 
@@ -58,7 +59,7 @@ public class OrderCenterBody {
 	 *   
 	 * @param orders 被设置的值
 	 */
-	public void setOrders(List<BriefOrder> orders) {
+	public void setOrders(List<Map<String,Object>> orders) {
 		this.orders = orders;
 	}
 

@@ -46,6 +46,6 @@ public interface OrderCenterService {
 	 * @param orderId
 	 * @return
 	 */
-	public String getOrders(List<Long> orderIds);
+	public String getOrders(List<Object> orderIds);
 
 }
