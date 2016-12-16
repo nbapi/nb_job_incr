@@ -16,10 +16,10 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.service.INoticeService;
 import com.elong.nb.service.OrderCenterService;
 import com.elong.nb.util.HttpClientUtils;
-import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
  * 订单中心主动拉取方式（兜底）
@@ -57,7 +57,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 		reqParams.put("startTimestamp", startTimestamp);
 		reqParams.put("endTimestamp", endTimestamp);
 
-		String reqUrl = PropertiesHelper.getEnvProperties("GetBriefOrdersByTimestampUrl", "config").toString();
+		String reqUrl = CommonsUtil.CONFIG_PROVIDAR.getProperty("GetBriefOrdersByTimestampUrl");
 		return getOrderData(reqParams, reqUrl);
 	}
 
@@ -75,7 +75,8 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 		reqParams.put("orderId", orderId);
 		reqParams.put("fields", "sumPrice,payStatus,proxy,nbGuid,orderFrom,cardNo");
 
-		String reqUrl = PropertiesHelper.getEnvProperties("GetOrderUrlFromOrderCenter", "config").toString();
+		
+		String reqUrl = CommonsUtil.CONFIG_PROVIDAR.getProperty("GetOrderUrlFromOrderCenter");
 		return getOrderData(reqParams, reqUrl);
 	}
 
@@ -93,7 +94,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 		reqParams.put("orderIds", orderIds);
 		reqParams.put("fields", "sumPrice,status,payStatus,roomCount,proxy,nbGuid,orderFrom,checkOutDate,checkInDate,cardNo");
 
-		String reqUrl = PropertiesHelper.getEnvProperties("GetOrdersUrlFromOrderCenter", "config").toString();
+		String reqUrl = CommonsUtil.CONFIG_PROVIDAR.getProperty("GetOrdersUrlFromOrderCenter");
 		return getOrderData(reqParams, reqUrl);
 	}
 
@@ -112,13 +113,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 			reqData = JSON.toJSONString(reqParams);
 
 			// 从订单中心获取订单数据
-//			long startTime = new Date().getTime();
-//			logger.info("httpPost getOrderData,reqUrl = " + reqUrl);
-//			logger.info("httpPost getOrderData,reqData = " + reqData);
 			String result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
-			// logger.info("httpPost getOrderData,result = " + result);
-//			long endTime = new Date().getTime();
-//			logger.info("use time = " + (endTime - startTime) + ",httpPost getOrderData");
 			return result;
 		} catch (Exception e) {
 			logger.error("getOrderData from orderCenter error = " + e.getMessage(), e);

@@ -5,8 +5,6 @@
  */
 package com.elong.nb.service.impl;
 
-import java.util.Date;
-
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,29 +50,29 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	@Override
 	public void syncRatesToDB() {
 		// 删除过期数据
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		int count = incrRateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		long endTime = new Date().getTime();
+		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",IncrRate delete successfully.count = " + count);
 
-		startTime = new Date().getTime();
+		startTime = System.currentTimeMillis();
 		String changIDStr = redisManager.getStr(RedisKeyConst.CacheKey_KEY_Rate_LastID);
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
-		endTime = new Date().getTime();
+		endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",get changID = " + changID + ",from redis key = "
 				+ RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());
 
 		while (true) {
-			startTime = new Date().getTime();
+			startTime = System.currentTimeMillis();
 			long newChangID = incrRateRepository.syncRatesToDB(changID);
-			endTime = new Date().getTime();
+			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ", from " + changID + " to " + newChangID);
 			if (newChangID == changID)
 				break;
 			else {
-				startTime = new Date().getTime();
+				startTime = System.currentTimeMillis();
 				redisManager.put(RedisKeyConst.CacheKey_KEY_Rate_LastID, newChangID);
-				endTime = new Date().getTime();
+				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",put newChangID = " + newChangID + ",to redis key = "
 						+ RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());
 				changID = newChangID;

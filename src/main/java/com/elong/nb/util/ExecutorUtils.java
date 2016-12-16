@@ -47,15 +47,27 @@ public class ExecutorUtils {
 	};
 
 	/** 
-	 * 创建线程池 
+	 * 创建线程池,任务队列满了阻塞
 	 *
 	 * @param maximumPoolSize 最大线程数
 	 * @param queueLenght	最大任务数
 	 * @return
 	 */
 	public static ExecutorService newSelfThreadPool(int maximumPoolSize, int queueLenght) {
+		return newSelfThreadPool(maximumPoolSize, queueLenght, rejectedExecutionHandler);
+	}
+	
+	/** 
+	 * 创建线程池 
+	 *
+	 * @param maximumPoolSize 最大线程数
+	 * @param queueLenght 最大任务数
+	 * @param handler 队列满了处理策略
+	 * @return
+	 */
+	public static ExecutorService newSelfThreadPool(int maximumPoolSize, int queueLenght, RejectedExecutionHandler handler) {
 		return new ThreadPoolExecutor(0, maximumPoolSize, 60L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(queueLenght),
-				Executors.defaultThreadFactory(), rejectedExecutionHandler);
+				Executors.defaultThreadFactory(), handler);
 	}
 
 }

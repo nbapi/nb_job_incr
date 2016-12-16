@@ -18,10 +18,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrStateDao;
 import com.elong.nb.dao.SqlServerDataDao;
 import com.elong.nb.util.DateHandlerUtils;
-import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
  *
@@ -86,7 +86,7 @@ public class IncrStateRepository {
 	 * @param type
 	 */
 	public void syncStateToDB(String startTime, String endTime, String type) {
-		String incrStateBatchSize = PropertiesHelper.getEnvProperties("IncrStateBatchSize", "config").toString();
+		String incrStateBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrStateBatchSize");
 		int pageSize = StringUtils.isEmpty(incrStateBatchSize) ? 2000 : Integer.valueOf(incrStateBatchSize);
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("startTime", startTime);

@@ -7,6 +7,7 @@ package com.elong.nb.repository;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,9 +21,10 @@ import com.alibaba.fastjson.JSON;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.model.RedisKeyConst;
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.model.OrderFromResult;
 import com.elong.nb.util.HttpUtil;
-import com.elong.springmvc_enhance.utilities.PropertiesHelper;
+
 
 /**
  *
@@ -49,7 +51,7 @@ public class CommonRepository {
 	 *
 	 * Set<String> CommonRepository.java filteredSHotelIds
 	 */
-	private Set<String> filteredSHotelIds = new HashSet<String>();
+	private Set<String> filteredSHotelIds = Collections.synchronizedSet(new HashSet<String>());
 
 	/** 
 	 * 读取文件中SHotelId,过滤SHotelId
@@ -104,7 +106,7 @@ public class CommonRepository {
 			return orderFromResult;
 		}
 
-		String orderFromNameUrl = PropertiesHelper.getEnvProperties("OrderFromNameUrl", "config").toString();
+		String orderFromNameUrl = CommonsUtil.CONFIG_PROVIDAR.getProperty("OrderFromNameUrl");
 		orderFromNameUrl = StringUtils.isEmpty(orderFromNameUrl) ? "http://api.vip.elong.com/admin.php/Api/getprojectname?orderFromId={0}"
 				: orderFromNameUrl;
 		String url = MessageFormat.format(orderFromNameUrl, orderFromId + "");

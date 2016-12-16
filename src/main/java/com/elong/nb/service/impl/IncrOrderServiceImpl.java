@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrOrderDao;
 import com.elong.nb.model.OrderCenterResult;
 import com.elong.nb.model.OrderFromResult;
@@ -39,7 +40,6 @@ import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.INoticeService;
 import com.elong.nb.service.OrderCenterService;
 import com.elong.nb.util.DateHandlerUtils;
-import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
  * IncrOrder服务接口实现
@@ -126,9 +126,9 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 		// 保存到IncrOrder表
 		// logger.info("insert incrOrder = " + incrOrderMap);
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		incrOrderDao.insert(incrOrderMap);
-		long endTime = new Date().getTime();
+		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",insert incrOrder successfully.");
 	}
 
@@ -212,15 +212,15 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	@Override
 	public void syncOrderToDB() {
 		// 删除30小时以前的数据
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		int count = incrOrderRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		long endTime = new Date().getTime();
+		long endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
 
-		startTime = new Date().getTime();
+		startTime = System.currentTimeMillis();
 		// 查询前3分钟至前1分钟
 		Date endTimeDate = new Date();
-		String startTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -3, "yyyy-MM-dd HH:mm:ss");
+		String startTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -30, "yyyy-MM-dd HH:mm:ss");
 		String endTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -1, "yyyy-MM-dd HH:mm:ss");
 		String getBriefOrdersResult = orderCenterService.getBriefOrdersByTimestamp(startTimestamp, endTimestamp);
 		OrderCenterResult orderCenterResult = null;
@@ -232,7 +232,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 					ExceptionUtils.getFullStackTrace(e));
 			return;
 		}
-		endTime = new Date().getTime();
+		endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",orderCenterService.getBriefOrdersByTimestamp and parseResult.");
 
 		// 未查到数据，跳过
@@ -270,7 +270,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		int recordCount = orderIds.size();
 		int pageSize = 100;
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-		startTime = new Date().getTime();
+		startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 			int startNum = (pageIndex - 1) * pageSize;
 			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
@@ -292,7 +292,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			}
 			bodyJsonArray.addAll(jsonObj.getJSONArray("body"));
 		}
-		endTime = new Date().getTime();
+		endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",orderCenterService.getOrders and parseResult.");
 
 		if (bodyJsonArray == null || bodyJsonArray.size() == 0) {
@@ -300,7 +300,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			return;
 		}
 
-		startTime = new Date().getTime();
+		startTime = System.currentTimeMillis();
 		List<Map<String, Object>> incrOrders = new ArrayList<Map<String, Object>>();
 		for (int i = 0; i < bodyJsonArray.size(); i++) {
 			Map<String, Object> jsonOrderMap = bodyJsonArray.getJSONObject(i);
@@ -321,23 +321,23 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			// 保存到IncrOrder表
 			incrOrders.add(incrOrderMap);
 		}
-		endTime = new Date().getTime();
+		endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",convertMap,vStatus,HandlerMap and so on");
 
 		// 批量插入IncrOrder
 		int incrOrderCount = incrOrders.size();
 		int successCount = 0;
 		jobLogger.info("IncrOrder BulkInsert start,recordCount = " + incrOrderCount);
-		String incrOrderBatchSize = PropertiesHelper.getEnvProperties("IncrOrderBatchSize", "config").toString();
+		String incrOrderBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrOrderBatchSize");
 		int batchSize = StringUtils.isEmpty(incrOrderBatchSize) ? 50 : Integer.valueOf(incrOrderBatchSize);
 		int batchCount = (int) Math.ceil(incrOrderCount * 1.0 / pageSize);
-		startTime = new Date().getTime();
+		startTime = System.currentTimeMillis();
 		for (int batchIndex = 1; batchIndex <= batchCount; batchIndex++) {
 			int startNum = (batchIndex - 1) * batchSize;
 			int endNum = batchIndex * batchSize > incrOrderCount ? incrOrderCount : batchIndex * batchSize;
 			successCount += incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
 		}
-		endTime = new Date().getTime();
+		endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder BulkInsert,successCount = " + successCount);
 	}
 
@@ -348,7 +348,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 * @return
 	 */
 	private List<Object> findOrderIds(List<Map<String,Object>> orders) {
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		List<Object> orderIdList = new ArrayList<Object>();
 		for (Map<String,Object> orderMap : orders) {
 			if (orderMap == null || orderMap.size() == 0)
@@ -373,15 +373,17 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 				String orderTimestampStr = (String)orderMap.get("orderTimestamp");
 				orderTimestamp = DateUtils.parseDate(orderTimestampStr, new String[] { "yyyy-MM-dd HH:mm:ss.SSS",
 						"yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
+				orderTimestampStr = DateHandlerUtils.formatDate(orderTimestamp, "yyyy-MM-dd HH:mm:ss");
+				orderTimestamp = DateUtils.parseDate(orderTimestampStr, new String[] {"yyyy-MM-dd HH:mm:ss" });
 			} catch (ParseException e) {
 				jobLogger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 			}
 			// 工作库时间小于订单时间戳时,兜底查询
-			if (orderTimestamp != null && incrOrder.getChangeTime().before(orderTimestamp)) {
+			if (orderTimestamp != null&&incrOrder.getChangeTime().before(orderTimestamp)) {
 				orderIdList.add(orderId);
 			}
 		}
-		long endTime = new Date().getTime();
+		long endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",findOrderIds,orderIdList size = " + orderIdList.size());
 		return orderIdList;
 	}
@@ -457,13 +459,13 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 * @return
 	 */
 	public boolean isPullVStatus(Map<String, Object> incrOrderMap) {
-		String filterOrderFromStrV = PropertiesHelper.getEnvProperties("FilterOrderFromStrV", "config").toString();
+		String filterOrderFromStrV = CommonsUtil.CONFIG_PROVIDAR.getProperty("FilterOrderFromStrV");
 		if (StringUtils.isNotEmpty(filterOrderFromStrV)) {
-			// long startTime = new Date().getTime();
+			// long startTime = System.currentTimeMillis();
 			String[] orderFroms = StringUtils.split(filterOrderFromStrV, ",", -1);
 			String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
 			String status = incrOrderMap.get("Status").toString();
-			// long endTime = new Date().getTime();
+			// long endTime = System.currentTimeMillis();
 			// logger.info("use time = " + (endTime - startTime) + ",FilterOrderFromStrV");
 			if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)) {
 				logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
@@ -482,14 +484,14 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	private void handlerMap(Map<String, Object> incrOrderMap) {
 		String cardNo = (incrOrderMap.get("CardNo") == null) ? StringUtils.EMPTY : incrOrderMap.get("CardNo").toString();
 		if (StringUtils.equals("49", cardNo)) {
-			// long startTime = new Date().getTime();
+			// long startTime = System.currentTimeMillis();
 			OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
 			if (orderProxy != null && orderProxy.getData() != null && !StringUtils.isEmpty(orderProxy.getData().getProxyId())) {
 				incrOrderMap.put("ProxyId", orderProxy.getData().getProxyId());
 				incrOrderMap.put("CardNo", orderProxy.getData().getCardNo());
 				incrOrderMap.put("Status", "D");
 			}
-			// long endTime = new Date().getTime();
+			// long endTime = System.currentTimeMillis();
 			// logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
 		}
 	}

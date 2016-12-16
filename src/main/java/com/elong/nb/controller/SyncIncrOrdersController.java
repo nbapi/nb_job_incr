@@ -73,7 +73,7 @@ public class SyncIncrOrdersController {
 	 */
 	@RequestMapping(value = "/writeIncrOrderLog")
 	public @ResponseBody String writeLog(HttpServletRequest request) {
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		OrderMessageResponse messageResponse = null;
 		try {
 			logger.info("SyncIncrOrders,Controller,start.");
@@ -108,7 +108,7 @@ public class SyncIncrOrdersController {
 		}
 		String result = JSON.toJSONString(messageResponse);
 		logger.info("SyncIncrOrders,Controller,result = " + result);
-		long endTime = new Date().getTime();
+		long endTime = System.currentTimeMillis();
 		logger.info("SyncIncrOrders,Controller,use time = " + (endTime - startTime) + "ms");
 		return result;
 	}

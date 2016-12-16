@@ -7,13 +7,14 @@ package com.elong.nb.service.impl;
 
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.DateHandlerUtils;
+import com.elong.nb.util.ExecutorUtils;
 import com.elong.nb.util.HttpClientUtils;
 import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
@@ -36,7 +37,7 @@ public class NoticeServiceImpl implements INoticeService {
 
 	private static final Logger logger = Logger.getLogger("NoticeServiceLogger");
 
-	private ExecutorService executorService = Executors.newFixedThreadPool(5);
+	private ExecutorService executorService = ExecutorUtils.newSelfThreadPool(5, 100, new ThreadPoolExecutor.DiscardPolicy());
 
 	/** 
 	 * 发送通知信息

@@ -125,7 +125,7 @@ public class SyncIncrToDBController {
 	 * @return
 	 */
 	private String syncIncrDataToDB(HttpServletRequest request,String pathVariable) {
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		ResponseResult result = new ResponseResult();
 		try {
 			result.setCode(ResponseResult.SUCCESS);
@@ -153,7 +153,7 @@ public class SyncIncrToDBController {
 			noticeService.sendMessage(pathVariable + ",error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
 					ExceptionUtils.getFullStackTrace(e));
 		}
-		long endTime = new Date().getTime();
+		long endTime = System.currentTimeMillis();
 		logger.info(pathVariable + ",Controller,use time = " + (endTime - startTime) + "ms");
 		return JSON.toJSONString(result);
 	}

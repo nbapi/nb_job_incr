@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,10 +20,10 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.SqlServerDataDao;
 import com.elong.nb.util.DateHandlerUtils;
-import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
  *
@@ -43,8 +42,6 @@ import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 public class IncrRateRepository {
 
 	private static final Logger logger = Logger.getLogger("IncrRateLogger");
-
-	private Set<String> filteredSHotelIds = new HashSet<String>();
 
 	@Resource
 	private MSRelationRepository msRelationRepository;
@@ -103,9 +100,9 @@ public class IncrRateRepository {
 			params.put("InsertTime", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
 		}
 		logger.info("getDataFromPriceInfoTrack, params = " + params);
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		List<Map<String, Object>> incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
-		long endTime = new Date().getTime();
+		long endTime = System.currentTimeMillis();
 		int incrRateListSize = (incrRateList == null) ? 0 : incrRateList.size();
 		logger.info("use time = " + (endTime - startTime) + ",getDataFromPriceInfoTrack, incrRateList size = " + incrRateListSize);
 		if (incrRateList == null || incrRateList.size() == 0)
@@ -115,8 +112,8 @@ public class IncrRateRepository {
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		Date validDate = DateTime.now().plusYears(1).toDate();
 
-		startTime = new Date().getTime();
-		filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
+		startTime = System.currentTimeMillis();
+		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		for (Map<String, Object> rowMap : incrRateList) {
 			if (rowMap == null)
 				continue;
@@ -143,23 +140,23 @@ public class IncrRateRepository {
 
 			incrRates.add(rowMap);
 		}
-		endTime = new Date().getTime();
+		endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
 
 		int recordCount = incrRates.size();
 		if(recordCount > 0){
 			int successCount = 0;
 			logger.info("IncrRate BulkInsert start,recordCount = " + recordCount);
-			String incrRateBatchSize = PropertiesHelper.getEnvProperties("IncrRateBatchSize", "config").toString();
+			String incrRateBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrRateBatchSize");
 			int pageSize = StringUtils.isEmpty(incrRateBatchSize) ? 2000 : Integer.valueOf(incrRateBatchSize);
 			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-			startTime = new Date().getTime();
+			startTime = System.currentTimeMillis();
 			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 				int startNum = (pageIndex - 1) * pageSize;
 				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
 				successCount += incrRateDao.bulkInsert(incrRates.subList(startNum, endNum));
 			}
-			endTime = new Date().getTime();
+			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,successCount = " + successCount);
 			changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");
 		}

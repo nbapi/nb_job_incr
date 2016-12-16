@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrHotelDao;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.dao.IncrRateDao;
@@ -24,7 +25,6 @@ import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.util.DateHandlerUtils;
-import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
  *
@@ -177,16 +177,16 @@ public class IncrHotelRepository {
 		if (recordCount > 0) {
 			int successCount = 0;
 			logger.info("IncrHotel BulkInsert start,recordCount = " + recordCount);
-			String incrHotelBatchSize = PropertiesHelper.getEnvProperties("IncrHotelBatchSize", "config").toString();
+			String incrHotelBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrHotelBatchSize");
 			int pageSize = StringUtils.isEmpty(incrHotelBatchSize) ? 2000 : Integer.valueOf(incrHotelBatchSize);
 			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-			long startTime = new Date().getTime();
+			long startTime = System.currentTimeMillis();
 			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 				int startNum = (pageIndex - 1) * pageSize;
 				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
 				successCount += incrHotelDao.bulkInsert(hotels.subList(startNum, endNum));
 			}
-			long endTime = new Date().getTime();
+			long endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",IncrHotel BulkInsert successfully,successCount = " + successCount);
 		}
 	}

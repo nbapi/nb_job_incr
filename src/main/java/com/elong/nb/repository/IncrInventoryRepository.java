@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,11 +35,11 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeMin
 import com.elong.nb.agent.ProductForPartnerServiceContract.IProductForPartnerServiceContract;
 import com.elong.nb.agent.ProductForPartnerServiceContract.InventoryChangeModel;
 import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
-import com.elong.springmvc_enhance.utilities.PropertiesHelper;
 
 /**
  *
@@ -61,10 +60,6 @@ public class IncrInventoryRepository {
 	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
 
 	private static final int MAXDAYS = 90;
-
-	private boolean isToRetryInventoryDetailRequest;
-
-	private Set<String> filteredSHotelIds = new HashSet<String>();
 
 	@Resource
 	private IncrInventoryDao incrInventoryDao;
@@ -143,19 +138,19 @@ public class IncrInventoryRepository {
 	public long syncInventoryToDB(long changID) {
 		GetInventoryChangeListRequest request = new GetInventoryChangeListRequest();
 		request.setId(changID);
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		List<InventoryChangeModel> changeList = productForPartnerServiceContractForList.getInventoryChangeList(request)
 				.getInventoryChangeList().getInventoryChangeModel();
 		int changeListSize = changeList == null ? 0 : changeList.size();
 		logger.info("changeList size = " + changeListSize + ",from wcf [ProductForPartnerServiceContractForList.getInventoryChangeList]");
-		long endTime = new Date().getTime();
+		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",productForPartnerServiceContractForList.getInventoryChangeList");
 
 		List<InventoryChangeModel> filterChangeList = new ArrayList<InventoryChangeModel>();
 		if (changeList != null && changeList.size() > 0) {
-			startTime = new Date().getTime();
+			startTime = System.currentTimeMillis();
 			// 解决订阅库延时问题，获取明细时延时3分钟
-			String inventoryChangeDelayMinutes = PropertiesHelper.getEnvProperties("InventoryChangeDelayMinutes", "config").toString();
+			String inventoryChangeDelayMinutes = CommonsUtil.CONFIG_PROVIDAR.getProperty("InventoryChangeDelayMinutes");
 			inventoryChangeDelayMinutes = StringUtils.isEmpty(inventoryChangeDelayMinutes) ? "10" : inventoryChangeDelayMinutes;
 			DateTime lastTime = DateTime.now().minusMinutes(1 * Integer.valueOf(inventoryChangeDelayMinutes));
 			for (InventoryChangeModel item : changeList) {
@@ -169,32 +164,32 @@ public class IncrInventoryRepository {
 			int filterChangeListSize = filterChangeList == null ? 0 : filterChangeList.size();
 			logger.info("filterChangeList size = " + filterChangeListSize + ",after dohandler InventoryChangeDelayMinutes = "
 					+ inventoryChangeDelayMinutes);
-			endTime = new Date().getTime();
+			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",dohandler InventoryChangeDelay");
 		}
 
 		if (changeList != null && changeList.size() > 0) {
 			// 填充全局变量FilteredSHotelIds
-			startTime = new Date().getTime();
-			filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
-			endTime = new Date().getTime();
+			startTime = System.currentTimeMillis();
+			final Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
+			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",commonRepository.fillFilteredSHotelsIds");
 
 			// 最大支持300线程并行
 			int maximumPoolSize = changeList.size() < 300 ? changeList.size() : 300;
 			logger.info("maximumPoolSize = " + maximumPoolSize);
-			startTime = new Date().getTime();
+			startTime = System.currentTimeMillis();
 			ExecutorService executorService = ExecutorUtils.newSelfThreadPool(maximumPoolSize, 400);
 			final List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
 			for (final InventoryChangeModel changeModel : changeList) {
 				executorService.submit(new Runnable() {
 					@Override
 					public void run() {
-						doHandlerChangeModel(changeModel, rows);
+						doHandlerChangeModel(changeModel, rows, filteredSHotelIds);
 					}
 				});
 			}
-			endTime = new Date().getTime();
+			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",executorService submit task");
 			executorService.shutdown();
 			try {
@@ -208,37 +203,37 @@ public class IncrInventoryRepository {
 
 			// ChangeID排序，存数据库
 			if (rows.size() > 0) {
-				startTime = new Date().getTime();
+				startTime = System.currentTimeMillis();
 				Collections.sort(rows, new Comparator<Map<String, Object>>() {
 					@Override
 					public int compare(Map<String, Object> o1, Map<String, Object> o2) {
 						return (int) ((long) (o1.get("ChangeID")) - (long) (o2.get("ChangeID")));
 					}
 				});
-				endTime = new Date().getTime();
+				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
 
 				int recordCount = rows.size();
 				if (recordCount > 0) {
 					int successCount = 0;
 					logger.info("IncrInventory BulkInsert start,recordCount = " + rows.size());
-					String incrInventoryBatchSize = PropertiesHelper.getEnvProperties("IncrInventoryBatchSize", "config").toString();
+					String incrInventoryBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryBatchSize");
 					int pageSize = StringUtils.isEmpty(incrInventoryBatchSize) ? 2000 : Integer.valueOf(incrInventoryBatchSize);
 					int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-					startTime = new Date().getTime();
+					startTime = System.currentTimeMillis();
 					for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 						int startNum = (pageIndex - 1) * pageSize;
 						int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
 						successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
 					}
-					endTime = new Date().getTime();
+					endTime = System.currentTimeMillis();
 					logger.info("use time = " + (endTime - startTime) + ",IncrInventory BulkInsert,successCount = " + successCount);
 				}
 
 			}
 			// ID排序，去最大ID
 			if (changeList != null && changeList.size() > 0) {
-				startTime = new Date().getTime();
+				startTime = System.currentTimeMillis();
 				Collections.sort(changeList, new Comparator<InventoryChangeModel>() {
 					@Override
 					public int compare(InventoryChangeModel o1, InventoryChangeModel o2) {
@@ -246,7 +241,7 @@ public class IncrInventoryRepository {
 					}
 				});
 				changID = changeList.get(changeList.size() - 1).getID();
-				endTime = new Date().getTime();
+				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ID");
 			}
 		}
@@ -259,11 +254,11 @@ public class IncrInventoryRepository {
 	 * @param changeModel
 	 * @param rows
 	 */
-	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows) {
+	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows, Set<String> filteredSHotelIds) {
 		String threadName = Thread.currentThread().getName();
 		GetInventoryChangeDetailRequest request = null;
 		try {
-			boolean isFileterd = this.filteredSHotelIds.contains(changeModel.getHotelID());
+			boolean isFileterd = filteredSHotelIds.contains(changeModel.getHotelID());
 			if (isFileterd) {
 				// logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;
@@ -292,14 +287,14 @@ public class IncrInventoryRepository {
 			request.setBeginTime(changeModel.getBeginTime());
 			request.setEndTime(changeModel.getEndTime());
 			request.setRoomTypeIDs(changeModel.getRoomTypeID());
-			long startTime = new Date().getTime();
+			long startTime = System.currentTimeMillis();
 			GetInventoryChangeDetailResponse response = null;
 			try {
 				response = productForPartnerServiceContract.getInventoryChangeDetail(request);
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);// 异常吃掉，下面会重试
 			}
-			long endTime = new Date().getTime();
+			long endTime = System.currentTimeMillis();
 			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
 
@@ -310,24 +305,24 @@ public class IncrInventoryRepository {
 			// retry
 			if (resourceInventoryStateList == null || resourceInventoryStateList.size() == 0) {
 				// logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
-				if (isToRetryInventoryDetailRequest && changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
-					startTime = new Date().getTime();
+				if (changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
+					startTime = System.currentTimeMillis();
 					Thread.sleep(2000);
 					response = productForPartnerServiceContract.getInventoryChangeDetail(request);
-					endTime = new Date().getTime();
+					endTime = System.currentTimeMillis();
 					logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 							+ ",retry productForPartnerServiceContract.getInventoryChangeDetail");
 				}
 			}
-			// startTime = new Date().getTime();
+			// startTime = System.currentTimeMillis();
 			String mHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
-			// endTime = new Date().getTime();
+			// endTime = System.currentTimeMillis();
 			// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
 			if (response != null && response.getResourceInventoryStateList() != null) {
 				resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			}
 			if (resourceInventoryStateList != null && resourceInventoryStateList.size() > 0) {
-				// startTime = new Date().getTime();
+				// startTime = System.currentTimeMillis();
 				for (ResourceInventoryState detail : resourceInventoryStateList) {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
@@ -351,11 +346,11 @@ public class IncrInventoryRepository {
 						rows.add(row);
 					}
 				}
-				// endTime = new Date().getTime();
+				// endTime = System.currentTimeMillis();
 				// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap one.");
 			} else {
 				DateTime date = changeModel.getBeginTime();
-				// startTime = new Date().getTime();
+				// startTime = System.currentTimeMillis();
 				while (date.compareTo(changeModel.getEndTime()) < 0) {
 					synchronized (this.getClass()) {
 						Map<String, Object> row = new HashMap<String, Object>();
@@ -380,7 +375,7 @@ public class IncrInventoryRepository {
 					}
 					date = date.plusDays(1);
 				}
-				// endTime = new Date().getTime();
+				// endTime = System.currentTimeMillis();
 				// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap two.");
 			}
 		} catch (Exception ex) {
