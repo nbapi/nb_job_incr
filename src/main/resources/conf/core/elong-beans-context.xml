@@ -34,7 +34,7 @@
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="incrDataSource" />
 	</bean>
-	<tx:annotation-driven transaction-manager="transactionManager"/>
+	<tx:annotation-driven transaction-manager="transactionManager" />
 	<!-- Transaction End -->
 
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
@@ -49,14 +49,20 @@
 			<aop:before pointcut-ref="tx" method="before" />
 		</aop:aspect>
 	</aop:config>
-	
-	<bean id="daoAspect" class="com.elong.nb.checklist.ChecklistAspect" />
+
+	<!-- 配置checklist切面 -->
+	<bean id="checklistAspect" class="com.elong.nb.checklist.ChecklistAspect" />
 	<aop:config>
-		<aop:aspect id="b2" ref="daoAspect">
-			<aop:pointcut id="tx2" expression="execution(public * com.elong.nb.dao.*.*(..))" />
+		<aop:aspect id="b2" ref="checklistAspect">
+			<aop:pointcut id="tx2"
+				expression="execution(public * com.elong.nb.dao.*.*(..))
+							||execution(public * com.elong.nb.controller.*.*(..))
+							||execution(public * com.elong.nb.repository.MSRelationRepository.*(..))
+							||execution(public * com.elong.nb.repository.CommonRepository.*(..))
+							||execution(public * com.elong.nb.service.impl.OrderCenterServiceImpl.*(..))" />
 			<aop:before pointcut-ref="tx2" method="handlerLogBefore" />
-			<aop:after-returning pointcut-ref="tx2" method="handlerLogAfter" returning="returnValue"/>
-			<aop:after-throwing pointcut-ref="tx2" method="handlerLogThrowing" throwing="throwing"/>
+			<aop:after-returning pointcut-ref="tx2" method="handlerLogAfter" returning="returnValue" />
+			<aop:after-throwing pointcut-ref="tx2" method="handlerLogThrowing" throwing="throwing" />
 		</aop:aspect>
 	</aop:config>
 
