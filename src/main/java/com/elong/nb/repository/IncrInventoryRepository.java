@@ -25,6 +25,9 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailRequest;
@@ -35,11 +38,13 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeMin
 import com.elong.nb.agent.ProductForPartnerServiceContract.IProductForPartnerServiceContract;
 import com.elong.nb.agent.ProductForPartnerServiceContract.InventoryChangeModel;
 import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
+import com.elong.nb.common.checklist.Constants;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
+import com.elong.springmvc_enhance.utilities.ActionLogHelper;
 
 /**
  *
@@ -117,16 +122,27 @@ public class IncrInventoryRepository {
 	 * @return
 	 */
 	public long getInventoryChangeMinID(Date lastChangeTime) {
+		long startTimel = System.currentTimeMillis();
+		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+		Object guid = requestAttributes.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+
 		GetInventoryChangeMinIDRequest request = new GetInventoryChangeMinIDRequest();
 		request.setLastUpdateTime(new DateTime(lastChangeTime.getTime()));
 		GetInventoryChangeMinIDResponse response = productForPartnerServiceContract.getInventoryChangeMinID(request);
+		long result = 0;
 		if (response.getResult().getResponseCode() == 0) {
-			return response.getMinID();
+			result = response.getMinID();
 		} else if (response.getMinID() == Long.MAX_VALUE) {
-			return 0;
+			result = 0;
 		} else {
-			throw new RuntimeException(response.getResult().getErrorMessage());
+			RuntimeException exception = new RuntimeException(response.getResult().getErrorMessage());
+			ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeMinID", "IncrInventoryRepository",
+					exception, System.currentTimeMillis() - startTimel, 1, null, lastChangeTime);
+			throw exception;
 		}
+		ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeMinID", "IncrInventoryRepository", null,
+				System.currentTimeMillis() - startTimel, 0, result + "", lastChangeTime);
+		return result;
 	}
 
 	/** 
@@ -136,15 +152,20 @@ public class IncrInventoryRepository {
 	 * @return
 	 */
 	public long syncInventoryToDB(long changID) {
+		long startTime = System.currentTimeMillis();
+		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+		Object guid = requestAttributes.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+
 		GetInventoryChangeListRequest request = new GetInventoryChangeListRequest();
 		request.setId(changID);
-		long startTime = System.currentTimeMillis();
 		List<InventoryChangeModel> changeList = productForPartnerServiceContractForList.getInventoryChangeList(request)
 				.getInventoryChangeList().getInventoryChangeModel();
 		int changeListSize = changeList == null ? 0 : changeList.size();
-		logger.info("changeList size = " + changeListSize + ",from wcf [ProductForPartnerServiceContractForList.getInventoryChangeList]");
 		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",productForPartnerServiceContractForList.getInventoryChangeList");
+		logger.info("use time = " + (endTime - startTime)
+				+ ",productForPartnerServiceContractForList.getInventoryChangeList,changeList size = " + changeListSize);
+		ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeList",
+				"IProductForPartnerServiceContract", null, endTime - startTime, 0, changeListSize + "", changID);
 
 		List<InventoryChangeModel> filterChangeList = new ArrayList<InventoryChangeModel>();
 		if (changeList != null && changeList.size() > 0) {
@@ -167,7 +188,7 @@ public class IncrInventoryRepository {
 			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",dohandler InventoryChangeDelay");
 		}
-
+		
 		if (changeList != null && changeList.size() > 0) {
 			// 填充全局变量FilteredSHotelIds
 			startTime = System.currentTimeMillis();
@@ -255,6 +276,10 @@ public class IncrInventoryRepository {
 	 * @param rows
 	 */
 	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows, Set<String> filteredSHotelIds) {
+		long startTimel = System.currentTimeMillis();
+		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+		Object guid = requestAttributes.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+
 		String threadName = Thread.currentThread().getName();
 		GetInventoryChangeDetailRequest request = null;
 		try {
@@ -297,6 +322,8 @@ public class IncrInventoryRepository {
 			long endTime = System.currentTimeMillis();
 			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
+			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeDetail",
+					"IProductForPartnerServiceContract", null, endTime - startTime, 0, JSON.toJSONString(response), request);
 
 			List<ResourceInventoryState> resourceInventoryStateList = null;
 			if (response != null && response.getResourceInventoryStateList() != null) {
@@ -312,11 +339,17 @@ public class IncrInventoryRepository {
 					endTime = System.currentTimeMillis();
 					logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 							+ ",retry productForPartnerServiceContract.getInventoryChangeDetail");
+
+					ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "retryGetInventoryChangeDetail",
+							"IProductForPartnerServiceContract", null, endTime - startTime, 0, JSON.toJSONString(response), request);
 				}
 			}
-			// startTime = System.currentTimeMillis();
+			startTime = System.currentTimeMillis();
 			String mHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
-			// endTime = System.currentTimeMillis();
+			endTime = System.currentTimeMillis();
+			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getMHotelId", "MSRelationRepository", null, endTime
+					- startTime, 0, mHotelId, changeModel.getHotelID());
+
 			// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
 			if (response != null && response.getResourceInventoryStateList() != null) {
 				resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
@@ -380,6 +413,8 @@ public class IncrInventoryRepository {
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
+			ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "retryGetInventoryChangeDetail",
+					"IProductForPartnerServiceContract", ex, System.currentTimeMillis() - startTimel, 1, null, request);
 			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error",
 					"request = " + JSON.toJSONString(request) + ".\n" + ExceptionUtils.getFullStackTrace(ex));
 		}

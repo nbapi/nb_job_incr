@@ -49,5 +49,15 @@
 			<aop:before pointcut-ref="tx" method="before" />
 		</aop:aspect>
 	</aop:config>
+	
+	<bean id="daoAspect" class="com.elong.nb.checklist.ChecklistAspect" />
+	<aop:config>
+		<aop:aspect id="b2" ref="daoAspect">
+			<aop:pointcut id="tx2" expression="execution(public * com.elong.nb.dao.*.*(..))" />
+			<aop:before pointcut-ref="tx2" method="handlerLogBefore" />
+			<aop:after-returning pointcut-ref="tx2" method="handlerLogAfter" returning="returnValue"/>
+			<aop:after-throwing pointcut-ref="tx2" method="handlerLogThrowing" throwing="throwing"/>
+		</aop:aspect>
+	</aop:config>
 
 </beans>

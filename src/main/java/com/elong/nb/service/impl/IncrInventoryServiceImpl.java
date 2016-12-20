@@ -70,32 +70,28 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		if (changeID == 0) {
 			long startTime = System.currentTimeMillis();
 			changeID = Long.valueOf(redisManager.getStr(RedisKeyConst.CacheKey_KEY_Inventory_LastID));
-			logger.info("get changeID = " + changeID + ",from redis key = " + RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
 			long endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",get value from redis key = "
-					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
+					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",changeID = " + changeID);
 		}
 		if (changeID == 0) {
 			long startTime = System.currentTimeMillis();
 			changeID = incrInventoryRepository.getInventoryChangeMinID(DateHandlerUtils.getCacheExpireDate());
-			logger.info("get changeID = " + changeID + ",from wcf [ProductForPartnerServiceContract.getInventoryChangeMinID]");
-			long endTime = System.currentTimeMillis();
-			logger.info("use time = " + (endTime - startTime) + ",incrInventoryRepository.getInventoryChangeMinID");
+			logger.info("use time = " + (System.currentTimeMillis() - startTime)
+					+ ",incrInventoryRepository.getInventoryChangeMinID,changeID = " + changeID);
 		}
 		long startTime = System.currentTimeMillis();
 		long newLastChgID = incrInventoryRepository.syncInventoryToDB(changeID);
-		logger.info("syncInventoryToDB,change: " + changeID + " ===> " + newLastChgID);
-		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",syncInventoryToDB,change: from " + changeID + " to " + newLastChgID);
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",syncInventoryToDB,change: from " + changeID + " to "
+				+ newLastChgID);
 
 		long incred = newLastChgID - changeID;
 		if (incred > 0) {
 			// 更新LastID
 			startTime = System.currentTimeMillis();
 			redisManager.put(RedisKeyConst.CacheKey_KEY_Inventory_LastID, newLastChgID);
-			logger.info("put to redis key = " + RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);
-			endTime = System.currentTimeMillis();
-			logger.info("use time = " + (endTime - startTime) + ",put to redis key" + ",incred = " + incred);
+			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",put to redis key" + ",incred = " + incred + ",key = "
+					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);			
 			if (incred > 100) {
 				// 继续执行
 				syncInventoryToDB(newLastChgID);

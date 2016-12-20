@@ -2,11 +2,24 @@
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
 
+	<!-- 控制台输出 -->
 	<appender name="console" class="org.apache.log4j.ConsoleAppender">
 		<param name="threshold" value="INFO" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss.SSS\} %-5p] [%t] (%c{1}:%L) %m%n" />
 		</layout>
+	</appender>
+
+	<!--actionLogEntity appender -->
+	<appender name="actionLogEntityAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/nb_job_incr_actionlogentity.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd-HH-mm" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
 	</appender>
 
 	<!-- OrderCenter appender -->
@@ -33,18 +46,6 @@
 		</filter>
 	</appender>
 
-	<!-- biglog appender -->
-	<appender name="BigLogAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="file" value="${catalina.home}/logs/biglog/biglog.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd-HH'.log'" />
-		<param name="Append" value="true" />
-		<param name="encoding" value="utf-8" />
-		<param name="threshold" value="info" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%m%n" />
-		</layout>
-	</appender>
-
 	<!--IncrCommon appender -->
 	<appender name="IncrCommonAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrCommon.log" />
@@ -56,6 +57,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
+
 	<!--syncIncrInventory appender -->
 	<appender name="syncIncrInventoryAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrInventory.log" />
@@ -67,6 +69,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
+
 	<!--syncIncrOrderJob appender -->
 	<appender name="syncIncrOrderJobAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrOrderJob.log" />
@@ -78,6 +81,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
+
 	<!--syncIncrOrder appender -->
 	<appender name="syncIncrOrderAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrOrder.log" />
@@ -89,6 +93,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
+
 	<!--syncIncrHotel appender -->
 	<appender name="syncIncrHotelAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrHotel.log" />
@@ -100,6 +105,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
+
 	<!--syncIncrState appender -->
 	<appender name="syncIncrStateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrState.log" />
@@ -111,6 +117,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
+
 	<!--syncIncrRate appender -->
 	<appender name="syncIncrRateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrRate.log" />
@@ -123,113 +130,6 @@
 		</filter>
 	</appender>
 
-	<!--mybatis appender -->
-	<!-- <appender name="mybatisAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender"> <param name="File" value="${catalina.home}/logs/syncIncrlog/mybatis.log" 
-		/> <param name="DatePattern" value="'.'yyyy-MM-dd'.log'" /> <layout class="org.apache.log4j.PatternLayout"> <param name="ConversionPattern" value="%d 
-		%p [%c] - %m%n" /> </layout> <filter class="org.apache.log4j.varia.LevelRangeFilter"> <param name="LevelMin" value="INFO" /> </filter> </appender> -->
-
-	<!--actionLogEntity appender -->
-	<appender name="actionLogEntityAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/schedule_logentity.log" />
-
-		<param name="DatePattern" value="'.'yyyy-MM-dd-HH'.log'" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%m%n" />
-		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="INFO" />
-		</filter>
-	</appender>
-
-
-	<!-- ======================================================================================================= -->
-	<!-- =================================healthcheck组件日志appender 配置开始======================================= -->
-	<!-- ======================================================================================================= -->
-	<!-- healthcheck组件, info级别及以上日志接收器 -->
-	<appender name="healthcheckAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/healthcheck/healthcheck_info.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="[%d] %5p [%30.30C:%4.4L] - %m%n" />
-		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="DEBUG" />
-		</filter>
-	</appender>
-	<!-- ======================================================================================================= -->
-	<!-- =================================healthcheck组件日志logger 配置结束======================================= -->
-	<!-- ======================================================================================================= -->
-
-
-	<!-- ===================================================================================================== -->
-	<!-- =================================health check组件日志logger 配置开始==================================== -->
-	<!-- ===================================================================================================== -->
-	<logger name="healthcheck" additivity="false">
-		<level value="DEBUG" />
-		<appender-ref ref="stdout" />
-		<appender-ref ref="healthcheckAppender" />
-	</logger>
-	<!-- ===================================================================================================== -->
-	<!-- =================================health check组件日志logger 配置结束==================================== -->
-	<!-- ===================================================================================================== -->
-
-
-	<!-- SOA client组件, info级别及以上日志接收器 -->
-	<appender name="soaClientInfoAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/hotel_soa_client/soa_client_info.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="[%d] %5p [%30.30C:%4.4L] - %m%n" />
-		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="INFO" />
-		</filter>
-	</appender>
-
-	<!-- SOA client组件, error级别及以上日志接收器 -->
-	<appender name="soaClientErrorAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/hotel_soa_client/soa_client_error.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="[%d] %5p [%30.30C:%4.4L] - %m%n" />
-		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="ERROR" />
-		</filter>
-	</appender>
-
-	<!-- SOA client组件, API调用, 日志接收器 -->
-	<appender name="soaClientApiAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/hotel_soa_client/soa_client_api.log" />
-		<param name="DatePattern" value="'.'yyyyMMddHHmm" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%m%n" />
-		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="INFO" />
-		</filter>
-	</appender>
-
-	<!-- SOA client组件, 通用, 日志器 -->
-	<logger name="soaClientLogger" additivity="false">
-		<level value="INFO" />
-		<appender-ref ref="soaClientInfoAppender" />
-		<appender-ref ref="soaClientErrorAppender" />
-	</logger>
-
-	<!-- SOA client组件, API调用, 日志器 -->
-	<logger name="soaClientApiLogger" additivity="false">
-		<level value="INFO" />
-		<appender-ref ref="soaClientApiAppender" />
-	</logger>
-
-	<!-- zookeeper日志器, 重定向日志流 -->
-	<logger name="schedulelogger">
-		<level value="INFO" />
-		<appender-ref ref="actionLogEntityAppender" />
-	</logger>
-
-
 	<!-- OrderCenter 日志器 -->
 	<logger name="OrderCenterLogger" additivity="false">
 		<level value="info" />
@@ -240,17 +140,12 @@
 		<level value="info" />
 		<appender-ref ref="NoticeServiceAppender" />
 	</logger>
-	<!-- biglog日志器 -->
-	<logger name="biglog" additivity="false">
-		<level value="info" />
-		<appender-ref ref="BigLogAppender" />
-	</logger>
-	<!-- IncrOrder同步日志器 -->
+	<!-- IncrCommon同步日志器 -->
 	<logger name="IncrCommonLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="IncrCommonAppender" />
 	</logger>
-	<!-- IncrOrder同步日志器 -->
+	<!-- IncrOrderJob同步日志器 -->
 	<logger name="IncrOrderJobLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="syncIncrOrderJobAppender" />
@@ -281,12 +176,14 @@
 		<appender-ref ref="syncIncrRateAppender" />
 	</logger>
 
-	<!-- 下面是打印mybatis语句的配置 -->
-	<!-- <logger name="com.ibatis" additivity="true"> <level value="DEBUG" /> <appender-ref ref="mybatisAppender" /> </logger> <logger name="java.sql.Connection" 
-		additivity="true"> <level value="DEBUG" /> <appender-ref ref="mybatisAppender" /> </logger> <logger name="java.sql.Statement" additivity="true"> 
-		<level value="DEBUG" /> <appender-ref ref="mybatisAppender" /> </logger> <logger name="java.sql.PreparedStatement" additivity="true"> <level 
-		value="DEBUG" /> <appender-ref ref="mybatisAppender" /> </logger> <logger name="java.sql.ResultSet" additivity="true"> <level value="DEBUG" /> 
-		<appender-ref ref="mybatisAppender" /> </logger> -->
+	<category name="actionLogEntityLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="actionLogEntityAppender" />
+	</category>
 
+	<root>
+		<level value="ERROR" />
+		<appender-ref ref="console" />
+	</root>
 
 </log4j:configuration>

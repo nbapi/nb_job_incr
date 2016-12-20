@@ -160,7 +160,7 @@
 		<dependency>
 			<groupId>com.elong.hotel</groupId>
 			<artifactId>spring-mvc-enhance</artifactId>
-			<version>1.4.0</version>
+			<version>1.10.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.elong.hotel</groupId>
@@ -171,7 +171,7 @@
 		<dependency>
 			<groupId>com.elong.hotel</groupId>
 			<artifactId>webapp.pom</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.6</version>
 			<type>pom</type>
 			<exclusions>
 				<exclusion>
@@ -245,4 +245,13 @@
 		</dependency>
 	</dependencies>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.mybatis</groupId>
+				<artifactId>mybatis</artifactId>
+				<version>3.0.5</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
