@@ -1,12 +1,11 @@
 package com.elong.nb.checklist;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.aspectj.lang.JoinPoint;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.common.checklist.Constants;
@@ -16,6 +15,12 @@ public class ChecklistAspect {
 
 	public static final String ELONG_REQUEST_STARTTIME = "elongRequestStartTime";
 
+	 private static ThreadLocal<Map<String, Object>> threadLocal = new ThreadLocal<Map<String, Object>>() {  
+	        public Map<String, Object> initialValue() {  
+	            return new HashMap<String, Object>();  
+	        }  
+	    }; 
+
 	/**
 	 * 之前
 	 * 
@@ -23,13 +28,15 @@ public class ChecklistAspect {
 	 * @throws Throwable
 	 */
 	public void handlerLogBefore(JoinPoint point) {
-		RequestAttributes request = RequestContextHolder.getRequestAttributes();
-		request.setAttribute(ELONG_REQUEST_STARTTIME, System.currentTimeMillis(), ServletRequestAttributes.SCOPE_REQUEST);
+		Map<String, Object> threadMap = threadLocal.get();
+		threadMap.put(ELONG_REQUEST_STARTTIME, System.currentTimeMillis());
 
-		Object guid = request.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+		Object guid = threadMap.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		if (guid == null) {
-			request.setAttribute(Constants.ELONG_REQUEST_REQUESTGUID, UUID.randomUUID().toString(), ServletRequestAttributes.SCOPE_REQUEST);
+			threadMap.put(Constants.ELONG_REQUEST_REQUESTGUID, UUID.randomUUID().toString());
 		}
+		
+		threadLocal.set(threadMap);
 	}
 
 	/**
@@ -39,12 +46,12 @@ public class ChecklistAspect {
 	 * @throws Throwable
 	 */
 	public void handlerLogAfter(JoinPoint point, Object returnValue) {
-		RequestAttributes request = RequestContextHolder.getRequestAttributes();
+		Map<String, Object> threadMap = threadLocal.get();
 		String classFullName = ClassUtils.getShortClassName(point.getSignature().getDeclaringTypeName());
 		String methodName = point.getSignature().getName();
-		long start = (Long) request.getAttribute(ELONG_REQUEST_STARTTIME, ServletRequestAttributes.SCOPE_REQUEST);
+		long start = (Long) threadMap.get(ELONG_REQUEST_STARTTIME);
 		float useTime = System.currentTimeMillis() - start;
-		Object guid = request.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+		Object guid = threadMap.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		if (guid == null)
 			guid = UUID.randomUUID().toString();
 		String result = null;
@@ -53,15 +60,16 @@ public class ChecklistAspect {
 		}
 
 		ActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null, result, point.getArgs());
+		threadLocal.set(threadMap);
 	}
 
 	public void handlerLogThrowing(JoinPoint point, Object throwing) {
-		RequestAttributes request = RequestContextHolder.getRequestAttributes();
+		Map<String, Object> threadMap = threadLocal.get();
 		String classFullName = ClassUtils.getShortClassName(point.getSignature().getDeclaringTypeName());
 		String methodName = point.getSignature().getName();
-		long start = (Long) request.getAttribute(ELONG_REQUEST_STARTTIME, ServletRequestAttributes.SCOPE_REQUEST);
+		long start = (Long) threadMap.get(ELONG_REQUEST_STARTTIME);
 		float useTime = System.currentTimeMillis() - start;
-		Object guid = request.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+		Object guid = threadMap.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		if (guid == null)
 			guid = UUID.randomUUID().toString();
 
@@ -71,6 +79,7 @@ public class ChecklistAspect {
 		}
 
 		ActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), null, point.getArgs());
+		threadLocal.set(threadMap);
 	}
 
 }
