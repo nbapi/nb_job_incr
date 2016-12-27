@@ -136,11 +136,11 @@ public class IncrInventoryRepository {
 			result = 0;
 		} else {
 			RuntimeException exception = new RuntimeException(response.getResult().getErrorMessage());
-			ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeMinID", "IncrInventoryRepository",
-					exception, System.currentTimeMillis() - startTimel, 1, null, lastChangeTime);
+			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeMinID", "IncrInventoryRepository",
+					exception, System.currentTimeMillis() - startTimel, -1, null, lastChangeTime);
 			throw exception;
 		}
-		ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeMinID", "IncrInventoryRepository", null,
+		ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeMinID", "IncrInventoryRepository", null,
 				System.currentTimeMillis() - startTimel, 0, result + "", lastChangeTime);
 		return result;
 	}
@@ -164,7 +164,7 @@ public class IncrInventoryRepository {
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime)
 				+ ",productForPartnerServiceContractForList.getInventoryChangeList,changeList size = " + changeListSize);
-		ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeList",
+		ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeList",
 				"IProductForPartnerServiceContract", null, endTime - startTime, 0, changeListSize + "", changID);
 
 		List<InventoryChangeModel> filterChangeList = new ArrayList<InventoryChangeModel>();
@@ -322,7 +322,7 @@ public class IncrInventoryRepository {
 			long endTime = System.currentTimeMillis();
 			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
-			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeDetail",
+			ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeDetail",
 					"IProductForPartnerServiceContract", null, endTime - startTime, 0, JSON.toJSONString(response), request);
 
 			List<ResourceInventoryState> resourceInventoryStateList = null;
