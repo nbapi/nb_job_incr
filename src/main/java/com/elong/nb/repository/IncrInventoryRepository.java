@@ -44,6 +44,7 @@ import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
+import com.elong.nb.util.ThreadLocalUtil;
 import com.elong.springmvc_enhance.utilities.ActionLogHelper;
 
 /**
@@ -123,8 +124,7 @@ public class IncrInventoryRepository {
 	 */
 	public long getInventoryChangeMinID(Date lastChangeTime) {
 		long startTimel = System.currentTimeMillis();
-		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-		Object guid = requestAttributes.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
 
 		GetInventoryChangeMinIDRequest request = new GetInventoryChangeMinIDRequest();
 		request.setLastUpdateTime(new DateTime(lastChangeTime.getTime()));
@@ -153,8 +153,7 @@ public class IncrInventoryRepository {
 	 */
 	public long syncInventoryToDB(long changID) {
 		long startTime = System.currentTimeMillis();
-		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-		Object guid = requestAttributes.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
 
 		GetInventoryChangeListRequest request = new GetInventoryChangeListRequest();
 		request.setId(changID);
