@@ -25,9 +25,6 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailRequest;
@@ -276,9 +273,7 @@ public class IncrInventoryRepository {
 	 */
 	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows, Set<String> filteredSHotelIds) {
 		long startTimel = System.currentTimeMillis();
-		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-		Object guid = requestAttributes.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
-
+		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		String threadName = Thread.currentThread().getName();
 		GetInventoryChangeDetailRequest request = null;
 		try {
