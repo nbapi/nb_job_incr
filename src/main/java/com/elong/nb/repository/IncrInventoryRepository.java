@@ -134,7 +134,7 @@ public class IncrInventoryRepository {
 		} else {
 			RuntimeException exception = new RuntimeException(response.getResult().getErrorMessage());
 			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeMinID", "IncrInventoryRepository",
-					exception, System.currentTimeMillis() - startTimel, -1, null, lastChangeTime);
+					exception, System.currentTimeMillis() - startTimel, -1, response.getResult().getErrorMessage(), lastChangeTime);
 			throw exception;
 		}
 		ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeMinID", "IncrInventoryRepository", null,
@@ -317,7 +317,7 @@ public class IncrInventoryRepository {
 			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
 			ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeDetail",
-					"IProductForPartnerServiceContract", null, endTime - startTime, 0, JSON.toJSONString(response), request);
+					"IProductForPartnerServiceContract", null, endTime - startTime, 0, null, null);
 
 			List<ResourceInventoryState> resourceInventoryStateList = null;
 			if (response != null && response.getResourceInventoryStateList() != null) {
@@ -334,17 +334,12 @@ public class IncrInventoryRepository {
 					logger.info("use time [" + threadName + "] = " + (endTime - startTime)
 							+ ",retry productForPartnerServiceContract.getInventoryChangeDetail");
 
-					ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "retryGetInventoryChangeDetail",
-							"IProductForPartnerServiceContract", null, endTime - startTime, 0, JSON.toJSONString(response), request);
+					ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "retryGetInventoryChangeDetail",
+							"IProductForPartnerServiceContract", null, endTime - startTime, 0, null, null);
 				}
 			}
-			startTime = System.currentTimeMillis();
 			String mHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
-			endTime = System.currentTimeMillis();
-			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getMHotelId", "MSRelationRepository", null, endTime
-					- startTime, 0, mHotelId, changeModel.getHotelID());
 
-			// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",msRelationRepository.getMHotelId");
 			if (response != null && response.getResourceInventoryStateList() != null) {
 				resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			}
@@ -407,8 +402,8 @@ public class IncrInventoryRepository {
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
-			ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "retryGetInventoryChangeDetail",
-					"IProductForPartnerServiceContract", ex, System.currentTimeMillis() - startTimel, 1, null, request);
+			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "doHandlerChangeModel",
+					"IncrInventoryRepository", ex, System.currentTimeMillis() - startTimel, -1, ex.getMessage(), null);
 			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error",
 					"request = " + JSON.toJSONString(request) + ".\n" + ExceptionUtils.getFullStackTrace(ex));
 		}
