@@ -55,7 +55,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",IncrInventory delete successfully.count = " + count);
 		// 递归同步数据
-		syncInventoryToDB(0);
+		syncInventoryToDB(0, startTime);
 	}
 
 	/** 
@@ -66,7 +66,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	 * @see com.elong.nb.service.IIncrInventoryService#SyncInventoryToDB(long)    
 	 */
 	@Override
-	public void syncInventoryToDB(long changeID) {
+	public void syncInventoryToDB(long changeID, long beginTime) {
 		if (changeID == 0) {
 			long startTime = System.currentTimeMillis();
 			changeID = Long.valueOf(redisManager.getStr(RedisKeyConst.CacheKey_KEY_Inventory_LastID));
@@ -90,11 +90,12 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			// 更新LastID
 			startTime = System.currentTimeMillis();
 			redisManager.put(RedisKeyConst.CacheKey_KEY_Inventory_LastID, newLastChgID);
-			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",put to redis key" + ",incred = " + incred + ",key = "
-					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);			
-			if (incred > 100) {
+			long endTime = System.currentTimeMillis();
+			logger.info("use time = " + (endTime - startTime) + ",put to redis key" + ",incred = " + incred + ",key = "
+					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);
+			if (incred > 100 && (endTime - startTime) < 10 * 60 * 1000) {
 				// 继续执行
-				syncInventoryToDB(newLastChgID);
+				syncInventoryToDB(newLastChgID, beginTime);
 			}
 		}
 	}
