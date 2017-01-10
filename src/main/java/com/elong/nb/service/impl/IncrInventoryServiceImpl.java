@@ -93,7 +93,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			long endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",put to redis key" + ",incred = " + incred + ",key = "
 					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);
-			if (incred > 100 && (endTime - startTime) < 10 * 60 * 1000) {
+			if (incred > 100 && (endTime - beginTime) < 10 * 60 * 1000) {
 				// 继续执行
 				syncInventoryToDB(newLastChgID, beginTime);
 			}
