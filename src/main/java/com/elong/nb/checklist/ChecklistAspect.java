@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.apache.commons.lang3.ClassUtils;
 import org.aspectj.lang.JoinPoint;
 
-import com.alibaba.fastjson.JSON;
 import com.elong.nb.common.checklist.Constants;
 import com.elong.nb.util.ThreadLocalUtil;
 import com.elong.springmvc_enhance.utilities.ActionLogHelper;
@@ -13,7 +12,7 @@ import com.elong.springmvc_enhance.utilities.ActionLogHelper;
 public class ChecklistAspect {
 
 	public static final String ELONG_REQUEST_STARTTIME = "elongRequestStartTime";
-	
+
 	/**
 	 * 之前
 	 * 
@@ -43,12 +42,8 @@ public class ChecklistAspect {
 		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		if (guid == null)
 			guid = UUID.randomUUID().toString();
-		String result = null;
-		if (returnValue != null) {
-			result = JSON.toJSONString(returnValue);
-		}
 
-		ActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, result, point.getArgs());
+		ActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null, returnValue, point.getArgs());
 	}
 
 	public void handlerLogThrowing(JoinPoint point, Object throwing) {
@@ -65,7 +60,7 @@ public class ChecklistAspect {
 			e = (Exception) throwing;
 		}
 
-		ActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), point.getArgs());
+		ActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), null, point.getArgs());
 	}
 
 }

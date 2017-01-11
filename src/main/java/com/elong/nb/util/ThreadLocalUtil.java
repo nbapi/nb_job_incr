@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class ThreadLocalUtil {
 
-	private static ThreadLocal<Map<String, Object>> threadLocal = new ThreadLocal<Map<String, Object>>() {
+	private static ThreadLocal<Map<String, Object>> threadLocal = new InheritableThreadLocal<Map<String, Object>>() {
 		public Map<String, Object> initialValue() {
 			return new HashMap<String, Object>();
 		}
