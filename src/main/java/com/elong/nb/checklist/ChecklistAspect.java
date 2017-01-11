@@ -4,6 +4,9 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.aspectj.lang.JoinPoint;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.elong.nb.common.checklist.Constants;
 import com.elong.nb.util.ThreadLocalUtil;
@@ -21,10 +24,18 @@ public class ChecklistAspect {
 	 */
 	public void handlerLogBefore(JoinPoint point) {
 		ThreadLocalUtil.set(point.toString() + "_" + ELONG_REQUEST_STARTTIME, System.currentTimeMillis());
+		RequestAttributes request = RequestContextHolder.getRequestAttributes();
+		// 调用链新起的线程，拦截方法会在此返回
+		if (request == null)
+			return;
 
-		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
-		if (guid == null) {
-			ThreadLocalUtil.set(Constants.ELONG_REQUEST_REQUESTGUID, UUID.randomUUID().toString());
+		// 1、Controller 2、调用链只有一个线程的所有拦截方法
+		Object guid = request.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
+//
+		if (guid == null) {// Controller请求回到此处
+			guid = UUID.randomUUID().toString();
+			request.setAttribute(Constants.ELONG_REQUEST_REQUESTGUID, guid, ServletRequestAttributes.SCOPE_REQUEST);
+			ThreadLocalUtil.set(Constants.ELONG_REQUEST_REQUESTGUID, guid);
 		}
 	}
 
