@@ -12,7 +12,7 @@
 				WeekendCost,isnull(CASE WHEN
 				AllowAddBed=1 THEN AddBedPrice ELSE -1 END,0)
 				AddBed,isnull(CurrencyCode,'') CurrencyCode,isnull(PriceID,0) PriceID
-		  from #{tablename} PriceInfo_track
+		  from ${tablename} PriceInfo_track
 		<where>
 			and datatype=0
 			<if test="InsertTime != null and !InsertTime.equals('')">
