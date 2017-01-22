@@ -94,6 +94,12 @@ public class IncrRateRepository {
 	 */
 	public long syncRatesToDB(long changID) {
 		Map<String, Object> params = new HashMap<String, Object>();
+		String tablename = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrRateFromTable");
+		if(StringUtils.isEmpty(tablename)){
+			params.put("tablename", "PriceInfo_track");
+		}else{
+			params.put("tablename", tablename);
+		}
 		if (changID > 0) {
 			params.put("Id", changID);
 		} else {
