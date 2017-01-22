@@ -21,6 +21,18 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
+	
+	<!--actionLogEntity appender -->
+	<appender name="scheduleAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/nb_job_incr_schedule.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
 
 	<!-- OrderCenter appender -->
 	<appender name="OrderCenterAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
@@ -180,6 +192,11 @@
 		<level value="INFO" />
 		<appender-ref ref="actionLogEntityAppender" />
 	</category>
+
+	<logger name="schedulelogger">
+		<level value="INFO" />
+		<appender-ref ref="scheduleAppender" />
+	</logger>
 
 	<root>
 		<level value="ERROR" />
