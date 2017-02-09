@@ -34,5 +34,11 @@ public interface IIncrInventoryService {
 	 * @param beginTime 本次递归开始时间
 	 */
 	public void syncInventoryToDB(long changeID, long beginTime);
+	
+	/** 
+	 * 删除库存增量
+	 *
+	 */
+	public void delInventoryFromDB();
 
 }

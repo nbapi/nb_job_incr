@@ -67,12 +67,6 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 	 */
 	@Override
 	public void syncHotelToDB() {
-		// 删除30小时以前的数据
-		long startTime = System.currentTimeMillis();
-		int count = incrHotelRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",IncrHotel delete successfully.count = " + count);
-
 		final String triggerInventory = "Inventory";
 		final String triggerRate = "Rate";
 
@@ -296,6 +290,15 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 		}
 		logger.info("after filterDuplicationHotel,count = " + resultlist.size());
 		return resultlist;
+	}
+
+	@Override
+	public void delHotelFromDB() {
+		// 删除30小时以前的数据
+		long startTime = System.currentTimeMillis();
+		int count = incrHotelRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+		long endTime = System.currentTimeMillis();
+		logger.info("use time = " + (endTime - startTime) + ",IncrHotel delete successfully.count = " + count);
 	}
 
 }

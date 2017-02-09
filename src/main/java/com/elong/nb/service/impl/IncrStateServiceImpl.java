@@ -53,12 +53,6 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	 */
 	@Override
 	public void syncStateToDB() {
-		if (DateTime.now().getHourOfDay() == 1 && DateTime.now().getMinuteOfHour() < 10) {
-			// 删除过期数据
-			int count = incrStateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-			logger.info("IncrState delete successfully, count = " + count);
-		}
-
 		String jsonStr = redisManager.getStr(RedisKeyConst.CacheKey_StateSyncTimeKey);
 		Date startTime = null;
 		try {
@@ -95,6 +89,15 @@ public class IncrStateServiceImpl implements IIncrStateService {
 		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "RoomTypeId");
 		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "RatePlanId");
 		incrStateRepository.syncStateToDB(startTimeStr, endTimeStr, "RatePlanPolicy");
+	}
+
+	@Override
+	public void delStateFromDB() {
+		if (DateTime.now().getHourOfDay() == 1 && DateTime.now().getMinuteOfHour() < 10) {
+			// 删除过期数据
+			int count = incrStateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+			logger.info("IncrState delete successfully, count = " + count);
+		}
 	}
 
 }

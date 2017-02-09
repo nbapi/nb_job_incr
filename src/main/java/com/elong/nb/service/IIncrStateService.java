@@ -26,5 +26,11 @@ public interface IIncrStateService {
 	 *
 	 */
 	public void syncStateToDB();
+	
+	/** 
+	 * 删除状态增量
+	 *
+	 */
+	public void delStateFromDB();
 
 }

@@ -110,7 +110,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			return;
 		}
 		JSONObject bodyJsonObj = jsonObj.getJSONObject("body");
-		Map<String,Object> sourceMap = new HashMap<String, Object>();
+		Map<String, Object> sourceMap = new HashMap<String, Object>();
 		sourceMap.putAll(bodyJsonObj);
 		sourceMap.putAll(messageMap);
 
@@ -211,13 +211,7 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 */
 	@Override
 	public void syncOrderToDB() {
-		// 删除30小时以前的数据
 		long startTime = System.currentTimeMillis();
-		int count = incrOrderRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		long endTime = System.currentTimeMillis();
-		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
-
-		startTime = System.currentTimeMillis();
 		// 查询前3分钟至前1分钟
 		Date endTimeDate = new Date();
 		String startTimestamp = DateHandlerUtils.getOffsetDateStr(endTimeDate, Calendar.MINUTE, -30, "yyyy-MM-dd HH:mm:ss");
@@ -232,25 +226,25 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 					ExceptionUtils.getFullStackTrace(e));
 			return;
 		}
-		endTime = System.currentTimeMillis();
+		long endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",orderCenterService.getBriefOrdersByTimestamp and parseResult.");
 
 		// 未查到数据，跳过
 		if (orderCenterResult == null || orderCenterResult.getRetcode() != 0 || orderCenterResult.getBody() == null) {
-			jobLogger.warn("syncOrderToDB ignore,due to retDesc = " + (orderCenterResult==null?null:orderCenterResult.getRetdesc())
+			jobLogger.warn("syncOrderToDB ignore,due to retDesc = " + (orderCenterResult == null ? null : orderCenterResult.getRetdesc())
 					+ " from getBriefOrdersByTimestamp,endTimestamp = " + endTimestamp);
 			return;
 		}
-		List<Map<String,Object>> orders = orderCenterResult.getBody().getOrders();
+		List<Map<String, Object>> orders = orderCenterResult.getBody().getOrders();
 		// 未查到数据，跳过
 		if (orders == null || orders.size() == 0) {
 			jobLogger.warn("syncOrderToDB ignore,due to orders is null or empfy from getBriefOrdersByTimestamp,endTimestamp = "
 					+ endTimestamp);
 			return;
 		}
-		
-		Map<Object,Map<String,Object>> tempMap = new HashMap<Object, Map<String,Object>>();
-		for (Map<String,Object> orderMap : orders) {
+
+		Map<Object, Map<String, Object>> tempMap = new HashMap<Object, Map<String, Object>>();
+		for (Map<String, Object> orderMap : orders) {
 			if (orderMap == null || orderMap.size() == 0)
 				continue;
 			tempMap.put(orderMap.get("orderId"), orderMap);
@@ -304,11 +298,11 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 		List<Map<String, Object>> incrOrders = new ArrayList<Map<String, Object>>();
 		for (int i = 0; i < bodyJsonArray.size(); i++) {
 			Map<String, Object> jsonOrderMap = bodyJsonArray.getJSONObject(i);
-			
+
 			Object orderId = jsonOrderMap.get("orderId");
-			Map<String,Object> briefOrderMap = tempMap.get(orderId);
-			
-			Map<String,Object> sourceMap = new HashMap<String, Object>();
+			Map<String, Object> briefOrderMap = tempMap.get(orderId);
+
+			Map<String, Object> sourceMap = new HashMap<String, Object>();
 			sourceMap.putAll(jsonOrderMap);
 			sourceMap.putAll(briefOrderMap);
 			// 转换为IncrOrder需要格式
@@ -347,15 +341,15 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 	 * @param orders
 	 * @return
 	 */
-	private List<Object> findOrderIds(List<Map<String,Object>> orders) {
+	private List<Object> findOrderIds(List<Map<String, Object>> orders) {
 		long startTime = System.currentTimeMillis();
 		List<Object> orderIdList = new ArrayList<Object>();
-		for (Map<String,Object> orderMap : orders) {
+		for (Map<String, Object> orderMap : orders) {
 			if (orderMap == null || orderMap.size() == 0)
 				continue;
-			
-			String status = (String)orderMap.get("status");
-			if (StringUtils.isEmpty(status)||!OrderChangeStatusEnum.containCode(status))
+
+			String status = (String) orderMap.get("status");
+			if (StringUtils.isEmpty(status) || !OrderChangeStatusEnum.containCode(status))
 				continue;
 
 			Object orderId = orderMap.get("orderId");
@@ -370,16 +364,16 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			}
 			Date orderTimestamp = null;
 			try {
-				String orderTimestampStr = (String)orderMap.get("orderTimestamp");
+				String orderTimestampStr = (String) orderMap.get("orderTimestamp");
 				orderTimestamp = DateUtils.parseDate(orderTimestampStr, new String[] { "yyyy-MM-dd HH:mm:ss.SSS",
 						"yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
 				orderTimestampStr = DateHandlerUtils.formatDate(orderTimestamp, "yyyy-MM-dd HH:mm:ss");
-				orderTimestamp = DateUtils.parseDate(orderTimestampStr, new String[] {"yyyy-MM-dd HH:mm:ss" });
+				orderTimestamp = DateUtils.parseDate(orderTimestampStr, new String[] { "yyyy-MM-dd HH:mm:ss" });
 			} catch (ParseException e) {
 				jobLogger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 			}
 			// 工作库时间小于订单时间戳时,兜底查询
-			if (orderTimestamp != null&&incrOrder.getChangeTime().before(orderTimestamp)) {
+			if (orderTimestamp != null && incrOrder.getChangeTime().before(orderTimestamp)) {
 				orderIdList.add(orderId);
 			}
 		}
@@ -494,6 +488,15 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 			// long endTime = System.currentTimeMillis();
 			// logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
 		}
+	}
+
+	@Override
+	public void delOrderFromDB() {
+		// 删除30小时以前的数据
+		long startTime = System.currentTimeMillis();
+		int count = incrOrderRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+		long endTime = System.currentTimeMillis();
+		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
 	}
 
 }

@@ -49,16 +49,10 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	 */
 	@Override
 	public void syncRatesToDB() {
-		// 删除过期数据
 		long startTime = System.currentTimeMillis();
-		int count = incrRateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",IncrRate delete successfully.count = " + count);
-
-		startTime = System.currentTimeMillis();
 		String changIDStr = redisManager.getStr(RedisKeyConst.CacheKey_KEY_Rate_LastID);
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
-		endTime = System.currentTimeMillis();
+		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",get changID = " + changID + ",from redis key = "
 				+ RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());
 
@@ -78,6 +72,15 @@ public class IncrRateServiceImpl implements IIncrRateService {
 				changID = newChangID;
 			}
 		}
+	}
+
+	@Override
+	public void delRatesFromDB() {
+		// 删除过期数据
+		long startTime = System.currentTimeMillis();
+		int count = incrRateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+		long endTime = System.currentTimeMillis();
+		logger.info("use time = " + (endTime - startTime) + ",IncrRate delete successfully.count = " + count);
 	}
 
 }

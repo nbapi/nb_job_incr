@@ -22,6 +22,12 @@ import com.elong.nb.model.OrderMessageResponse;
  * @since		JDK1.7
  */
 public interface IIncrOrderService {
+	
+	/** 
+	 * 删除订单增量
+	 *
+	 */
+	public void delOrderFromDB();
 
 	/** 
 	 * 同步订单增量（兜底：在订单组主动推送消息挂调时）

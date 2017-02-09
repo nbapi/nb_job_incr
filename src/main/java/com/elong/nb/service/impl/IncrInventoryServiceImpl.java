@@ -48,14 +48,8 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	 */
 	@Override
 	public void syncInventoryToDB() {
-		// 删除30小时以前的数据
-		long startTime = System.currentTimeMillis();
-		int count = incrInventoryRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		logger.info("IncrInventory delete successfully.count = " + count);
-		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",IncrInventory delete successfully.count = " + count);
 		// 递归同步数据
-		syncInventoryToDB(0, startTime);
+		syncInventoryToDB(0, System.currentTimeMillis());
 	}
 
 	/** 
@@ -98,6 +92,16 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 				syncInventoryToDB(newLastChgID, beginTime);
 			}
 		}
+	}
+
+	@Override
+	public void delInventoryFromDB() {
+		// 删除30小时以前的数据
+		long startTime = System.currentTimeMillis();
+		int count = incrInventoryRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+		logger.info("IncrInventory delete successfully.count = " + count);
+		long endTime = System.currentTimeMillis();
+		logger.info("use time = " + (endTime - startTime) + ",IncrInventory delete successfully.count = " + count);
 	}
 
 }

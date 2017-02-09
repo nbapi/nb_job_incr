@@ -63,7 +63,18 @@ public class SyncIncrToDBController {
 
 	@Resource
 	private INoticeService noticeService;
-	
+
+	/** 
+	 * 删除酒店增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/DelHotelFromDB")
+	public @ResponseBody String delHotelFromDB(HttpServletRequest request) {
+		return doHandlerIncrData(request, "DelHotelFromDB");
+	}
+
 	/** 
 	 * 酒店增量job
 	 *
@@ -72,9 +83,20 @@ public class SyncIncrToDBController {
 	 */
 	@RequestMapping(value = "/SyncHotelToDB")
 	public @ResponseBody String syncHotelToDB(HttpServletRequest request) {
-		return syncIncrDataToDB(request, "SyncHotelToDB");
+		return doHandlerIncrData(request, "SyncHotelToDB");
 	}
-	
+
+	/** 
+	 * 删除库存增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/DelInventoryFromDB")
+	public @ResponseBody String delInventoryFromDB(HttpServletRequest request) {
+		return doHandlerIncrData(request, "DelInventoryFromDB");
+	}
+
 	/** 
 	 * 库存增量job
 	 *
@@ -83,9 +105,20 @@ public class SyncIncrToDBController {
 	 */
 	@RequestMapping(value = "/SyncInventoryToDB")
 	public @ResponseBody String syncInventoryToDB(HttpServletRequest request) {
-		return syncIncrDataToDB(request, "SyncInventoryToDB");
+		return doHandlerIncrData(request, "SyncInventoryToDB");
 	}
-	
+
+	/** 
+	 * 删除房价增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/DelRatesFromDB")
+	public @ResponseBody String delRatesFromDB(HttpServletRequest request) {
+		return doHandlerIncrData(request, "DelRatesFromDB");
+	}
+
 	/** 
 	 * 房价增量job
 	 *
@@ -94,9 +127,20 @@ public class SyncIncrToDBController {
 	 */
 	@RequestMapping(value = "/SyncRatesToDB")
 	public @ResponseBody String syncRatesToDB(HttpServletRequest request) {
-		return syncIncrDataToDB(request, "SyncRatesToDB");
+		return doHandlerIncrData(request, "SyncRatesToDB");
 	}
-	
+
+	/** 
+	 * 删除状态增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/DelStateFromDB")
+	public @ResponseBody String delStateFromDB(HttpServletRequest request) {
+		return doHandlerIncrData(request, "DelStateFromDB");
+	}
+
 	/** 
 	 * 状态增量job
 	 *
@@ -105,9 +149,20 @@ public class SyncIncrToDBController {
 	 */
 	@RequestMapping(value = "/SyncStateToDB")
 	public @ResponseBody String syncStateToDB(HttpServletRequest request) {
-		return syncIncrDataToDB(request, "SyncStateToDB");
+		return doHandlerIncrData(request, "SyncStateToDB");
 	}
-	
+
+	/** 
+	 * 删除状态增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/DelOrderFromDB")
+	public @ResponseBody String delOrderFromDB(HttpServletRequest request) {
+		return doHandlerIncrData(request, "DelOrderFromDB");
+	}
+
 	/** 
 	 * 订单增量兜底job
 	 *
@@ -116,7 +171,7 @@ public class SyncIncrToDBController {
 	 */
 	@RequestMapping(value = "/SyncOrderToDB")
 	public @ResponseBody String syncOrderToDB(HttpServletRequest request) {
-		return syncIncrDataToDB(request, "SyncOrderToDB");
+		return doHandlerIncrData(request, "SyncOrderToDB");
 	}
 
 	/** 
@@ -124,7 +179,7 @@ public class SyncIncrToDBController {
 	 *
 	 * @return
 	 */
-	private String syncIncrDataToDB(HttpServletRequest request,String pathVariable) {
+	private String doHandlerIncrData(HttpServletRequest request, String pathVariable) {
 		long startTime = System.currentTimeMillis();
 		ResponseResult result = new ResponseResult();
 		try {
@@ -141,6 +196,16 @@ public class SyncIncrToDBController {
 				incrStateService.syncStateToDB();
 			} else if (StringUtils.equals("SyncOrderToDB", pathVariable)) {
 				incrOrderService.syncOrderToDB();
+			} else if (StringUtils.equals("DelHotelFromDB", pathVariable)) {
+				incrHotelService.delHotelFromDB();
+			} else if (StringUtils.equals("DelInventoryFromDB", pathVariable)) {
+				incrInventoryService.delInventoryFromDB();
+			} else if (StringUtils.equals("DelRatesFromDB", pathVariable)) {
+				incrRateService.delRatesFromDB();
+			} else if (StringUtils.equals("DelStateFromDB", pathVariable)) {
+				incrStateService.delStateFromDB();
+			} else if (StringUtils.equals("DelOrderFromDB", pathVariable)) {
+				incrOrderService.delOrderFromDB();
 			} else {
 				logger.info(pathVariable + ",is not supportted.");
 				result.setMessage(pathVariable + ",is not supportted.");
@@ -157,5 +222,5 @@ public class SyncIncrToDBController {
 		logger.info(pathVariable + ",Controller,use time = " + (endTime - startTime) + "ms");
 		return JSON.toJSONString(result);
 	}
-	
+
 }
