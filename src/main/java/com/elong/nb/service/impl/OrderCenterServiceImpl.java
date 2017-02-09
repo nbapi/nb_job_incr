@@ -11,7 +11,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -75,7 +75,6 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 		reqParams.put("orderId", orderId);
 		reqParams.put("fields", "sumPrice,payStatus,proxy,nbGuid,orderFrom,cardNo");
 
-		
 		String reqUrl = CommonsUtil.CONFIG_PROVIDAR.getProperty("GetOrderUrlFromOrderCenter");
 		return getOrderData(reqParams, reqUrl);
 	}
@@ -107,19 +106,19 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	 *
 	 */
 	private String getOrderData(Map<String, Object> reqParams, String reqUrl) {
-		String reqData = null;
-		try {
-			// 构建请求参数
-			reqData = JSON.toJSONString(reqParams);
-
-			// 从订单中心获取订单数据
-			String result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
-			return result;
-		} catch (Exception e) {
-			logger.error("getOrderData from orderCenter error = " + e.getMessage(), e);
-			noticeService.sendMessage("getOrderData from orderCenter error", "reqData = " + reqData + ".\n" + ExceptionUtils.getFullStackTrace(e));
-			return null;
+		// 构建请求参数
+		String reqData = JSON.toJSONString(reqParams);
+		String result = null;
+		int reqCount = 0;
+		while (StringUtils.isEmpty(result) && ++reqCount <= 2) {
+			try {
+				// 从订单中心获取订单数据
+				result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
+			} catch (Exception e) {
+				logger.error("getOrderData from orderCenter error = " + e.getMessage(), e);
+			}
 		}
+		return result;
 	}
 
 }
