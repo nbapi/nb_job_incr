@@ -5,6 +5,7 @@
  */
 package com.elong.nb.service;
 
+
 /**
  * IncrInventory服务接口
  *
@@ -34,11 +35,17 @@ public interface IIncrInventoryService {
 	 * @param beginTime 本次递归开始时间
 	 */
 	public void syncInventoryToDB(long changeID, long beginTime);
-	
+
 	/** 
 	 * 删除库存增量
 	 *
 	 */
 	public void delInventoryFromDB();
+	
+	/** 
+	 * 同步库存黑名单引起库存增量
+	 *
+	 */
+	public void syncInventoryDueToBlack();
 
 }

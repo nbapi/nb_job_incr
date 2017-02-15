@@ -109,6 +109,17 @@ public class SyncIncrToDBController {
 	}
 
 	/** 
+	 * 黑名单变化引起库存增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/SyncInventoryDueToBlack")
+	public @ResponseBody String syncInventoryDueToBlack(HttpServletRequest request) {
+		return doHandlerIncrData(request, "SyncInventoryDueToBlack");
+	}
+
+	/** 
 	 * 删除房价增量job
 	 *
 	 * @param request
@@ -190,6 +201,8 @@ public class SyncIncrToDBController {
 				incrHotelService.syncHotelToDB();
 			} else if (StringUtils.equals("SyncInventoryToDB", pathVariable)) {
 				incrInventoryService.syncInventoryToDB();
+			} else if (StringUtils.equals("SyncInventoryDueToBlack", pathVariable)) {
+				incrInventoryService.syncInventoryDueToBlack();
 			} else if (StringUtils.equals("SyncRatesToDB", pathVariable)) {
 				incrRateService.syncRatesToDB();
 			} else if (StringUtils.equals("SyncStateToDB", pathVariable)) {
