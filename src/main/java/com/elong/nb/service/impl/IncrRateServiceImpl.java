@@ -15,6 +15,7 @@ import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.repository.IncrRateRepository;
 import com.elong.nb.service.IIncrRateService;
+import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.util.DateHandlerUtils;
 
 /**
@@ -35,11 +36,14 @@ import com.elong.nb.util.DateHandlerUtils;
 public class IncrRateServiceImpl implements IIncrRateService {
 
 	private static final Logger logger = Logger.getLogger("IncrRateLogger");
-
+	
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
 	private IncrRateRepository incrRateRepository;
+
+	@Resource
+	private IIncrSetInfoService incrSetInfoService;
 
 	/** 
 	 * IncrRate同步到数据库 
@@ -50,7 +54,8 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	@Override
 	public void syncRatesToDB() {
 		long startTime = System.currentTimeMillis();
-		String changIDStr = redisManager.getStr(RedisKeyConst.CacheKey_KEY_Rate_LastID);
+		String changIDStr = incrSetInfoService.get(RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());
+		changIDStr = StringUtils.isEmpty(changIDStr) ? redisManager.getStr(RedisKeyConst.CacheKey_KEY_Rate_LastID) : changIDStr;
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",get changID = " + changID + ",from redis key = "
@@ -65,7 +70,7 @@ public class IncrRateServiceImpl implements IIncrRateService {
 				break;
 			else {
 				startTime = System.currentTimeMillis();
-				redisManager.put(RedisKeyConst.CacheKey_KEY_Rate_LastID, newChangID);
+				incrSetInfoService.put(RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey(), newChangID);
 				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",put newChangID = " + newChangID + ",to redis key = "
 						+ RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());

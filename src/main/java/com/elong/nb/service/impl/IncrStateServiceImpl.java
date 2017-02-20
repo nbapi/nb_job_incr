@@ -10,6 +10,7 @@ import java.util.Date;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import com.alibaba.fastjson.JSON;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.repository.IncrStateRepository;
+import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.service.IIncrStateService;
 import com.elong.nb.util.DateHandlerUtils;
 
@@ -45,6 +47,9 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	@Resource
 	private IncrStateRepository incrStateRepository;
 
+	@Resource
+	private IIncrSetInfoService incrSetInfoService;
+
 	/** 
 	 * 同步状态增量
 	 * 
@@ -53,7 +58,8 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	 */
 	@Override
 	public void syncStateToDB() {
-		String jsonStr = redisManager.getStr(RedisKeyConst.CacheKey_StateSyncTimeKey);
+		String jsonStr = incrSetInfoService.get(RedisKeyConst.CacheKey_StateSyncTimeKey.getKey());
+		jsonStr = StringUtils.isEmpty(jsonStr) ? redisManager.getStr(RedisKeyConst.CacheKey_StateSyncTimeKey) : jsonStr;
 		Date startTime = null;
 		try {
 			startTime = DateTime.parse(jsonStr).toDate();
@@ -67,7 +73,7 @@ public class IncrStateServiceImpl implements IIncrStateService {
 				+ DateHandlerUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss"));
 		if (endTime.compareTo(startTime) > 0) {
 			syncStateToDB(startTime, endTime);
-			redisManager.put(RedisKeyConst.CacheKey_StateSyncTimeKey, endTime);
+			incrSetInfoService.put(RedisKeyConst.CacheKey_StateSyncTimeKey.getKey(), endTime);
 			logger.info("put to redis successfully.key = " + RedisKeyConst.CacheKey_StateSyncTimeKey + ",value = " + endTime);
 		} else {
 			logger.info("SyncRatesToDB, ignore this time ,due to startTime < endTime");

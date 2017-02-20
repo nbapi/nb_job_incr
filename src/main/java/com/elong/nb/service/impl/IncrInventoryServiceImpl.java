@@ -30,7 +30,6 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDet
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailResponse;
 import com.elong.nb.agent.ProductForPartnerServiceContract.IProductForPartnerServiceContract;
 import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
-import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.common.util.CommonsUtil;
@@ -43,6 +42,7 @@ import com.elong.nb.model.domain.InvLimitBlackListVo;
 import com.elong.nb.repository.IncrInventoryRepository;
 import com.elong.nb.repository.MSRelationRepository;
 import com.elong.nb.service.IIncrInventoryService;
+import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
 import com.elong.nb.util.HttpClientUtils;
@@ -65,7 +65,7 @@ import com.elong.nb.util.HttpClientUtils;
 public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
 	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
-
+	
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
@@ -79,6 +79,9 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
 	@Resource
 	private IncrInventoryDao incrInventoryDao;
+
+	@Resource
+	private IIncrSetInfoService incrSetInfoService;
 
 	/** 
 	 * 同步库存增量
@@ -103,7 +106,9 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	public void syncInventoryToDB(long changeID, long beginTime) {
 		if (changeID == 0) {
 			long startTime = System.currentTimeMillis();
-			changeID = Long.valueOf(redisManager.getStr(RedisKeyConst.CacheKey_KEY_Inventory_LastID));
+			String setValue = incrSetInfoService.get(RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
+			setValue = StringUtils.isEmpty(setValue) ? redisManager.getStr(RedisKeyConst.CacheKey_KEY_Inventory_LastID) : setValue;
+			changeID = StringUtils.isEmpty(setValue) ? 0 : Long.valueOf(setValue);
 			long endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",get value from redis key = "
 					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",changeID = " + changeID);
@@ -123,7 +128,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		if (incred > 0) {
 			// 更新LastID
 			startTime = System.currentTimeMillis();
-			redisManager.put(RedisKeyConst.CacheKey_KEY_Inventory_LastID, newLastChgID);
+			incrSetInfoService.put(RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey(), newLastChgID);
 			long endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",put to redis key" + ",incred = " + incred + ",key = "
 					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);
@@ -147,8 +152,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	@Override
 	public void syncInventoryDueToBlack() {
 		String rediskey = "Incr.Inventory.Time";
-		ICacheKey cachekey = RedisManager.getCacheKey(rediskey);
-		String jsonStr = redisManager.getStr(cachekey);
+		String jsonStr = incrSetInfoService.get(rediskey);
 		Date blackStartTime = null;
 		try {
 			blackStartTime = JSON.parseObject(jsonStr, Date.class);
@@ -236,8 +240,8 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 				+ successCount);
 
 		blackStartTime = new Date();
-		redisManager.put(cachekey, blackStartTime);
-		logger.info("syncInventoryDueToBlack,put to redis successfully.key = " + cachekey.getKey() + ",value = " + blackStartTime);
+		incrSetInfoService.put(rediskey, blackStartTime);
+		logger.info("syncInventoryDueToBlack,put to redis successfully.key = " + rediskey + ",value = " + blackStartTime);
 	}
 
 	private void syncInventoryToDB(InvLimitBlackListVo vo, List<Map<String, Object>> rows) {
