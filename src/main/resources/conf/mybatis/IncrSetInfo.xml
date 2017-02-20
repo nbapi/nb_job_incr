@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrSetInfoDao">
+
+	<resultMap id="BaseResultMap" type="incrSetInfo">
+		<id column="id" jdbcType="INTEGER" javaType="java.lang.Integer" property="id" />
+		<result column="set_key" jdbcType="VARCHAR" javaType="java.lang.String" property="setKey" />
+		<result column="set_val" jdbcType="VARCHAR" javaType="java.lang.String" property="setVal" />
+		<result column="set_desc" jdbcType="VARCHAR" javaType="java.lang.String" property="setDesc" />
+		<result column="_timestamp" javaType="java.util.Date" property="timestamp" />
+	</resultMap>
+
+	<select id="queryByKey" resultMap="BaseResultMap">
+		select * from incr_setinfo t where t.set_key = #{setKey} order by t.id desc limit 0,1
+	</select>
+
+	<update id="update" parameterType="incrSetInfo">
+		update incr_setinfo t set t.set_val = #{setVal,jdbcType=VARCHAR} where t.set_key =
+		#{setKey,jdbcType=VARCHAR}
+	</update>
+
+	<insert id="insert" parameterType="incrSetInfo">
+		insert into incr_setinfo(id,set_key,set_val,set_desc)
+		values
+		(
+		#{id,jdbcType=INTEGER},
+		#{setKey,jdbcType=VARCHAR},
+		#{setVal,jdbcType=VARCHAR},
+		#{setDesc,jdbcType=VARCHAR}
+		)
+	</insert>
+
+</mapper>
