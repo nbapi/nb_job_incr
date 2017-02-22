@@ -65,7 +65,7 @@ import com.elong.nb.util.HttpClientUtils;
 public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
 	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
-	
+
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
@@ -197,7 +197,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		logger.info("syncInventoryDueToBlack,maximumPoolSize = " + maximumPoolSize);
 		long startTime = System.currentTimeMillis();
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(maximumPoolSize, 400);
-		final List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+		final List<Map<String, Object>> rows = Collections.synchronizedList(new ArrayList<Map<String, Object>>());
 		for (final Map.Entry<String, InvLimitBlackListVo> entry : sourceMap.entrySet()) {
 			executorService.submit(new Runnable() {
 				@Override
@@ -214,8 +214,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		logger.info("syncInventoryDueToBlack,use time = " + (endTime - startTime) + ",executorService submit task");
 		executorService.shutdown();
 		try {
-			while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-			}
+			executorService.awaitTermination(10, TimeUnit.MINUTES);
 		} catch (InterruptedException e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -273,26 +272,23 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			return;
 
 		for (ResourceInventoryState detail : resourceInventoryStateList) {
-			synchronized (this.getClass()) {
-				Map<String, Object> row = new HashMap<String, Object>();
-				row.put("HotelID", mHotelId);
-				row.put("RoomTypeID",
-						detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail.getRoomTypeID());
-				row.put("HotelCode", detail.getHotelID());
-				row.put("Status", detail.getStatus() == 0);
-				row.put("AvailableDate", detail.getAvailableTime() == null ? null : detail.getAvailableTime().toDate());
-				row.put("AvailableAmount", detail.getAvailableAmount());
-				row.put("OverBooking", detail.getIsOverBooking());
-				row.put("StartDate", detail.getBeginDate() == null ? null : detail.getBeginDate().toDate());
-				row.put("EndDate", detail.getEndDate() == null ? null : detail.getEndDate().toDate());
-				row.put("StartTime", detail.getBeginTime());
-				row.put("EndTime", detail.getEndTime());
-				row.put("OperateTime", detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
-				row.put("InsertTime", DateTime.now().toDate());
-				row.put("ChangeID", DateTime.now().toDate().getTime());
-				row.put("ChangeTime", detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
-				rows.add(row);
-			}
+			Map<String, Object> row = new HashMap<String, Object>();
+			row.put("HotelID", mHotelId);
+			row.put("RoomTypeID", detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail.getRoomTypeID());
+			row.put("HotelCode", detail.getHotelID());
+			row.put("Status", detail.getStatus() == 0);
+			row.put("AvailableDate", detail.getAvailableTime() == null ? null : detail.getAvailableTime().toDate());
+			row.put("AvailableAmount", detail.getAvailableAmount());
+			row.put("OverBooking", detail.getIsOverBooking());
+			row.put("StartDate", detail.getBeginDate() == null ? null : detail.getBeginDate().toDate());
+			row.put("EndDate", detail.getEndDate() == null ? null : detail.getEndDate().toDate());
+			row.put("StartTime", detail.getBeginTime());
+			row.put("EndTime", detail.getEndTime());
+			row.put("OperateTime", detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
+			row.put("InsertTime", DateTime.now().toDate());
+			row.put("ChangeID", DateTime.now().toDate().getTime());
+			row.put("ChangeTime", detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
+			rows.add(row);
 		}
 	}
 
