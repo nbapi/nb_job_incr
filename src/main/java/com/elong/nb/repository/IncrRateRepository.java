@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -23,6 +22,7 @@ import org.springframework.stereotype.Repository;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.SqlServerDataDao;
+import com.elong.nb.service.IFilterService;
 import com.elong.nb.util.DateHandlerUtils;
 
 /**
@@ -54,6 +54,9 @@ public class IncrRateRepository {
 
 	@Resource
 	private SqlServerDataDao sqlServerDataDao;
+	
+	@Resource
+	private IFilterService filterService;
 
 	/** 
 	 * 删除过期增量数据
@@ -119,14 +122,13 @@ public class IncrRateRepository {
 		Date validDate = DateTime.now().plusYears(1).toDate();
 
 		startTime = System.currentTimeMillis();
-		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		for (Map<String, Object> rowMap : incrRateList) {
 			if (rowMap == null)
 				continue;
 			rowMap.put("InsertTime", new Date());
 
 			String shotelId = (String) rowMap.get("HotelCode");
-			if (filteredSHotelIds.contains(shotelId)) {
+			if (filterService.doFilter(shotelId)) {
 				// logger.info("filteredSHotelIds contain value[" + shotelId + "],ignore it.");
 				continue;
 			}

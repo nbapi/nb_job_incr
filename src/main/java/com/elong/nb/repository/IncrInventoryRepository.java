@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -38,6 +37,7 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryStat
 import com.elong.nb.common.checklist.Constants;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrInventoryDao;
+import com.elong.nb.service.IFilterService;
 import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
@@ -81,6 +81,9 @@ public class IncrInventoryRepository {
 
 	@Resource
 	private INoticeService noticeService;
+
+	@Resource
+	private IFilterService filterService;
 
 	/** 
 	 * 删除过期增量数据
@@ -184,14 +187,8 @@ public class IncrInventoryRepository {
 			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",dohandler InventoryChangeDelay");
 		}
-		
-		if (changeList != null && changeList.size() > 0) {
-			// 填充全局变量FilteredSHotelIds
-			startTime = System.currentTimeMillis();
-			final Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
-			endTime = System.currentTimeMillis();
-			logger.info("use time = " + (endTime - startTime) + ",commonRepository.fillFilteredSHotelsIds");
 
+		if (changeList != null && changeList.size() > 0) {
 			// 最大支持300线程并行
 			int maximumPoolSize = changeList.size() < 300 ? changeList.size() : 300;
 			logger.info("maximumPoolSize = " + maximumPoolSize);
@@ -202,7 +199,7 @@ public class IncrInventoryRepository {
 				executorService.submit(new Runnable() {
 					@Override
 					public void run() {
-						doHandlerChangeModel(changeModel, rows, filteredSHotelIds);
+						doHandlerChangeModel(changeModel, rows);
 					}
 				});
 			}
@@ -271,13 +268,13 @@ public class IncrInventoryRepository {
 	 * @param changeModel
 	 * @param rows
 	 */
-	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows, Set<String> filteredSHotelIds) {
+	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows) {
 		long startTimel = System.currentTimeMillis();
 		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		String threadName = Thread.currentThread().getName();
 		GetInventoryChangeDetailRequest request = null;
 		try {
-			boolean isFileterd = filteredSHotelIds.contains(changeModel.getHotelID());
+			boolean isFileterd = filterService.doFilter(changeModel.getHotelID());
 			if (isFileterd) {
 				// logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;
@@ -402,8 +399,8 @@ public class IncrInventoryRepository {
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
-			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "doHandlerChangeModel",
-					"IncrInventoryRepository", ex, System.currentTimeMillis() - startTimel, -1, ex.getMessage(), null);
+			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "doHandlerChangeModel", "IncrInventoryRepository", ex,
+					System.currentTimeMillis() - startTimel, -1, ex.getMessage(), null);
 			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error",
 					"request = " + JSON.toJSONString(request) + ".\n" + ExceptionUtils.getFullStackTrace(ex));
 		}

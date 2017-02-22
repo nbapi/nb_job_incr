@@ -114,7 +114,6 @@ public class HttpClientUtils {
 	 * @throws Exception
 	 */
 	public static String httpPost(String reqUrl, String reqData, String contentType) throws Exception {
-		long startTime = System.currentTimeMillis();
 		URI uri = new URI(reqUrl);
 		HttpPost httpPost = new HttpPost(uri);
 		contentType = StringUtils.isEmpty(contentType) ? "application/json" : contentType;
@@ -132,8 +131,6 @@ public class HttpClientUtils {
 		is.close();
 		outputStream.close();
 		response.close();
-		long endTime = System.currentTimeMillis();
-		logger.info("httpPost,cost time: " + (endTime - startTime));
 		return new String(outputStream.toByteArray());
 	}
 
