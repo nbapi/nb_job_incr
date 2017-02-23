@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -188,7 +189,13 @@ public class IncrInventoryRepository {
 			logger.info("use time = " + (endTime - startTime) + ",dohandler InventoryChangeDelay");
 		}
 
+
 		if (changeList != null && changeList.size() > 0) {
+			startTime = System.currentTimeMillis();
+			final Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
+			endTime = System.currentTimeMillis();
+
+			logger.info("use time = " + (endTime - startTime) + ",commonRepository.fillFilteredSHotelsIds");
 			// 最大支持300线程并行
 			int maximumPoolSize = changeList.size() < 300 ? changeList.size() : 300;
 			logger.info("maximumPoolSize = " + maximumPoolSize);
@@ -199,7 +206,7 @@ public class IncrInventoryRepository {
 				executorService.submit(new Runnable() {
 					@Override
 					public void run() {
-						doHandlerChangeModel(changeModel, rows);
+						doHandlerChangeModel(changeModel, rows,filteredSHotelIds);
 					}
 				});
 			}
@@ -268,13 +275,14 @@ public class IncrInventoryRepository {
 	 * @param changeModel
 	 * @param rows
 	 */
-	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows) {
+	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows,Set<String> filteredSHotelIds) {
 		long startTimel = System.currentTimeMillis();
 		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		String threadName = Thread.currentThread().getName();
 		GetInventoryChangeDetailRequest request = null;
 		try {
-			boolean isFileterd = filterService.doFilter(changeModel.getHotelID());
+			boolean isFileterd = filteredSHotelIds.contains(changeModel.getHotelID());
+//			boolean isFileterd = filterService.doFilter(changeModel.getHotelID());
 			if (isFileterd) {
 				// logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;

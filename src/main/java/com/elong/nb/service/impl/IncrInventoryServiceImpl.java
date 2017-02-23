@@ -193,7 +193,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			return;
 
 		// // 最大支持300线程并行
-		int maximumPoolSize = sourceMap.size() < 300 ? sourceMap.size() : 300;
+		int maximumPoolSize = sourceMap.size() < 100 ? sourceMap.size() : 100;
 		logger.info("syncInventoryDueToBlack,maximumPoolSize = " + maximumPoolSize);
 		long startTime = System.currentTimeMillis();
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(maximumPoolSize, 400);

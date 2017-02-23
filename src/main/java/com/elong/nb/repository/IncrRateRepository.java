@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -122,13 +123,15 @@ public class IncrRateRepository {
 		Date validDate = DateTime.now().plusYears(1).toDate();
 
 		startTime = System.currentTimeMillis();
+		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		for (Map<String, Object> rowMap : incrRateList) {
 			if (rowMap == null)
 				continue;
 			rowMap.put("InsertTime", new Date());
 
 			String shotelId = (String) rowMap.get("HotelCode");
-			if (filterService.doFilter(shotelId)) {
+			if (filteredSHotelIds.contains(shotelId)) {
+//			if (filterService.doFilter(shotelId)) {
 				// logger.info("filteredSHotelIds contain value[" + shotelId + "],ignore it.");
 				continue;
 			}
