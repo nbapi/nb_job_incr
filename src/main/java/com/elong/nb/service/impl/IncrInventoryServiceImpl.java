@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
@@ -44,7 +42,6 @@ import com.elong.nb.repository.MSRelationRepository;
 import com.elong.nb.service.IIncrInventoryService;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.util.DateHandlerUtils;
-import com.elong.nb.util.ExecutorUtils;
 import com.elong.nb.util.HttpClientUtils;
 
 /**
@@ -193,31 +190,17 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			return;
 
 		// // 最大支持300线程并行
-		int maximumPoolSize = sourceMap.size() < 100 ? sourceMap.size() : 100;
-		logger.info("syncInventoryDueToBlack,maximumPoolSize = " + maximumPoolSize);
 		long startTime = System.currentTimeMillis();
-		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(maximumPoolSize, 400);
-		final List<Map<String, Object>> rows = Collections.synchronizedList(new ArrayList<Map<String, Object>>());
-		for (final Map.Entry<String, InvLimitBlackListVo> entry : sourceMap.entrySet()) {
-			executorService.submit(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						syncInventoryToDB(entry.getValue(), rows);
-					} catch (Exception e) {
-						logger.error(e.getMessage(), e);
-					}
-				}
-			});
+		List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+		for (Map.Entry<String, InvLimitBlackListVo> entry : sourceMap.entrySet()) {
+			try {
+				syncInventoryToDB(entry.getValue(), rows);
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
 		}
 		long endTime = System.currentTimeMillis();
-		logger.info("syncInventoryDueToBlack,use time = " + (endTime - startTime) + ",executorService submit task");
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(10, TimeUnit.MINUTES);
-		} catch (InterruptedException e) {
-			logger.error(e.getMessage(), e);
-		}
+		logger.info("syncInventoryDueToBlack,use time = " + (endTime - startTime) + ",syncInventoryToDB");
 
 		// 存数据库
 		int recordCount = rows.size();
