@@ -186,6 +186,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			}
 		}
 		logger.info("syncInventoryDueToBlack,invLimitList after norepeat size = " + sourceMap.size());
+		blackStartTime = new Date();
 		if (sourceMap.size() == 0)
 			return;
 
@@ -221,7 +222,6 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		logger.info("syncInventoryDueToBlack,use time = " + (endTime - startTime) + ",IncrInventory BulkInsert,successCount = "
 				+ successCount);
 
-		blackStartTime = new Date();
 		incrSetInfoService.put(rediskey, blackStartTime);
 		logger.info("syncInventoryDueToBlack,put to redis successfully.key = " + rediskey + ",value = " + blackStartTime);
 	}
