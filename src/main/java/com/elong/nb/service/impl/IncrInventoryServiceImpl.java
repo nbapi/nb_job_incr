@@ -7,6 +7,7 @@ package com.elong.nb.service.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -207,6 +208,25 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		int recordCount = rows.size();
 		if (recordCount == 0)
 			return;
+
+		startTime = System.currentTimeMillis();
+		Collections.sort(rows, new Comparator<Map<String, Object>>() {
+			@Override
+			public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+				Object o1ChangeTimeObj = o1.get("ChangeTime");
+				Object o2ChangeTimeObj = o2.get("ChangeTime");
+				if (o1ChangeTimeObj == null)
+					return -1;
+				if (o2ChangeTimeObj == null)
+					return 1;
+				Date o1ChangeTime = (Date) o1ChangeTimeObj;
+				Date o2ChangeTime = (Date) o2ChangeTimeObj;
+				return o1ChangeTime.before(o2ChangeTime) ? -1 : 1;
+			}
+		});
+		endTime = System.currentTimeMillis();
+		logger.info("syncInventoryDueToBlack，use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
+
 		int successCount = 0;
 		logger.info("syncInventoryDueToBlack,IncrInventory BulkInsert start,recordCount = " + rows.size());
 		String incrInventoryBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryBatchSize");
