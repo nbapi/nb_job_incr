@@ -213,15 +213,23 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		Collections.sort(rows, new Comparator<Map<String, Object>>() {
 			@Override
 			public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+				if (o1 == null && o2 == null)
+					return 0;
+				if (o1 == null)
+					return -1;
+				if (o2 == null)
+					return 1;
 				Object o1ChangeTimeObj = o1.get("ChangeTime");
 				Object o2ChangeTimeObj = o2.get("ChangeTime");
+				if (o1ChangeTimeObj == null && o2ChangeTimeObj == null)
+					return 0;
 				if (o1ChangeTimeObj == null)
 					return -1;
 				if (o2ChangeTimeObj == null)
 					return 1;
 				Date o1ChangeTime = (Date) o1ChangeTimeObj;
 				Date o2ChangeTime = (Date) o2ChangeTimeObj;
-				return o1ChangeTime.before(o2ChangeTime) ? -1 : 1;
+				return o1ChangeTime.equals(o2ChangeTime) ? 0 : (o1ChangeTime.before(o2ChangeTime) ? -1 : 1);
 			}
 		});
 		endTime = System.currentTimeMillis();
