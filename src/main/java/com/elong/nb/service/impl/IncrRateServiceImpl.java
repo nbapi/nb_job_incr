@@ -11,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.repository.IncrRateRepository;
 import com.elong.nb.service.IIncrRateService;
@@ -37,8 +36,6 @@ public class IncrRateServiceImpl implements IIncrRateService {
 
 	private static final Logger logger = Logger.getLogger("IncrRateLogger");
 	
-	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
-
 	@Resource
 	private IncrRateRepository incrRateRepository;
 
@@ -55,7 +52,6 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	public void syncRatesToDB() {
 		long startTime = System.currentTimeMillis();
 		String changIDStr = incrSetInfoService.get(RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());
-		changIDStr = StringUtils.isEmpty(changIDStr) ? redisManager.getStr(RedisKeyConst.CacheKey_KEY_Rate_LastID) : changIDStr;
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",get changID = " + changID + ",from redis key = "

@@ -30,7 +30,6 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDet
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailResponse;
 import com.elong.nb.agent.ProductForPartnerServiceContract.IProductForPartnerServiceContract;
 import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
-import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrInventoryDao;
@@ -65,8 +64,6 @@ import com.elong.nb.util.HttpClientUtils;
 public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
 	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
-
-	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
 	private IncrInventoryRepository incrInventoryRepository;
@@ -110,7 +107,6 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		if (changeID == 0) {
 			long startTime = System.currentTimeMillis();
 			String setValue = incrSetInfoService.get(RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
-			setValue = StringUtils.isEmpty(setValue) ? redisManager.getStr(RedisKeyConst.CacheKey_KEY_Inventory_LastID) : setValue;
 			changeID = StringUtils.isEmpty(setValue) ? 0 : Long.valueOf(setValue);
 			long endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",get value from redis key = "
@@ -146,7 +142,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	public void delInventoryFromDB(int delCycleCount) {
 		// 删除30小时以前的数据
 		long startTime = System.currentTimeMillis();
-		int count = incrInventoryRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate(), delCycleCount);
+		int count = incrInventoryRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate(-10), delCycleCount);
 		logger.info("IncrInventory delete successfully.count = " + count);
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",IncrInventory delete successfully.count = " + count);
@@ -290,7 +286,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
 		for (ResourceInventoryState detail : resourceInventoryStateList) {
 			Date changeTime = detail.getOperateTime() == null ? null : detail.getOperateTime().toDate();
-			if (changeTime == null || DateHandlerUtils.getDBExpireDate().after(changeTime))
+			if (changeTime == null || DateHandlerUtils.getDBExpireDate(-10).after(changeTime))
 				continue;
 			Map<String, Object> row = new HashMap<String, Object>();
 			row.put("HotelID", mHotelId);

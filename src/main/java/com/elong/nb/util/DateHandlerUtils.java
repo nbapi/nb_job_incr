@@ -92,6 +92,18 @@ public class DateHandlerUtils {
 		calendar.add(Calendar.HOUR, -30);
 		return calendar.getTime();
 	}
+	
+	/**   
+	 * 得到dBExpireDate的值   
+	 *   
+	 * @return dBExpireDate的值
+	 */
+	public static Date getDBExpireDate(int addHours) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(new Date());
+		calendar.add(Calendar.HOUR, addHours);
+		return calendar.getTime();
+	}
 
 	/**   
 	 * 得到cacheExpireDate的值   
