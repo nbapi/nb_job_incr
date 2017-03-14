@@ -40,7 +40,7 @@ public interface IIncrInventoryService {
 	 * 删除库存增量
 	 *
 	 */
-	public void delInventoryFromDB();
+	public void delInventoryFromDB(int delCycleCount);
 	
 	/** 
 	 * 同步库存黑名单引起库存增量

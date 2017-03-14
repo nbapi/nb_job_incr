@@ -138,10 +138,10 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	}
 
 	@Override
-	public void delInventoryFromDB() {
+	public void delInventoryFromDB(int delCycleCount) {
 		// 删除30小时以前的数据
 		long startTime = System.currentTimeMillis();
-		int count = incrInventoryRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+		int count = incrInventoryRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate(), delCycleCount);
 		logger.info("IncrInventory delete successfully.count = " + count);
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",IncrInventory delete successfully.count = " + count);
@@ -283,6 +283,9 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			return;
 
 		for (ResourceInventoryState detail : resourceInventoryStateList) {
+			Date changeTime = detail.getOperateTime() == null ? null : detail.getOperateTime().toDate();
+			if (changeTime == null || DateHandlerUtils.getDBExpireDate().after(changeTime))
+				continue;
 			Map<String, Object> row = new HashMap<String, Object>();
 			row.put("HotelID", mHotelId);
 			row.put("RoomTypeID", detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail.getRoomTypeID());
@@ -298,7 +301,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			row.put("OperateTime", detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
 			row.put("InsertTime", DateTime.now().toDate());
 			row.put("ChangeID", DateTime.now().toDate().getTime());
-			row.put("ChangeTime", detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
+			row.put("ChangeTime", changeTime);
 			rows.add(row);
 		}
 	}

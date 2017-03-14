@@ -91,7 +91,7 @@ public class IncrInventoryRepository {
 	 * @param table
 	 * @param expireDate
 	 */
-	public int deleteExpireIncrData(Date expireDate) {
+	public int deleteExpireIncrData(Date expireDate, int delCycleCount) {
 		if (expireDate == null) {
 			throw new IllegalArgumentException("IncrInventory DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
 		}
@@ -105,7 +105,7 @@ public class IncrInventoryRepository {
 		result += count;
 
 		int i = 1;
-		while (count != 0) {
+		while (count != 0 || delCycleCount-- > 0) {
 			endTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -(i++));
 			startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -i);
 			params.put("startTime", startTime);
@@ -189,7 +189,6 @@ public class IncrInventoryRepository {
 			logger.info("use time = " + (endTime - startTime) + ",dohandler InventoryChangeDelay");
 		}
 
-
 		if (changeList != null && changeList.size() > 0) {
 			startTime = System.currentTimeMillis();
 			final Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
@@ -206,7 +205,7 @@ public class IncrInventoryRepository {
 				executorService.submit(new Runnable() {
 					@Override
 					public void run() {
-						doHandlerChangeModel(changeModel, rows,filteredSHotelIds);
+						doHandlerChangeModel(changeModel, rows, filteredSHotelIds);
 					}
 				});
 			}
@@ -275,14 +274,14 @@ public class IncrInventoryRepository {
 	 * @param changeModel
 	 * @param rows
 	 */
-	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows,Set<String> filteredSHotelIds) {
+	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows, Set<String> filteredSHotelIds) {
 		long startTimel = System.currentTimeMillis();
 		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		String threadName = Thread.currentThread().getName();
 		GetInventoryChangeDetailRequest request = null;
 		try {
 			boolean isFileterd = filteredSHotelIds.contains(changeModel.getHotelID());
-//			boolean isFileterd = filterService.doFilter(changeModel.getHotelID());
+			// boolean isFileterd = filterService.doFilter(changeModel.getHotelID());
 			if (isFileterd) {
 				// logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
 				return;
