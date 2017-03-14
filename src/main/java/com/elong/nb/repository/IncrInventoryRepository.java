@@ -86,8 +86,6 @@ public class IncrInventoryRepository {
 	@Resource
 	private IFilterService filterService;
 
-	private ExecutorService insertExecutorService = ExecutorUtils.newSelfThreadPool(100, 200);
-
 	/** 
 	 * 删除过期增量数据
 	 * @param table
@@ -241,25 +239,15 @@ public class IncrInventoryRepository {
 					String incrInventoryBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryBatchSize");
 					int pageSize = StringUtils.isEmpty(incrInventoryBatchSize) ? 2000 : Integer.valueOf(incrInventoryBatchSize);
 					int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+					startTime = System.currentTimeMillis();
+					int successCount = 0;
 					for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 						int startNum = (pageIndex - 1) * pageSize;
 						int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-						final List<Map<String, Object>> subRowList = rows.subList(startNum, endNum);
-						insertExecutorService.execute(new Runnable() {
-							@Override
-							public void run() {
-								try {
-									long startTime = System.currentTimeMillis();
-									int successCount = incrInventoryDao.bulkInsert(subRowList);
-									logger.info("threadName = " + Thread.currentThread().getName() + ",use time = "
-											+ (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert,successCount = "
-											+ successCount);
-								} catch (Exception e) {
-									logger.error(e.getMessage(), e);
-								}
-							}
-						});
+						successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
 					}
+					logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert,successCount = "
+							+ successCount);
 				}
 			}
 			// ID排序，去最大ID
