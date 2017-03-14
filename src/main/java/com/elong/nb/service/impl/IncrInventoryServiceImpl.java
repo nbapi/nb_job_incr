@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -38,6 +39,7 @@ import com.elong.nb.model.GetInvLimitResponse;
 import com.elong.nb.model.RequestBase;
 import com.elong.nb.model.ResponseBase;
 import com.elong.nb.model.domain.InvLimitBlackListVo;
+import com.elong.nb.repository.CommonRepository;
 import com.elong.nb.repository.IncrInventoryRepository;
 import com.elong.nb.repository.MSRelationRepository;
 import com.elong.nb.service.IIncrInventoryService;
@@ -74,6 +76,9 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
 	@Resource
 	private MSRelationRepository msRelationRepository;
+
+	@Resource
+	private CommonRepository commonRepository;
 
 	@Resource
 	private IncrInventoryDao incrInventoryDao;
@@ -168,6 +173,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		realRequest.setPageSize(1000);
 		realRequest.setTimestamp(blackStartTime);
 
+		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Map<String, InvLimitBlackListVo> sourceMap = new HashMap<String, InvLimitBlackListVo>();
 		int i = 0;
 		List<InvLimitBlackListVo> invLimitList = null;
@@ -180,7 +186,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 				continue;
 
 			for (InvLimitBlackListVo vo : invLimitList) {
-				if (vo == null)
+				if (vo == null || filteredSHotelIds.contains(vo.getHotelId()))
 					continue;
 				String key = vo.getHotelId() + "#" + vo.getStayBeginDate() + "#" + vo.getStayEndDate();
 				sourceMap.put(key, vo);
