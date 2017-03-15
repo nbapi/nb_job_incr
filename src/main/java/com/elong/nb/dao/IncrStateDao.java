@@ -43,7 +43,7 @@ public interface IncrStateDao {
 	 * @param params
 	 * @return
 	 */
-	@DataSource("dataSource_nbhotelincr_read")
+	@DataSource("dataSource_nbhotelincr_write")
 	public List<BigInteger> getIncrIdList(Map<String, Object> params);
 
 	/** 
