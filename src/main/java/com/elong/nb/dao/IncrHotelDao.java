@@ -5,6 +5,7 @@
  */
 package com.elong.nb.dao;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,6 @@ import com.elong.nb.model.bean.IncrHotel;
  * @version		1.0  
  * @since		JDK1.7
  */
-@DataSource("dataSource_nbhotelincr")
 public interface IncrHotelDao {
 
 	/** 
@@ -35,7 +35,17 @@ public interface IncrHotelDao {
 	 * @param limit
 	 * @return 返回删除数量
 	 */
-	public int deleteExpireIncrData(Map<String,Object> params);
+	@DataSource("dataSource_nbhotelincr_write")
+	public int deleteByIncrIdList(List<BigInteger> incrIdList);
+	
+	/** 
+	 * 获取指定changeTime之前的IncrId集合
+	 *
+	 * @param params
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_read")
+	public List<BigInteger> getIncrIdList(Map<String, Object> params);
 
 	/** 
 	 * 获取trigger的最后一条IncrHotel
@@ -43,6 +53,7 @@ public interface IncrHotelDao {
 	 * @param trigger
 	 * @return
 	 */
+	@DataSource("dataSource_nbhotelincr_read")
 	public IncrHotel getLastHotel(String trigger);
 	
 	/** 
@@ -50,6 +61,7 @@ public interface IncrHotelDao {
 	 *
 	 * @param incrHotelList
 	 */
+	@DataSource("dataSource_nbhotelincr_write")
 	public int bulkInsert(List<IncrHotel> incrHotelList);
 	
 

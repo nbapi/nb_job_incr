@@ -26,6 +26,16 @@ import java.util.Date;
 public class DateHandlerUtils {
 
 	/** 
+	 * 是否在指定startTime的后十分钟之内
+	 *
+	 * @param startTime
+	 * @return
+	 */
+	public static boolean withinTenMinutes(long startTime) {
+		return (System.currentTimeMillis() - startTime) < 10 * 60 * 1000;
+	}
+
+	/** 
 	 * 获取指定类型偏移值后的日期
 	 *
 	 * @param date
@@ -40,7 +50,7 @@ public class DateHandlerUtils {
 		calendar.add(type, value);
 		return formatDate(calendar.getTime(), pattern);
 	}
-	
+
 	/** 
 	 * 获取指定类型偏移值后的日期
 	 *
@@ -92,7 +102,7 @@ public class DateHandlerUtils {
 		calendar.add(Calendar.HOUR, -30);
 		return calendar.getTime();
 	}
-	
+
 	/**   
 	 * 得到dBExpireDate的值   
 	 *   

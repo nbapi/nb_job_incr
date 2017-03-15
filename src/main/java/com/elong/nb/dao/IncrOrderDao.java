@@ -5,6 +5,7 @@
  */
 package com.elong.nb.dao;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,6 @@ import com.elong.nb.model.bean.IncrOrder;
  * @version		1.0  
  * @since		JDK1.7
  */
-@DataSource("dataSource_nbhotelincr")
 public interface IncrOrderDao {
 
 	/** 
@@ -35,7 +35,17 @@ public interface IncrOrderDao {
 	 * @param limit
 	 * @return 返回删除数量
 	 */
-	public int deleteExpireIncrData(Map<String, Object> params);
+	@DataSource("dataSource_nbhotelincr_write")
+	public int deleteByIncrIdList(List<BigInteger> incrIdList);
+	
+	/** 
+	 * 获取指定changeTime之前的IncrId集合
+	 *
+	 * @param params
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_read")
+	public List<BigInteger> getIncrIdList(Map<String, Object> params);
 
 	/** 
 	 * 获取最大IncrID的订单增量
@@ -43,6 +53,7 @@ public interface IncrOrderDao {
 	 * @param paramMap
 	 * @return
 	 */
+	@DataSource("dataSource_nbhotelincr_read")
 	public IncrOrder getLastIncrOrder(Map<String, Object> paramMap);
 
 	/** 
@@ -50,6 +61,7 @@ public interface IncrOrderDao {
 	 *
 	 * @param incrOrderMap
 	 */
+	@DataSource("dataSource_nbhotelincr_write")
 	public int insert(Map<String, Object> incrOrderMap);
 
 	/** 
@@ -57,6 +69,7 @@ public interface IncrOrderDao {
 	 *
 	 * @param incrOrders
 	 */
+	@DataSource("dataSource_nbhotelincr_write")
 	public int bulkInsert(List<Map<String, Object>> incrOrders);
 
 }

@@ -3,14 +3,24 @@
 <mapper namespace="com.elong.nb.dao.IncrRateDao">
 
 	<!-- 删除过期IncrRate -->
-	<delete id="deleteExpireIncrData">
+	<delete id="deleteByIncrIdList">
 		delete from IncrRate
 		<where>
-			<if test="startTime != null and endTime != null">
-				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
-			</if>
+			AND IncrID in
+			<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
 		</where>
 	</delete>
+	
+	<!-- 获取晚于指定changeTime的IncrID -->
+	<select id="getIncrIdList" resultType="java.math.BigInteger">
+		select IncrID from IncrRate
+		<where>
+			<![CDATA[ and ChangeTime <= #{changeTime} ]]>
+		</where>
+		order by IncrID limit 0,2000
+	</select>
 
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条IncrRate -->
 	<select id="getIncrRates" resultType="incrRate">

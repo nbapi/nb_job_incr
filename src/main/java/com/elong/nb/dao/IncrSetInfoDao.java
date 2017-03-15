@@ -22,13 +22,15 @@ import com.elong.nb.model.IncrSetInfo;
  * @version		1.0  
  * @since		JDK1.7
  */
-@DataSource("dataSource_nbhotelincr")
 public interface IncrSetInfoDao {
 
+	@DataSource("dataSource_nbhotelincr_read")
 	public IncrSetInfo queryByKey(String key);
 
+	@DataSource("dataSource_nbhotelincr_write")
 	public void update(IncrSetInfo incrSetInfo);
 	
+	@DataSource("dataSource_nbhotelincr_write")
 	public void insert(IncrSetInfo incrSetInfo);
 
 }

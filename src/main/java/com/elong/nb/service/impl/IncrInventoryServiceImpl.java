@@ -5,6 +5,7 @@
  */
 package com.elong.nb.service.impl;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,6 +42,7 @@ import com.elong.nb.model.domain.InvLimitBlackListVo;
 import com.elong.nb.repository.CommonRepository;
 import com.elong.nb.repository.IncrInventoryRepository;
 import com.elong.nb.repository.MSRelationRepository;
+import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrInventoryService;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.util.DateHandlerUtils;
@@ -61,7 +63,7 @@ import com.elong.nb.util.HttpClientUtils;
  * @since		JDK1.7
  */
 @Service
-public class IncrInventoryServiceImpl implements IIncrInventoryService {
+public class IncrInventoryServiceImpl extends AbstractDeleteService implements IIncrInventoryService {
 
 	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
 
@@ -82,6 +84,18 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
+
+	/** 
+	 * 删除库存增量
+	 * 
+	 *
+	 * @see com.elong.nb.service.IIncrInventoryService#delInventoryFromDB()    
+	 */
+	@Override
+	public void delInventoryFromDB() {
+		// 删除10小时以前的数据
+		deleteExpireIncrData(DateHandlerUtils.getDBExpireDate(-10));
+	}
 
 	/** 
 	 * 同步库存增量
@@ -136,16 +150,6 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 				syncInventoryToDB(newLastChgID, beginTime);
 			}
 		}
-	}
-
-	@Override
-	public void delInventoryFromDB(int delCycleCount) {
-		// 删除30小时以前的数据
-		long startTime = System.currentTimeMillis();
-		int count = incrInventoryRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate(-10), delCycleCount);
-		logger.info("IncrInventory delete successfully.count = " + count);
-		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",IncrInventory delete successfully.count = " + count);
 	}
 
 	@Override
@@ -330,6 +334,21 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		JSONObject jsonObj = (JSONObject) responseBase.getRealResponse();
 		GetInvLimitResponse realResponse = JSONObject.parseObject(jsonObj.toJSONString(), GetInvLimitResponse.class);
 		return realResponse.getInvLimitList();
+	}
+
+	@Override
+	protected List<BigInteger> getIncrIdList(Map<String, Object> params) {
+		return incrInventoryDao.getIncrIdList(params);
+	}
+
+	@Override
+	protected int deleteByIncrIdList(List<BigInteger> incrIdList) {
+		return incrInventoryDao.deleteByIncrIdList(incrIdList);
+	}
+
+	@Override
+	protected void logger(String message) {
+		logger.info(message);
 	}
 
 }

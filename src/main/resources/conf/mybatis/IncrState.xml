@@ -16,14 +16,24 @@
 	</resultMap>
 
 	<!-- 删除过期IncrState -->
-	<delete id="deleteExpireIncrData">
+	<delete id="deleteByIncrIdList">
 		delete from IncrState
 		<where>
-			<if test="startTime != null and endTime != null">
-				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
-			</if>
+			AND IncrID in
+			<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
 		</where>
 	</delete>
+	
+	<!-- 获取晚于指定changeTime的IncrID -->
+	<select id="getIncrIdList" resultType="java.math.BigInteger">
+		select IncrID from IncrState
+		<where>
+			<![CDATA[ and ChangeTime <= #{changeTime} ]]>
+		</where>
+		order by IncrID limit 0,2000
+	</select>
 
 	<!-- 批量插入IncrState -->
 	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">

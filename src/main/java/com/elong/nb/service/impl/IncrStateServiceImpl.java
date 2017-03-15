@@ -5,8 +5,11 @@
  */
 package com.elong.nb.service.impl;
 
+import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -16,7 +19,9 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.common.model.RedisKeyConst;
+import com.elong.nb.dao.IncrStateDao;
 import com.elong.nb.repository.IncrStateRepository;
+import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.service.IIncrStateService;
 import com.elong.nb.util.DateHandlerUtils;
@@ -36,15 +41,32 @@ import com.elong.nb.util.DateHandlerUtils;
  * @since		JDK1.7
  */
 @Service
-public class IncrStateServiceImpl implements IIncrStateService {
+public class IncrStateServiceImpl extends AbstractDeleteService implements IIncrStateService {
 
 	private static final Logger logger = Logger.getLogger("IncrStateLogger");
 
 	@Resource
 	private IncrStateRepository incrStateRepository;
+	
+	@Resource
+	private IncrStateDao incrStateDao;
 
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
+	
+	/** 
+	 * 删除状态增量
+	 * 
+	 *
+	 * @see com.elong.nb.service.IIncrStateService#delStateFromDB()    
+	 */
+	@Override
+	public void delStateFromDB() {
+		if (DateTime.now().getHourOfDay() == 1 && DateTime.now().getMinuteOfHour() < 10) {
+			// 删除过期数据
+			deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+		}
+	}
 
 	/** 
 	 * 同步状态增量
@@ -93,12 +115,18 @@ public class IncrStateServiceImpl implements IIncrStateService {
 	}
 
 	@Override
-	public void delStateFromDB() {
-		if (DateTime.now().getHourOfDay() == 1 && DateTime.now().getMinuteOfHour() < 10) {
-			// 删除过期数据
-			int count = incrStateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-			logger.info("IncrState delete successfully, count = " + count);
-		}
+	protected List<BigInteger> getIncrIdList(Map<String, Object> params) {
+		return incrStateDao.getIncrIdList(params);
+	}
+
+	@Override
+	protected int deleteByIncrIdList(List<BigInteger> incrIdList) {
+		return incrStateDao.deleteByIncrIdList(incrIdList);
+	}
+
+	@Override
+	protected void logger(String message) {
+		logger.info(message);
 	}
 
 }

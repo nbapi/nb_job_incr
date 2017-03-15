@@ -5,6 +5,10 @@
  */
 package com.elong.nb.service.impl;
 
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
+
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +16,9 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.elong.nb.common.model.RedisKeyConst;
+import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.repository.IncrRateRepository;
+import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrRateService;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.util.DateHandlerUtils;
@@ -32,15 +38,30 @@ import com.elong.nb.util.DateHandlerUtils;
  * @since		JDK1.7
  */
 @Service
-public class IncrRateServiceImpl implements IIncrRateService {
+public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrRateService {
 
 	private static final Logger logger = Logger.getLogger("IncrRateLogger");
-	
+
 	@Resource
 	private IncrRateRepository incrRateRepository;
+	
+	@Resource
+	private IncrRateDao incrRateDao;
 
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
+	
+	/** 
+	 * 删除价格增量
+	 * 
+	 *
+	 * @see com.elong.nb.service.IIncrRateService#delRatesFromDB()    
+	 */
+	@Override
+	public void delRatesFromDB() {
+		// 删除过期数据
+		deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+	}
 
 	/** 
 	 * IncrRate同步到数据库 
@@ -76,12 +97,18 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	}
 
 	@Override
-	public void delRatesFromDB() {
-		// 删除过期数据
-		long startTime = System.currentTimeMillis();
-		int count = incrRateRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",IncrRate delete successfully.count = " + count);
+	protected List<BigInteger> getIncrIdList(Map<String, Object> params) {
+		return incrRateDao.getIncrIdList(params);
+	}
+
+	@Override
+	protected int deleteByIncrIdList(List<BigInteger> incrIdList) {
+		return incrRateDao.deleteByIncrIdList(incrIdList);
+	}
+
+	@Override
+	protected void logger(String message) {
+		logger.info(message);
 	}
 
 }

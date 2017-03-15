@@ -3,14 +3,24 @@
 <mapper namespace="com.elong.nb.dao.IncrHotelDao">
 
 	<!-- 删除过期IncrHotel -->
-	<delete id="deleteExpireIncrData">
+	<delete id="deleteByIncrIdList">
 		delete from IncrHotel
 		<where>
-			<if test="startTime != null and endTime != null">
-				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
-			</if>
+			AND IncrID in
+			<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
 		</where>
 	</delete>
+	
+	<!-- 获取晚于指定changeTime的IncrID -->
+	<select id="getIncrIdList" resultType="java.math.BigInteger">
+		select IncrID from IncrHotel
+		<where>
+			<![CDATA[ and ChangeTime <= #{changeTime} ]]>
+		</where>
+		order by IncrID limit 0,2000
+	</select>
 
 	<!-- 获取trigger的最后一条IncrHotel -->
 	<select id="getLastHotel" resultType="incrHotel">

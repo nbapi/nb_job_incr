@@ -5,6 +5,7 @@
  */
 package com.elong.nb.dao;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -25,16 +26,25 @@ import com.elong.nb.model.bean.IncrInventory;
  * @version		1.0  
  * @since		JDK1.7
  */
-@DataSource("dataSource_nbhotelincr")
 public interface IncrInventoryDao {
 
 	/** 
-	 * 删除过期IncrInventory,params包含expireDate、limit
+	 * 删除过期IncrInventory
 	 *
 	 * @param params
 	 * @return 返回删除数量
 	 */
-	public int deleteExpireIncrData(Map<String, Object> params);
+	@DataSource("dataSource_nbhotelincr_write")
+	public int deleteByIncrIdList(List<BigInteger> incrIdList);
+
+	/** 
+	 * 获取指定changeTime之前的IncrId集合
+	 *
+	 * @param params
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_read")
+	public List<BigInteger> getIncrIdList(Map<String, Object> params);
 
 	/** 
 	 * changTime 获取大于指定changeTime的最早发生变化的库存增量
@@ -43,6 +53,7 @@ public interface IncrInventoryDao {
 	 * @param params
 	 * @return
 	 */
+	@DataSource("dataSource_nbhotelincr_read")
 	public List<IncrInventory> getIncrInventories(Map<String, Object> params);
 
 	/** 
@@ -50,6 +61,7 @@ public interface IncrInventoryDao {
 	 *
 	 * @param incrInventories
 	 */
+	@DataSource("dataSource_nbhotelincr_write")
 	public int bulkInsert(List<Map<String, Object>> incrInventories);
 
 }

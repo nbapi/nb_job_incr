@@ -3,18 +3,30 @@
 <mapper namespace="com.elong.nb.dao.IncrInventoryDao">
 
 	<!-- 删除过期IncrInventory -->
-	<delete id="deleteExpireIncrData">
+	<delete id="deleteByIncrIdList">
 		delete from IncrInventory
 		<where>
-			<if test="startTime != null and endTime != null">
-				<![CDATA[ and ChangeTime between #{startTime} and #{endTime}]]>
-			</if>
+			AND IncrID in
+			<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
 		</where>
 	</delete>
 
+	<!-- 获取晚于指定changeTime的IncrID -->
+	<select id="getIncrIdList" resultType="java.math.BigInteger">
+		select IncrID from IncrInventory
+		<where>
+			<![CDATA[ and ChangeTime <= #{changeTime} ]]>
+		</where>
+		order by IncrID limit 0,2000
+	</select>
+
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条库存增量 -->
 	<select id="getIncrInventories" resultType="incrInventory">
-		select IncrID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime from IncrInventory
+		select
+		IncrID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime
+		from IncrInventory
 		<where>
 			<if test="changeTime != null and !changeTime.equals('')">
 				<![CDATA[ and ChangeTime > #{changeTime} ]]>

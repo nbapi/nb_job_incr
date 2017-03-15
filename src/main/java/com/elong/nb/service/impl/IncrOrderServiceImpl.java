@@ -5,6 +5,7 @@
  */
 package com.elong.nb.service.impl;
 
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -36,6 +37,7 @@ import com.elong.nb.model.bean.IncrOrder;
 import com.elong.nb.model.enums.OrderChangeStatusEnum;
 import com.elong.nb.repository.CommonRepository;
 import com.elong.nb.repository.IncrOrderRepository;
+import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.INoticeService;
 import com.elong.nb.service.OrderCenterService;
@@ -56,7 +58,7 @@ import com.elong.nb.util.DateHandlerUtils;
  * @since		JDK1.7
  */
 @Service
-public class IncrOrderServiceImpl implements IIncrOrderService {
+public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncrOrderService {
 
 	private static final Logger logger = Logger.getLogger("IncrOrderLogger");
 	private static final Logger jobLogger = Logger.getLogger("IncrOrderJobLogger");
@@ -75,6 +77,18 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 
 	@Resource
 	private INoticeService noticeService;
+	
+	/** 
+	 * 删除订单增量
+	 * 
+	 *
+	 * @see com.elong.nb.service.IIncrOrderService#delOrderFromDB()    
+	 */
+	@Override
+	public void delOrderFromDB() {
+		// 删除30小时以前的数据
+		deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+	}
 
 	/** 
 	 * 处理订单中心消息
@@ -485,18 +499,22 @@ public class IncrOrderServiceImpl implements IIncrOrderService {
 				incrOrderMap.put("CardNo", orderProxy.getData().getCardNo());
 				incrOrderMap.put("Status", "D");
 			}
-			// long endTime = System.currentTimeMillis();
-			// logger.info("use time = " + (endTime - startTime) + ",commonRepository.getProxyInfoByOrderFrom");
 		}
 	}
 
 	@Override
-	public void delOrderFromDB() {
-		// 删除30小时以前的数据
-		long startTime = System.currentTimeMillis();
-		int count = incrOrderRepository.deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-		long endTime = System.currentTimeMillis();
-		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder delete successfully,count = " + count);
+	protected List<BigInteger> getIncrIdList(Map<String, Object> params) {
+		return incrOrderDao.getIncrIdList(params);
+	}
+
+	@Override
+	protected int deleteByIncrIdList(List<BigInteger> incrIdList) {
+		return incrOrderDao.deleteByIncrIdList(incrIdList);
+	}
+
+	@Override
+	protected void logger(String message) {
+		logger.info(message);
 	}
 
 }

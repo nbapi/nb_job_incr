@@ -212,9 +212,7 @@ public class SyncIncrToDBController {
 			} else if (StringUtils.equals("DelHotelFromDB", pathVariable)) {
 				incrHotelService.delHotelFromDB();
 			} else if (StringUtils.equals("DelInventoryFromDB", pathVariable)) {
-				String delCycleCountStr = request.getParameter("delCycleCount");
-				int delCycleCount = StringUtils.isEmpty(delCycleCountStr) ? 0 : Integer.valueOf(delCycleCountStr);
-				incrInventoryService.delInventoryFromDB(delCycleCount);
+				incrInventoryService.delInventoryFromDB();
 			} else if (StringUtils.equals("DelRatesFromDB", pathVariable)) {
 				incrRateService.delRatesFromDB();
 			} else if (StringUtils.equals("DelStateFromDB", pathVariable)) {

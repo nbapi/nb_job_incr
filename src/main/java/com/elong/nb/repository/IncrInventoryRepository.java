@@ -6,7 +6,6 @@
 package com.elong.nb.repository;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -40,7 +39,6 @@ import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.service.IFilterService;
 import com.elong.nb.service.INoticeService;
-import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
 import com.elong.nb.util.ThreadLocalUtil;
 import com.elong.springmvc_enhance.utilities.ActionLogHelper;
@@ -85,37 +83,6 @@ public class IncrInventoryRepository {
 
 	@Resource
 	private IFilterService filterService;
-
-	/** 
-	 * 删除过期增量数据
-	 * @param table
-	 * @param expireDate
-	 */
-	public int deleteExpireIncrData(Date expireDate, int delCycleCount) {
-		if (expireDate == null) {
-			throw new IllegalArgumentException("IncrInventory DeleteExpireIncrData,the paramter 'expireDate' must not be null.");
-		}
-		Map<String, Object> params = new HashMap<String, Object>();
-		Date endTime = expireDate;
-		Date startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -1);
-		params.put("startTime", startTime);
-		params.put("endTime", endTime);
-		int result = 0;
-		int count = incrInventoryDao.deleteExpireIncrData(params);
-		result += count;
-
-		int i = 1;
-		while (count != 0 || delCycleCount-- > 0) {
-			endTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -(i++));
-			startTime = DateHandlerUtils.getOffsetDate(expireDate, Calendar.HOUR_OF_DAY, -i);
-			params.put("startTime", startTime);
-			params.put("endTime", endTime);
-			count = incrInventoryDao.deleteExpireIncrData(params);
-			logger.info("IncrInventory delete successfully,successCount = " + count + ",endTime = " + endTime);
-			result += count;
-		}
-		return result;
-	}
 
 	/** 
 	 * WCF调用后端接口
