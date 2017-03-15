@@ -16,12 +16,13 @@
 	<bean id="incrDataSource" class="com.elong.nb.db.ByKeyRoutingDataSource">
 		<property name="targetDataSources">
 			<map key-type="java.lang.String">
-				<entry key="dataSource_nbhotelincr" value-ref="dataSource_nbhotelincr" />
+				<entry key="dataSource_nbhotelincr_write" value-ref="dataSource_nbhotelincr_write" />
+				<entry key="dataSource_nbhotelincr_read" value-ref="dataSource_nbhotelincr_read" />
 				<entry key="dataSource_sqlserver_13" value-ref="dataSource_sqlserver_13" />
 				<entry key="dataSource_sqlserver_14" value-ref="dataSource_sqlserver_14" />
 			</map>
 		</property>
-		<property name="defaultTargetDataSource" ref="dataSource_nbhotelincr" />
+		<property name="defaultTargetDataSource" ref="dataSource_nbhotelincr_write" />
 	</bean>
 
 	<bean id="incrSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" scope="prototype">
@@ -51,7 +52,7 @@
 	</aop:config>
 
 	<!-- 配置checklist切面 -->
-	<bean id="checklistAspect" class="com.elong.nb.checklist.ChecklistAspect" />
+	<!-- <bean id="checklistAspect" class="com.elong.nb.checklist.ChecklistAspect" />
 	<aop:config>
 		<aop:aspect id="b2" ref="checklistAspect">
 			<aop:pointcut id="tx2"
@@ -64,6 +65,6 @@
 			<aop:after-returning pointcut-ref="tx2" method="handlerLogAfter" returning="returnValue" />
 			<aop:after-throwing pointcut-ref="tx2" method="handlerLogThrowing" throwing="throwing" />
 		</aop:aspect>
-	</aop:config>
+	</aop:config> -->
 
 </beans>

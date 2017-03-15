@@ -7,11 +7,28 @@
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
 
 	<!-- nb hotelincr数据源 -->
-	<bean id="dataSource_nbhotelincr" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	<bean id="dataSource_nbhotelincr_read" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="${jdbc.job.driverClassName}"></property>
-		<property name="url" value="${jdbc.job.url}"></property>
-		<property name="username" value="${jdbc.job.username}"></property>
-		<property name="password" value="${jdbc.job.password}"></property>
+		<property name="url" value="${jdbc.job.read.url}"></property>
+		<property name="username" value="${jdbc.job.read.username}"></property>
+		<property name="password" value="${jdbc.job.read.password}"></property>
+		<property name="maxActive" value="${jdbc.common.maxActive}"></property>
+		<property name="maxIdle" value="${jdbc.common.maxIdle}"></property>
+		<property name="maxWait" value="${jdbc.common.maxWait}"></property>
+		<property name="timeBetweenEvictionRunsMillis" value="${jdbc.common.timeBetweenEvictionRunsMillis}"></property>
+		<property name="testWhileIdle" value="${jdbc.common.testWhileIdle}"></property>
+		<property name="testOnBorrow" value="${jdbc.common.testOnBorrow}"></property>
+		<property name="testOnReturn" value="${jdbc.common.testOnReturn}"></property>
+		<property name="validationQuery">
+			<value>select 1</value>
+		</property>
+	</bean>
+	
+	<bean id="dataSource_nbhotelincr_write" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.job.driverClassName}"></property>
+		<property name="url" value="${jdbc.job.write.url}"></property>
+		<property name="username" value="${jdbc.job.write.username}"></property>
+		<property name="password" value="${jdbc.job.write.password}"></property>
 		<property name="maxActive" value="${jdbc.common.maxActive}"></property>
 		<property name="maxIdle" value="${jdbc.common.maxIdle}"></property>
 		<property name="maxWait" value="${jdbc.common.maxWait}"></property>
