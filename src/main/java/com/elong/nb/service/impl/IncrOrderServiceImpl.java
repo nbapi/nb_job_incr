@@ -279,6 +279,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 					+ endTimestamp);
 			return;
 		}
+		jobLogger.info("syncOrderToDB briefOrders size = " + orders.size() + ",endTimestamp = " + endTimestamp);
 
 		Set<Object> orderIds = findOrderIds(orders);
 		// 没有需要主动查询的订单号，跳过
@@ -287,7 +288,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 					+ endTimestamp);
 			return;
 		}
-		jobLogger.info("syncOrderToDB,orderIds size = " + orderIds.size() + ",endTimestamp = " + endTimestamp);
+		jobLogger.info("syncOrderToDB needOrderIds size = " + orderIds.size() + ",endTimestamp = " + endTimestamp);
 
 		List<Object> orderIdList = new ArrayList<Object>(orderIds);
 		JSONArray bodyJsonArray = new JSONArray();
@@ -317,12 +318,13 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			bodyJsonArray.addAll(jsonObj.getJSONArray("body"));
 		}
 		endTime = System.currentTimeMillis();
-		jobLogger.info("use time = " + (endTime - startTime) + ",orderCenterService.getOrders and parseResult.");
+		jobLogger.info("use time = " + (endTime - startTime) + ",orderCenterService.getOrders and parseResult");
 
 		if (bodyJsonArray == null || bodyJsonArray.size() == 0) {
 			jobLogger.warn("syncOrderToDB ignore,due to bodyJsonArray is null or empfy from getOrders,endTimestamp = " + endTimestamp);
 			return;
 		}
+		jobLogger.info("syncOrderToDB bodyJsonArray size = " + bodyJsonArray.size() + ",endTimestamp = " + endTimestamp);
 
 		Map<Object, Map<String, Object>> tempMap = new HashMap<Object, Map<String, Object>>();
 		for (int i = 0; i < bodyJsonArray.size(); i++) {
