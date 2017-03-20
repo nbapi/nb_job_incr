@@ -332,6 +332,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			Object orderId = jsonOrderMap.get("orderId");
 			tempMap.put(orderId, jsonOrderMap);
 		}
+		jobLogger.info("syncOrderToDB tempMap size = " + tempMap.size() + ",endTimestamp = " + endTimestamp);
 
 		startTime = System.currentTimeMillis();
 		List<Map<String, Object>> incrOrders = new ArrayList<Map<String, Object>>();
