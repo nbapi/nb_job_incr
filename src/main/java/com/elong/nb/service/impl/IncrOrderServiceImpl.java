@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -241,10 +243,10 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		if (startTimeDate == null) {
 			startTimeDate = DateHandlerUtils.getOffsetDate(nowDate, Calendar.MINUTE, -30);
 		}
-		logger.info("syncOrderToDB,get time = " + startTimeDate + ",from redis key = " + rediskey);
+		jobLogger.info("syncOrderToDB,get time = " + startTimeDate + ",from redis key = " + rediskey);
 		Date endTimeDate = DateHandlerUtils.getOffsetDate(nowDate, Calendar.MINUTE, -2);
 		if (startTimeDate.after(endTimeDate) || startTimeDate.equals(endTimeDate)) {
-			logger.info("startTimeDate after or equals endTimeDate,ignore it this time");
+			jobLogger.info("startTimeDate after or equals endTimeDate,ignore it this time");
 			return;
 		}
 
@@ -278,7 +280,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			return;
 		}
 
-		List<Object> orderIds = findOrderIds(orders);
+		Set<Object> orderIds = findOrderIds(orders);
 		// 没有需要主动查询的订单号，跳过
 		if (orderIds == null || orderIds.size() == 0) {
 			jobLogger.warn("syncOrderToDB ignore,due to orderIdList is null or empfy which not be found in OrderMessage,endTimestamp = "
@@ -287,6 +289,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		}
 		jobLogger.info("syncOrderToDB,orderIds size = " + orderIds.size() + ",endTimestamp = " + endTimestamp);
 
+		List<Object> orderIdList = new ArrayList<Object>(orderIds);
 		JSONArray bodyJsonArray = new JSONArray();
 		int recordCount = orderIds.size();
 		int pageSize = 100;
@@ -295,7 +298,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 			int startNum = (pageIndex - 1) * pageSize;
 			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			String getOrderResult = orderCenterService.getOrders(orderIds.subList(startNum, endNum));
+			String getOrderResult = orderCenterService.getOrders(orderIdList.subList(startNum, endNum));
 			if (StringUtils.isEmpty(getOrderResult)) {
 				jobLogger.warn("getOrders from orderCenter error:getOrderResult is null or empty. ");
 				return;
@@ -349,6 +352,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			handlerMap(incrOrderMap);
 			// 保存到IncrOrder表
 			incrOrders.add(incrOrderMap);
+			jobLogger.info("incrOrderMap = " + JSON.toJSONString(incrOrderMap));
 		}
 		endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",convertMap,vStatus,HandlerMap and so on");
@@ -379,9 +383,9 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 	 * @param orders
 	 * @return
 	 */
-	private List<Object> findOrderIds(List<Map<String, Object>> orders) {
+	private Set<Object> findOrderIds(List<Map<String, Object>> orders) {
 		long startTime = System.currentTimeMillis();
-		List<Object> orderIdList = new ArrayList<Object>();
+		Set<Object> orderIdList = new HashSet<Object>();
 		for (Map<String, Object> orderMap : orders) {
 			if (orderMap == null || orderMap.size() == 0)
 				continue;
