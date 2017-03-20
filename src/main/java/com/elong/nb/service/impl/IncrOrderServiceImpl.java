@@ -336,6 +336,8 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			Map<String, Object> sourceMap = new HashMap<String, Object>();
 			Object orderId = briefOrderMap.get("orderId");
 			Map<String, Object> jsonOrderMap = tempMap.get(orderId);
+			if (jsonOrderMap == null || jsonOrderMap.size() == 0)
+				continue;
 			sourceMap.putAll(jsonOrderMap);
 			sourceMap.putAll(briefOrderMap);
 			// 转换为IncrOrder需要格式

@@ -5,8 +5,6 @@
  */
 package com.elong.nb.controller;
 
-import java.util.Date;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,7 +23,6 @@ import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.IIncrRateService;
 import com.elong.nb.service.IIncrStateService;
 import com.elong.nb.service.INoticeService;
-import com.elong.nb.util.DateHandlerUtils;
 
 /**
  * IncrHotel、IncrRate、IncrInventory、IncrState、IncrOrder(兜底)同步Controller
@@ -228,8 +225,7 @@ public class SyncIncrToDBController {
 			logger.error(pathVariable + ",Controller,error = " + e.getMessage(), e);
 			result.setCode(ResponseResult.FAILURE);
 			result.setMessage(e.getMessage());
-			noticeService.sendMessage(pathVariable + ",error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
-					ExceptionUtils.getFullStackTrace(e));
+			noticeService.sendMessage(pathVariable + ",error:" + e.getMessage(), ExceptionUtils.getFullStackTrace(e));
 		}
 		long endTime = System.currentTimeMillis();
 		logger.info(pathVariable + ",Controller,use time = " + (endTime - startTime) + "ms");
