@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.util.DateHandlerUtils;
 
 /**
@@ -45,8 +47,19 @@ public abstract class AbstractDeleteService {
 		logger("deleteExpireIncrData begin to execute,expireDate = " + formatDateStr);
 		long startTime = System.currentTimeMillis();
 		// 查询待删数据主键,每批次最多2000条
+		int maxRecordCount = 2000;
+		String maxRecordCountStr = CommonsUtil.CONFIG_PROVIDAR.getProperty("GetIncrIdMaxRecordCount");
+		if (StringUtils.isNotEmpty(maxRecordCountStr)) {
+			try {
+				maxRecordCount = Integer.valueOf(maxRecordCountStr.trim());
+			} catch (NumberFormatException e) {
+				logger("deleteExpireIncrData,the config item'GetIncrIdMaxRecordCount' must be an Integer type.");
+				maxRecordCount = 2000;
+			}
+		}
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("changeTime", expireDate);
+		params.put("maxRecordCount", maxRecordCount);
 		List<BigInteger> incrIdList = getIncrIdList(params);
 		int successCount = CollectionUtils.isEmpty(incrIdList) ? 0 : incrIdList.size();
 		// 待删条件数据存在，并且执行时间未超过10分钟(防止执行时间过长job自动停)，则继续删除
@@ -57,13 +70,13 @@ public abstract class AbstractDeleteService {
 			logger("use time = " + (System.currentTimeMillis() - delStartTime) + ",deleteExpireIncrData successfully,count = " + count
 					+ ",expireDate = " + formatDateStr);
 			successCount += count;
-			// 查询待删数据主键,每批次最多2000条
-			incrIdList = getIncrIdList(params);
-			// sleep两秒再继续，防止数据库压力太大
+			// sleep一秒再继续，防止数据库压力太大
 			try {
-				Thread.sleep(2000l);
+				Thread.sleep(1000l);
 			} catch (InterruptedException e) {
 			}
+			// 查询待删数据主键,每批次最多2000条
+			incrIdList = getIncrIdList(params);
 		}
 		logger("use time = " + (System.currentTimeMillis() - startTime) + ",deleteExpireIncrData successfully,successCount = "
 				+ successCount + ",expireDate = " + formatDateStr);

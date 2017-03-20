@@ -19,7 +19,7 @@
 		<where>
 			<![CDATA[ and ChangeTime <= #{changeTime} ]]>
 		</where>
-		order by IncrID limit 0,2000
+		order by IncrID limit 0,#{maxRecordCount}
 	</select>
 
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条库存增量 -->

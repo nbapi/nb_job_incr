@@ -19,7 +19,7 @@
 		<where>
 			<![CDATA[ and ChangeTime <= #{changeTime} ]]>
 		</where>
-		order by IncrID limit 0,2000
+		order by IncrID limit 0,#{maxRecordCount}
 	</select>
 
 	<!-- 获取trigger的最后一条IncrHotel -->
