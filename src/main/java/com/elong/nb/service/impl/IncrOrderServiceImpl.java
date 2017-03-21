@@ -416,9 +416,9 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		String[] orderFroms = StringUtils.split(filterOrderFromStrV, ",", -1);
 		String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
 		String status = incrOrderMap.get("Status").toString();
-		int payStatus = Integer.parseInt(incrOrderMap.get("payStatus").toString());
+//		int payStatus = Integer.parseInt(incrOrderMap.get("payStatus").toString());
 		if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)
-				&& payStatus == -1) {
+				/*&& payStatus == -1*/) {
 			logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
 					+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
 			return false;
