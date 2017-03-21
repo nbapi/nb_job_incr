@@ -219,15 +219,18 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		// 批量插入IncrOrder
 		int incrOrderCount = incrOrders.size();
 		int successCount = 0;
-		jobLogger.info("IncrOrder BulkInsert start,recordCount = " + incrOrderCount);
 		String incrOrderBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrOrderBatchSize");
 		int batchSize = StringUtils.isEmpty(incrOrderBatchSize) ? 50 : Integer.valueOf(incrOrderBatchSize);
 		int batchCount = (int) Math.ceil(incrOrderCount * 1.0 / pageSize);
+		jobLogger.info("IncrOrder BulkInsert start,recordCount = " + incrOrderCount + ",batchCount = " + batchCount + ",batchSize = "
+				+ batchSize);
 		startTime = System.currentTimeMillis();
 		for (int batchIndex = 1; batchIndex <= batchCount; batchIndex++) {
 			int startNum = (batchIndex - 1) * batchSize;
 			int endNum = batchIndex * batchSize > incrOrderCount ? incrOrderCount : batchIndex * batchSize;
-			successCount += incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
+			int count = incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
+			jobLogger.info("IncrOrder BulkInsert,count = " + count + ",batchIndex = " + batchIndex);
+			successCount += count;
 		}
 		endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder BulkInsert,successCount = " + successCount);
