@@ -217,23 +217,26 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		jobLogger.info("use time = " + (endTime - startTime) + ",convertMap,vStatus,HandlerMap and so on");
 
 		// 批量插入IncrOrder
-		int incrOrderCount = incrOrders.size();
-		int successCount = 0;
+		builkInsert(incrOrders);
+	}
+
+	private void builkInsert(List<Map<String, Object>> incrOrders) {
+		int recordCount = incrOrders.size();
 		String incrOrderBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrOrderBatchSize");
-		int batchSize = StringUtils.isEmpty(incrOrderBatchSize) ? 50 : Integer.valueOf(incrOrderBatchSize);
-		int batchCount = (int) Math.ceil(incrOrderCount * 1.0 / pageSize);
-		jobLogger.info("IncrOrder BulkInsert start,recordCount = " + incrOrderCount + ",batchCount = " + batchCount + ",batchSize = "
-				+ batchSize);
-		startTime = System.currentTimeMillis();
-		for (int batchIndex = 1; batchIndex <= batchCount; batchIndex++) {
-			int startNum = (batchIndex - 1) * batchSize;
-			int endNum = batchIndex * batchSize > incrOrderCount ? incrOrderCount : batchIndex * batchSize;
+		int pageSize = StringUtils.isEmpty(incrOrderBatchSize) ? 50 : Integer.valueOf(incrOrderBatchSize);
+		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+		jobLogger.info("IncrOrder BulkInsert start,recordCount = " + recordCount + ",batchCount = " + pageCount + ",batchSize = "
+				+ pageSize);
+		long startTime = System.currentTimeMillis();
+		int successCount = 0;
+		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+			int startNum = (pageIndex - 1) * pageSize;
+			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
 			int count = incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
-			jobLogger.info("IncrOrder BulkInsert,count = " + count + ",batchIndex = " + batchIndex);
+			jobLogger.info("IncrOrder BulkInsert,count = " + count + ",pageIndex = " + pageIndex);
 			successCount += count;
 		}
-		endTime = System.currentTimeMillis();
-		jobLogger.info("use time = " + (endTime - startTime) + ",IncrOrder BulkInsert,successCount = " + successCount);
+		jobLogger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrOrder BulkInsert,successCount = " + successCount);
 	}
 
 	/** 
