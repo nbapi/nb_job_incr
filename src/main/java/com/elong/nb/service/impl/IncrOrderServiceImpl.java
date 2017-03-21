@@ -197,7 +197,6 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			Map<String, Object> sourceMap = new HashMap<String, Object>();
 			Object orderId = briefOrderMap.get("orderId");
 			Map<String, Object> jsonOrderMap = tempMap.get(orderId);
-			jobLogger.info("jsonOrderMap = " + JSON.toJSONString(jsonOrderMap));
 			if (jsonOrderMap == null || jsonOrderMap.size() == 0) {
 				continue;
 			}
