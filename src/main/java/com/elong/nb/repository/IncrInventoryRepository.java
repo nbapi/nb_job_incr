@@ -202,10 +202,11 @@ public class IncrInventoryRepository {
 
 				int recordCount = rows.size();
 				if (recordCount > 0) {
-					logger.info("IncrInventory BulkInsert start,recordCount = " + rows.size());
 					String incrInventoryBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryBatchSize");
 					int pageSize = StringUtils.isEmpty(incrInventoryBatchSize) ? 2000 : Integer.valueOf(incrInventoryBatchSize);
 					int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+					logger.info("IncrInventory BulkInsert start,recordCount = " + rows.size() + ",batchCount = " + pageCount
+							+ ",batchSize = " + pageSize);
 					startTime = System.currentTimeMillis();
 					int successCount = 0;
 					for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
