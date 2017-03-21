@@ -190,14 +190,20 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		jobLogger.info("syncOrderToDB tempMap size = " + tempMap.size() + ",endTimestamp = " + endTimeDate);
 
 		startTime = System.currentTimeMillis();
+		int testSize1 = 0;
+		int testSize2 = 0;
+		int testSize3 = 0;
 		List<Map<String, Object>> incrOrders = new ArrayList<Map<String, Object>>();
 		for (Map<String, Object> briefOrderMap : briefOrderList) {
-			if (briefOrderMap == null || briefOrderMap.size() == 0)
+			if (briefOrderMap == null || briefOrderMap.size() == 0){
+				testSize1 ++;
 				continue;
+			}
 			Map<String, Object> sourceMap = new HashMap<String, Object>();
 			Object orderId = briefOrderMap.get("orderId");
 			Map<String, Object> jsonOrderMap = tempMap.get(orderId);
 			if (jsonOrderMap == null || jsonOrderMap.size() == 0) {
+				testSize2++;
 				continue;
 			}
 			sourceMap.putAll(jsonOrderMap);
@@ -205,14 +211,17 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			// 转换为IncrOrder需要格式
 			Map<String, Object> incrOrderMap = convertMap(sourceMap);
 			// 判断是否推送V状态
-			if (!isPullVStatus(incrOrderMap))
+			if (!isPullVStatus(incrOrderMap)){
+				testSize3++;
 				continue;
+			}
 			// 订单增量 如果card是49，则通过orderFrom调用接口，返回原来的proxyid和card,并且status置成D
 			handlerMap(incrOrderMap);
 			// 保存到IncrOrder表
 			incrOrders.add(incrOrderMap);
 			jobLogger.info("incrOrderMap = " + JSON.toJSONString(incrOrderMap));
 		}
+		jobLogger.info("testSize1 = " + testSize1 + ",testSize2 = " + testSize2 + ",testSize3 = " + testSize3);
 		endTime = System.currentTimeMillis();
 		jobLogger.info("use time = " + (endTime - startTime) + ",convertMap,vStatus,HandlerMap and so on");
 
