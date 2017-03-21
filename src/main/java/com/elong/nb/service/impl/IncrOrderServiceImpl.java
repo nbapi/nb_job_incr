@@ -130,24 +130,30 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 	 */
 	private void syncIncrOrder(Date startTimeDate, Date endTimeDate) {
 		long startTime = System.currentTimeMillis();
-		// 查询上次截止时间至前2分钟
-
+		// 查询上次截止时间至前1分钟
 		List<Map<String, Object>> briefOrderList = getBriefOrders(startTimeDate, endTimeDate);
 		jobLogger.info("syncOrderToDB briefOrders size = " + briefOrderList.size() + ",endTimestamp = " + endTimeDate);
 
-		Set<Object> orderIds = findOrderIds(briefOrderList);
+		List<Map<String, Object>> missBriefOrderList = findMissBriefOrderList(briefOrderList);
 		// 没有需要主动查询的订单号，跳过
-		if (orderIds == null || orderIds.size() == 0) {
-			jobLogger.warn("syncOrderToDB ignore,due to orderIdList is null or empfy which not be found in OrderMessage,endTimestamp = "
+		if (missBriefOrderList == null || missBriefOrderList.size() == 0) {
+			jobLogger.warn("ignore,due to missBriefOrderList is null or empfy which not be found in OrderMessage,endTimestamp = "
 					+ endTimeDate);
 			return;
 		}
-		jobLogger.info("syncOrderToDB needOrderIds size = " + orderIds.size() + ",needOrderIds = " + JSON.toJSONString(orderIds)
-				+ ",endTimestamp = " + endTimeDate);
 
-		List<Object> orderIdList = new ArrayList<Object>(orderIds);
+		Set<Object> missBriefOrderIdSet = new HashSet<Object>();
+		for (Map<String, Object> missBriefOrder : missBriefOrderList) {
+			if (missBriefOrder == null || missBriefOrder.get("orderId") == null)
+				continue;
+			missBriefOrderIdSet.add(missBriefOrder.get("orderId"));
+		}
+		jobLogger.info("syncOrderToDB missBriefOrderIdSet size = " + missBriefOrderIdSet.size() + ",needOrderIds = "
+				+ JSON.toJSONString(missBriefOrderIdSet) + ",endTimestamp = " + endTimeDate);
+
+		List<Object> orderIdList = new ArrayList<Object>(missBriefOrderIdSet);
 		JSONArray bodyJsonArray = new JSONArray();
-		int recordCount = orderIds.size();
+		int recordCount = missBriefOrderIdSet.size();
 		int pageSize = 100;
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		startTime = System.currentTimeMillis();
@@ -165,9 +171,6 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			if (retcode != 0) {
 				jobLogger.warn("getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc") + ",endTimestamp = "
 						+ endTimeDate);
-				noticeService.sendMessage(
-						"getOrders from orderCenter error:" + DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"),
-						"getOrders from orderCenter has been failured,retdesc = " + jsonObj.get("retdesc"));
 				return;
 			}
 			bodyJsonArray.addAll(jsonObj.getJSONArray("body"));
@@ -194,9 +197,9 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		int testSize2 = 0;
 		int testSize3 = 0;
 		List<Map<String, Object>> incrOrders = new ArrayList<Map<String, Object>>();
-		for (Map<String, Object> briefOrderMap : briefOrderList) {
-			if (briefOrderMap == null || briefOrderMap.size() == 0){
-				testSize1 ++;
+		for (Map<String, Object> briefOrderMap : missBriefOrderList) {
+			if (briefOrderMap == null || briefOrderMap.size() == 0) {
+				testSize1++;
 				continue;
 			}
 			Map<String, Object> sourceMap = new HashMap<String, Object>();
@@ -211,7 +214,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			// 转换为IncrOrder需要格式
 			Map<String, Object> incrOrderMap = convertMap(sourceMap);
 			// 判断是否推送V状态
-			if (!isPullVStatus(incrOrderMap)){
+			if (!isPullVStatus(incrOrderMap)) {
 				testSize3++;
 				continue;
 			}
@@ -294,9 +297,9 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 	 * @param orders
 	 * @return
 	 */
-	private Set<Object> findOrderIds(List<Map<String, Object>> orders) {
+	private List<Map<String, Object>> findMissBriefOrderList(List<Map<String, Object>> orders) {
 		long startTime = System.currentTimeMillis();
-		Set<Object> orderIdList = new HashSet<Object>();
+		List<Map<String, Object>> missBriefOrderList = new ArrayList<Map<String, Object>>();
 		for (Map<String, Object> orderMap : orders) {
 			if (orderMap == null || orderMap.size() == 0)
 				continue;
@@ -312,7 +315,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			IncrOrder incrOrder = incrOrderDao.getLastIncrOrder(params);
 			// 工作库不存在该订单时，兜底查询
 			if (incrOrder == null) {
-				orderIdList.add(orderId);
+				missBriefOrderList.add(orderMap);
 				continue;
 			}
 			Date orderTimestamp = null;
@@ -327,12 +330,13 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			}
 			// 工作库时间小于订单时间戳时,兜底查询
 			if (orderTimestamp != null && incrOrder.getChangeTime().before(orderTimestamp)) {
-				orderIdList.add(orderId);
+				missBriefOrderList.add(orderMap);
 			}
 		}
 		long endTime = System.currentTimeMillis();
-		jobLogger.info("use time = " + (endTime - startTime) + ",findOrderIds,orderIdList size = " + orderIdList.size());
-		return orderIdList;
+		jobLogger.info("use time = " + (endTime - startTime) + ",findMissBriefOrderList,missBriefOrderList size = "
+				+ missBriefOrderList.size());
+		return missBriefOrderList;
 	}
 
 	/** 
