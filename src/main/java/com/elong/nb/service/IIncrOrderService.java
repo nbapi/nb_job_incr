@@ -5,7 +5,6 @@
  */
 package com.elong.nb.service;
 
-import com.elong.nb.model.OrderMessageResponse;
 
 /**
  * IncrOrder服务接口
@@ -22,7 +21,7 @@ import com.elong.nb.model.OrderMessageResponse;
  * @since		JDK1.7
  */
 public interface IIncrOrderService {
-	
+
 	/** 
 	 * 删除订单增量
 	 *
@@ -34,20 +33,5 @@ public interface IIncrOrderService {
 	 *
 	 */
 	public void syncOrderToDB();
-
-	/** 
-	 * 检查订单中心消息 
-	 *
-	 * @param message
-	 * @return
-	 */
-	public OrderMessageResponse checkMessage(String message);
-
-	/** 
-	 * 处理订单中心消息
-	 *
-	 * @param message
-	 */
-	public void handlerMessage(String message);
 
 }
