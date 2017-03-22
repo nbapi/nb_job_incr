@@ -436,13 +436,12 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		String cardNo = (incrOrderMap.get("CardNo") == null) ? StringUtils.EMPTY : incrOrderMap.get("CardNo").toString();
 		if (!StringUtils.equals("49", cardNo))
 			return;
+		incrOrderMap.put("Status", "D");
 		OrderFromResult orderProxy = commonRepository.getProxyInfoByOrderFrom((int) incrOrderMap.get("OrderFrom"));
 		if (orderProxy == null || orderProxy.getData() == null || StringUtils.isEmpty(orderProxy.getData().getProxyId()))
 			return;
 		incrOrderMap.put("ProxyId", orderProxy.getData().getProxyId());
 		incrOrderMap.put("CardNo", orderProxy.getData().getCardNo());
-		incrOrderMap.put("Status", "D");
-
 	}
 
 	@Override

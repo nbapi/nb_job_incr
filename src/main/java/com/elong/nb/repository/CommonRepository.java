@@ -115,6 +115,7 @@ public class CommonRepository {
 			logger.info("httpGet,url = " + url);
 			String result = HttpUtil.httpGetData(url);
 			logger.info("httpGet,result = " + result);
+			result = StringUtils.replace(result, "\\", "");
 			orderFromResult = JSON.parseObject(result, OrderFromResult.class);
 		} catch (Exception ex) {
 			orderFromResult = orderFromResult == null ? new OrderFromResult() : orderFromResult;
