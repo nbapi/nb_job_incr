@@ -59,7 +59,6 @@ import com.elong.nb.util.DateHandlerUtils;
 @Service
 public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncrOrderService {
 
-	private static final Logger logger = Logger.getLogger("IncrOrderLogger");
 	private static final Logger jobLogger = Logger.getLogger("IncrOrderJobLogger");
 
 	@Resource
@@ -148,8 +147,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 				continue;
 			missBriefOrderIdSet.add(missBriefOrder.get("orderId"));
 		}
-		jobLogger.info("syncOrderToDB missBriefOrderIdSet size = " + missBriefOrderIdSet.size() + ",needOrderIds = "
-				+ JSON.toJSONString(missBriefOrderIdSet) + ",endTimestamp = " + endTimeDate);
+		jobLogger.info("syncOrderToDB missBriefOrderIdSet size = " + missBriefOrderIdSet.size() + ",endTimestamp = " + endTimeDate);
 
 		List<Object> orderIdList = new ArrayList<Object>(missBriefOrderIdSet);
 		JSONArray bodyJsonArray = new JSONArray();
@@ -285,8 +283,10 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			if (orders != null && orders.size() > 0) {
 				briefOrderList.addAll(orders);
 			}
-			startTimestamp = orders.get(orders.size() - 1).get("orderTimestamp").toString();
 			hasNext = orderCenterResult.getBody().isHasNext();
+			if (hasNext) {
+				startTimestamp = orders.get(orders.size() - 1).get("orderTimestamp").toString();
+			}
 		}
 		return briefOrderList;
 	}
@@ -355,7 +355,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 					"yyyy-MM-dd HH:mm:ss" });
 			targetMap.put("ChangeTime", changeTime);
 		} catch (ParseException e) {
-			logger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
+			jobLogger.error("orderTimestamp is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 
 		targetMap.put("OrderId", sourceMap.get("orderId"));
@@ -376,7 +376,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			}
 			targetMap.put("AffiliateConfirmationId", affiliateConfirmationId);
 		} catch (Exception e) {
-			logger.error("AffiliateConfirmationId doHandler error " + e.getMessage(), e);
+			jobLogger.error("AffiliateConfirmationId doHandler error " + e.getMessage(), e);
 		}
 		targetMap.put("Status", sourceMap.get("status"));
 		targetMap.put("payStatus", sourceMap.get("payStatus") == null ? -1 : sourceMap.get("payStatus"));
@@ -385,14 +385,14 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			Date arrivalDate = DateUtils.parseDate(checkInDate, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
 			targetMap.put("ArrivalDate", arrivalDate);
 		} catch (ParseException e) {
-			logger.error("checkInDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
+			jobLogger.error("checkInDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 		try {
 			String checkOutDate = (String) sourceMap.get("checkOutDate");
 			Date departureDate = DateUtils.parseDate(checkOutDate, new String[] { "yyyy-MM-dd HH:mm:ss:SSS", "yyyy-MM-dd HH:mm:ss" });
 			targetMap.put("DepartureDate", departureDate);
 		} catch (ParseException e) {
-			logger.error("checkOutDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
+			jobLogger.error("checkOutDate is error format,not be ['yyyy-MM-dd HH:mm:ss:SSS','yyyy-MM-dd HH:mm:ss']", e);
 		}
 		targetMap.put("TotalPrice", sourceMap.get("sumPrice"));
 		targetMap.put("NumberOfRooms", sourceMap.get("roomCount"));
@@ -416,10 +416,10 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		String[] orderFroms = StringUtils.split(filterOrderFromStrV, ",", -1);
 		String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
 		String status = incrOrderMap.get("Status").toString();
-//		int payStatus = Integer.parseInt(incrOrderMap.get("payStatus").toString());
+		// int payStatus = Integer.parseInt(incrOrderMap.get("payStatus").toString());
 		if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)
-				/*&& payStatus == -1*/) {
-			logger.info("status = " + status + ",orderFrom = " + currentOrderFrom
+		/* && payStatus == -1 */) {
+			jobLogger.info("status = " + status + ",orderFrom = " + currentOrderFrom
 					+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
 			return false;
 		}
@@ -457,7 +457,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 
 	@Override
 	protected void logger(String message) {
-		logger.info(message);
+		jobLogger.info(message);
 	}
 
 }
