@@ -18,14 +18,12 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.springframework.stereotype.Repository;
 
-import com.alibaba.fastjson.JSON;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailRequest;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailResponse;
 import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeListRequest;
@@ -375,8 +373,6 @@ public class IncrInventoryRepository {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
 			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "doHandlerChangeModel", "IncrInventoryRepository", ex,
 					System.currentTimeMillis() - startTimel, -1, ex.getMessage(), null);
-			noticeService.sendMessage(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error",
-					"request = " + JSON.toJSONString(request) + ".\n" + ExceptionUtils.getFullStackTrace(ex));
 		}
 	}
 

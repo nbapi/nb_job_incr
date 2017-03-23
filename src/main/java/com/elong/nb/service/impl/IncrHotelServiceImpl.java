@@ -131,9 +131,8 @@ public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncr
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
-					noticeService.sendMessage(
-							"SyncHotelToDB,thread dohandler 'IncrInventory' error:"
-									+ DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrInventory' error:" + e.getMessage(),
+							ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});
@@ -179,9 +178,8 @@ public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncr
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
-					noticeService.sendMessage(
-							"SyncHotelToDB,thread dohandler 'IncrRate' error:"
-									+ DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"), ExceptionUtils.getFullStackTrace(e));
+					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrRate' error:" + e.getMessage(),
+							ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});
@@ -316,7 +314,7 @@ public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncr
 		logger.info("after filterDuplicationHotel,count = " + resultlist.size());
 		return resultlist;
 	}
-	
+
 	@Override
 	protected List<BigInteger> getIncrIdList(Map<String, Object> params) {
 		return incrHotelDao.getIncrIdList(params);
