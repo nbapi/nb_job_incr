@@ -32,6 +32,7 @@ import com.elong.nb.dao.IncrOrderDao;
 import com.elong.nb.model.OrderCenterResult;
 import com.elong.nb.model.OrderFromResult;
 import com.elong.nb.model.bean.IncrOrder;
+import com.elong.nb.model.enums.EnumPayStatus;
 import com.elong.nb.model.enums.OrderChangeStatusEnum;
 import com.elong.nb.repository.CommonRepository;
 import com.elong.nb.repository.IncrOrderRepository;
@@ -410,20 +411,20 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 	 * @return
 	 */
 	public boolean isPullVStatus(Map<String, Object> incrOrderMap) {
+		int payStatus = Integer.parseInt(incrOrderMap.get("payStatus").toString());
+		if (payStatus != EnumPayStatus.UNEXISTSPAY.getValue() && payStatus != EnumPayStatus.WAITING.getValue())
+			return true;
 		String filterOrderFromStrV = CommonsUtil.CONFIG_PROVIDAR.getProperty("FilterOrderFromStrV");
-		if (!StringUtils.isNotEmpty(filterOrderFromStrV))
+		if (StringUtils.isEmpty(filterOrderFromStrV))
 			return true;
 		String[] orderFroms = StringUtils.split(filterOrderFromStrV, ",", -1);
 		String currentOrderFrom = String.valueOf(incrOrderMap.get("OrderFrom"));
 		String status = incrOrderMap.get("Status").toString();
-		// int payStatus = Integer.parseInt(incrOrderMap.get("payStatus").toString());
-		if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)
-		/* && payStatus == -1 */) {
+		if (!ArrayUtils.contains(orderFroms, currentOrderFrom) && StringUtils.equals(OrderChangeStatusEnum.V.toString(), status)) {
 			jobLogger.info("status = " + status + ",orderFrom = " + currentOrderFrom
-					+ "ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
+					+ ",ignore sync to incrOrder, due to no in value whose key is 'FilterOrderFromStrV' of 'config.properties'");
 			return false;
 		}
-
 		return true;
 	}
 
