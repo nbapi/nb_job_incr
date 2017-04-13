@@ -88,7 +88,15 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 	 */
 	@Override
 	public void delOrderFromDB() {
-		deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
+		String keepHours = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrOrder.delete.keepHours");
+		keepHours = StringUtils.isEmpty(keepHours) ? "-360" : StringUtils.trim(keepHours);
+		int offset = -1;
+		try {
+			offset = Integer.valueOf(keepHours);
+		} catch (NumberFormatException e) {
+			offset = -360;
+		}
+		deleteExpireIncrData(DateHandlerUtils.getDBExpireDate(offset));
 	}
 
 	/** 
