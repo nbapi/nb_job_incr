@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +29,6 @@ import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.repository.IncrHotelRepository;
 import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrHotelService;
-import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.DateHandlerUtils;
 
 import edu.emory.mathcs.backport.java.util.Collections;
@@ -61,9 +59,6 @@ public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncr
 
 	@Resource
 	private IncrHotelDao incrHotelDao;
-
-	@Resource
-	private INoticeService noticeService;
 
 	/** 
 	 * 删除酒店增量
@@ -131,8 +126,6 @@ public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncr
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
-					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrInventory' error:" + e.getMessage(),
-							ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});
@@ -178,8 +171,6 @@ public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncr
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
-					noticeService.sendMessage("SyncHotelToDB,thread dohandler 'IncrRate' error:" + e.getMessage(),
-							ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 		});

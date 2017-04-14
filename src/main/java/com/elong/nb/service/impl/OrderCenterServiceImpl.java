@@ -9,15 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.common.util.CommonsUtil;
-import com.elong.nb.service.INoticeService;
 import com.elong.nb.service.OrderCenterService;
 import com.elong.nb.util.HttpClientUtils;
 
@@ -39,9 +36,6 @@ import com.elong.nb.util.HttpClientUtils;
 public class OrderCenterServiceImpl implements OrderCenterService {
 
 	private static final Logger logger = Logger.getLogger("OrderCenterLogger");
-
-	@Resource
-	private INoticeService noticeService;
 
 	/** 
 	 * 获取订单基础数据

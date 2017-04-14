@@ -39,7 +39,6 @@ import com.elong.nb.repository.IncrOrderRepository;
 import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.IIncrSetInfoService;
-import com.elong.nb.service.INoticeService;
 import com.elong.nb.service.OrderCenterService;
 import com.elong.nb.util.DateHandlerUtils;
 
@@ -73,9 +72,6 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 
 	@Resource
 	private OrderCenterService orderCenterService;
-
-	@Resource
-	private INoticeService noticeService;
 
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;

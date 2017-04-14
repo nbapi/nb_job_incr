@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -68,7 +67,8 @@ public class SHotelIdFilterService implements IFilterService {
 	 */
 	@Override
 	public boolean doFilter(String hotelCode) {
-		if(StringUtils.isEmpty(hotelCode)) return false;
+		if (StringUtils.isEmpty(hotelCode))
+			return false;
 		// 本地缓存、5分钟刷新本地缓存
 		if (!filteredSHotelIds.containsKey(hotelCode) || (System.currentTimeMillis() - lastChangeTime) >= 5 * 60 * 1000) {
 			boolean isFilter = checkHotelCode(hotelCode);
@@ -113,7 +113,7 @@ public class SHotelIdFilterService implements IFilterService {
 
 		JSONObject jsonObj = (JSONObject) responseBase.getRealResponse();
 		HotelCodeRuleRealResponse realResponse = JSONObject.parseObject(jsonObj.toJSONString(), HotelCodeRuleRealResponse.class);
-		if (realResponse == null || MapUtils.isEmpty(realResponse.getResultMap()))
+		if (realResponse == null || realResponse.getResultMap() == null || realResponse.getResultMap().size() == 0)
 			return false;
 
 		return true;

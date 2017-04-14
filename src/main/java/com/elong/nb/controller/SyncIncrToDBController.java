@@ -8,7 +8,6 @@ package com.elong.nb.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
@@ -22,7 +21,6 @@ import com.elong.nb.service.IIncrInventoryService;
 import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.IIncrRateService;
 import com.elong.nb.service.IIncrStateService;
-import com.elong.nb.service.INoticeService;
 
 /**
  * IncrHotel、IncrRate、IncrInventory、IncrState、IncrOrder(兜底)同步Controller
@@ -57,9 +55,6 @@ public class SyncIncrToDBController {
 
 	@Resource
 	private IIncrOrderService incrOrderService;
-
-	@Resource
-	private INoticeService noticeService;
 
 	/** 
 	 * 删除酒店增量job
@@ -225,7 +220,6 @@ public class SyncIncrToDBController {
 			logger.error(pathVariable + ",Controller,error = " + e.getMessage(), e);
 			result.setCode(ResponseResult.FAILURE);
 			result.setMessage(e.getMessage());
-			noticeService.sendMessage(pathVariable + ",error:" + e.getMessage(), ExceptionUtils.getFullStackTrace(e));
 		}
 		long endTime = System.currentTimeMillis();
 		logger.info(pathVariable + ",Controller,use time = " + (endTime - startTime) + "ms");

@@ -36,7 +36,6 @@ import com.elong.nb.common.checklist.Constants;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.service.IFilterService;
-import com.elong.nb.service.INoticeService;
 import com.elong.nb.util.ExecutorUtils;
 import com.elong.nb.util.ThreadLocalUtil;
 import com.elong.springmvc_enhance.utilities.ActionLogHelper;
@@ -75,9 +74,6 @@ public class IncrInventoryRepository {
 
 	@Resource
 	private CommonRepository commonRepository;
-
-	@Resource
-	private INoticeService noticeService;
 
 	@Resource
 	private IFilterService filterService;
