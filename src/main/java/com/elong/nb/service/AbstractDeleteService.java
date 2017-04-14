@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.elong.nb.common.util.CommonsUtil;
@@ -61,7 +60,7 @@ public abstract class AbstractDeleteService {
 		params.put("changeTime", expireDate);
 		params.put("maxRecordCount", maxRecordCount);
 		List<BigInteger> incrIdList = getIncrIdList(params);
-		int successCount = CollectionUtils.isEmpty(incrIdList) ? 0 : incrIdList.size();
+		int successCount = incrIdList==null ? 0 : incrIdList.size();
 		// 待删条件数据存在，并且执行时间未超过10分钟(防止执行时间过长job自动停)，则继续删除
 		while (incrIdList != null && incrIdList.size() > 0 && DateHandlerUtils.withinTenMinutes(startTime)) {
 			long delStartTime = System.currentTimeMillis();
