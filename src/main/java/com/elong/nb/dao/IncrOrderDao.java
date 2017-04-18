@@ -35,7 +35,7 @@ public interface IncrOrderDao {
 	 * @param limit
 	 * @return 返回删除数量
 	 */
-	@DataSource("dataSource_nbhotelincr_write")
+	@DataSource("dataSource_incrorder_write")
 	public int deleteByIncrIdList(List<BigInteger> incrIdList);
 	
 	/** 
@@ -44,7 +44,7 @@ public interface IncrOrderDao {
 	 * @param params
 	 * @return
 	 */
-	@DataSource("dataSource_nbhotelincr_write")
+	@DataSource("dataSource_incrorder_write")
 	public List<BigInteger> getIncrIdList(Map<String, Object> params);
 
 	/** 
@@ -53,7 +53,7 @@ public interface IncrOrderDao {
 	 * @param paramMap
 	 * @return
 	 */
-	@DataSource("dataSource_nbhotelincr_read")
+	@DataSource("dataSource_incrorder_write")
 	public IncrOrder getLastIncrOrder(Map<String, Object> paramMap);
 
 	/** 
@@ -61,7 +61,7 @@ public interface IncrOrderDao {
 	 *
 	 * @param incrOrderMap
 	 */
-	@DataSource("dataSource_nbhotelincr_write")
+	@DataSource("dataSource_incrorder_write")
 	public int insert(Map<String, Object> incrOrderMap);
 
 	/** 
@@ -69,7 +69,7 @@ public interface IncrOrderDao {
 	 *
 	 * @param incrOrders
 	 */
-	@DataSource("dataSource_nbhotelincr_write")
+	@DataSource("dataSource_incrorder_write")
 	public int bulkInsert(List<Map<String, Object>> incrOrders);
 
 }
