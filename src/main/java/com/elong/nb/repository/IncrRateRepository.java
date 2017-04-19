@@ -53,7 +53,7 @@ public class IncrRateRepository {
 
 	@Resource
 	private SqlServerDataDao sqlServerDataDao;
-	
+
 	@Resource
 	private IFilterService filterService;
 
@@ -66,9 +66,9 @@ public class IncrRateRepository {
 	public long syncRatesToDB(long changID) {
 		Map<String, Object> params = new HashMap<String, Object>();
 		String tablename = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrRateFromTable");
-		if(StringUtils.isEmpty(tablename)){
+		if (StringUtils.isEmpty(tablename)) {
 			params.put("tablename", "PriceInfo_track");
-		}else{
+		} else {
 			params.put("tablename", tablename);
 		}
 		if (changID > 0) {
@@ -79,6 +79,11 @@ public class IncrRateRepository {
 		logger.info("getDataFromPriceInfoTrack, params = " + params);
 		long startTime = System.currentTimeMillis();
 		List<Map<String, Object>> incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
+		if (StringUtils.isEmpty(tablename)) {
+			incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
+		} else {
+			incrRateList = sqlServerDataDao.getDataFromPriceInfo(params);
+		}
 		long endTime = System.currentTimeMillis();
 		int incrRateListSize = (incrRateList == null) ? 0 : incrRateList.size();
 		logger.info("use time = " + (endTime - startTime) + ",getDataFromPriceInfoTrack, incrRateList size = " + incrRateListSize);
@@ -98,7 +103,7 @@ public class IncrRateRepository {
 
 			String shotelId = (String) rowMap.get("HotelCode");
 			if (filteredSHotelIds.contains(shotelId)) {
-//			if (filterService.doFilter(shotelId)) {
+				// if (filterService.doFilter(shotelId)) {
 				// logger.info("filteredSHotelIds contain value[" + shotelId + "],ignore it.");
 				continue;
 			}
@@ -122,7 +127,7 @@ public class IncrRateRepository {
 		logger.info("use time = " + (endTime - startTime) + ",fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
 
 		int recordCount = incrRates.size();
-		if(recordCount > 0){
+		if (recordCount > 0) {
 			int successCount = 0;
 			logger.info("IncrRate BulkInsert start,recordCount = " + recordCount);
 			String incrRateBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrRateBatchSize");
@@ -138,7 +143,7 @@ public class IncrRateRepository {
 			logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,successCount = " + successCount);
 			changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");
 		}
-		
+
 		return changID;
 	}
 

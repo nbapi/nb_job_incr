@@ -25,6 +25,15 @@ import com.elong.nb.db.DataSource;
  * @since		JDK1.7
  */
 public interface SqlServerDataDao {
+	
+	/** 
+	 * 查询增量价格待同步数据
+	 *
+	 * @param params
+	 * @return
+	 */
+	@DataSource("dataSource_sqlserver_13")
+	public List<Map<String, Object>> getDataFromPriceInfo(Map<String, Object> params);
 
 	/** 
 	 * 查询增量价格待同步数据
