@@ -17,8 +17,6 @@ import java.net.URL;
 import java.nio.charset.CodingErrorAction;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.Consts;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -50,8 +48,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
  * @since		JDK1.7
  */
 public class HttpClientUtils {
-
-	private static final Log logger = LogFactory.getLog(HttpClientUtils.class);
 
 	private static CloseableHttpClient client = generateHttpClient();
 

@@ -16,13 +16,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
-import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrHotelDao;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
+import com.elong.nb.submeter.service.ISubmeterService;
 
 /**
  *
@@ -41,6 +41,12 @@ import com.elong.nb.model.bean.IncrRate;
 public class IncrHotelRepository {
 
 	private static final Logger logger = Logger.getLogger("IncrHotelLogger");
+
+	@Resource(name = "incrHotelSubmeterService")
+	private ISubmeterService<IncrHotel> incrHotelSubmeterService;
+
+	@Resource(name = "incrInventorySubmeterService")
+	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
 	@Resource
 	private IncrHotelDao incrHotelDao;
@@ -61,7 +67,7 @@ public class IncrHotelRepository {
 		if (StringUtils.isEmpty(trigger)) {
 			throw new IllegalArgumentException("GetLastHotel,the paramter 'trigger' must not be null or empty.");
 		}
-		return incrHotelDao.getLastHotel(trigger);
+		return incrHotelSubmeterService.getLastIncrData(trigger);
 	}
 
 	/** 
@@ -75,10 +81,7 @@ public class IncrHotelRepository {
 		if (changeTime == null || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrInventories,the paramter ['changeTime' or 'maxRecordCount'] must not be null or 0.");
 		}
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("changeTime", changeTime);
-		params.put("maxRecordCount", maxRecordCount);
-		return incrInventoryDao.getIncrInventories(params);
+		return incrInventorySubmeterService.getIncrDataList(changeTime, maxRecordCount);
 	}
 
 	/** 
@@ -92,10 +95,7 @@ public class IncrHotelRepository {
 		if (incrID == 0l || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrInventories,the paramter ['incrID' or 'maxRecordCount'] must not be null or 0.");
 		}
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("incrID", incrID);
-		params.put("maxRecordCount", maxRecordCount);
-		return incrInventoryDao.getIncrInventories(params);
+		return incrInventorySubmeterService.getIncrDataList(incrID, maxRecordCount);
 	}
 
 	/** 
@@ -140,22 +140,11 @@ public class IncrHotelRepository {
 	public void syncIncrHotelToDB(List<IncrHotel> hotels) {
 		if (hotels == null || hotels.size() == 0)
 			return;
-		int recordCount = hotels.size();
-		if (recordCount > 0) {
-			int successCount = 0;
-			logger.info("IncrHotel BulkInsert start,recordCount = " + recordCount);
-			String incrHotelBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrHotelBatchSize");
-			int pageSize = StringUtils.isEmpty(incrHotelBatchSize) ? 2000 : Integer.valueOf(incrHotelBatchSize);
-			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-			long startTime = System.currentTimeMillis();
-			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-				int startNum = (pageIndex - 1) * pageSize;
-				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-				successCount += incrHotelDao.bulkInsert(hotels.subList(startNum, endNum));
-			}
-			long endTime = System.currentTimeMillis();
-			logger.info("use time = " + (endTime - startTime) + ",IncrHotel BulkInsert successfully,successCount = " + successCount);
-		}
+		logger.info("IncrHotel BulkInsert start,recordCount = " + hotels.size());
+		long startTime = System.currentTimeMillis();
+		int successCount = incrHotelSubmeterService.builkInsert(hotels);
+		long endTime = System.currentTimeMillis();
+		logger.info("use time = " + (endTime - startTime) + ",IncrHotel BulkInsert successfully,successCount = " + successCount);
 	}
 
 }

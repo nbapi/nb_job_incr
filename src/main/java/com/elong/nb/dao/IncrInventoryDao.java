@@ -5,9 +5,10 @@
  */
 package com.elong.nb.dao;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
 
 import com.elong.nb.db.DataSource;
 import com.elong.nb.model.bean.IncrInventory;
@@ -29,39 +30,30 @@ import com.elong.nb.model.bean.IncrInventory;
 public interface IncrInventoryDao {
 
 	/** 
-	 * 删除过期IncrInventory
-	 *
-	 * @param params
-	 * @return 返回删除数量
-	 */
-	@DataSource("dataSource_nbhotelincr_write")
-	public int deleteByIncrIdList(List<BigInteger> incrIdList);
-
-	/** 
-	 * 获取指定changeTime之前的IncrId集合
-	 *
-	 * @param params
-	 * @return
-	 */
-	@DataSource("dataSource_nbhotelincr_write")
-	public List<BigInteger> getIncrIdList(Map<String, Object> params);
-
-	/** 
 	 * changTime 获取大于指定changeTime的最早发生变化的库存增量
 	 * incrID 获取大于指定incrID的maxRecordCount条库存增量
-	 * maxRecordCount 	
+	 *  	
 	 * @param params
 	 * @return
 	 */
 	@DataSource("dataSource_nbhotelincr_read")
-	public List<IncrInventory> getIncrInventories(Map<String, Object> params);
+	public List<IncrInventory> getIncrInventories(@Param("subTableName") String subTableName, @Param("params") Map<String, Object> params);
 
 	/** 
-	 * 批量插入IncrInventory
+	 * 批量插入IncrInventory到指定分表subTableName
 	 *
 	 * @param incrInventories
 	 */
 	@DataSource("dataSource_nbhotelincr_write")
-	public int bulkInsert(List<Map<String, Object>> incrInventories);
+	public int bulkInsertSub(@Param("subTableName") String subTableName, @Param("list") List<IncrInventory> incrInventories);
+
+	/** 
+	 * 创建分表
+	 *
+	 * @param tableName
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_write")
+	public int createSubTable(@Param("tableName") String tableName);
 
 }

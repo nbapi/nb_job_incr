@@ -5,7 +5,6 @@
  */
 package com.elong.nb.service.impl;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -22,12 +21,10 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
-import com.elong.nb.dao.IncrHotelDao;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.repository.IncrHotelRepository;
-import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrHotelService;
 import com.elong.nb.util.DateHandlerUtils;
 
@@ -48,7 +45,7 @@ import edu.emory.mathcs.backport.java.util.Collections;
  * @since		JDK1.7
  */
 @Service
-public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncrHotelService {
+public class IncrHotelServiceImpl implements IIncrHotelService {
 
 	private static final Logger logger = Logger.getLogger("IncrHotelLogger");
 
@@ -56,21 +53,6 @@ public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncr
 
 	@Resource
 	private IncrHotelRepository incrHotelRepository;
-
-	@Resource
-	private IncrHotelDao incrHotelDao;
-
-	/** 
-	 * 删除酒店增量
-	 * 
-	 *
-	 * @see com.elong.nb.service.IIncrHotelService#delHotelFromDB()    
-	 */
-	@Override
-	public void delHotelFromDB() {
-		// 删除30小时以前的数据
-		deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-	}
 
 	/** 
 	 * 同步酒店增量
@@ -304,21 +286,6 @@ public class IncrHotelServiceImpl extends AbstractDeleteService implements IIncr
 		}
 		logger.info("after filterDuplicationHotel,count = " + resultlist.size());
 		return resultlist;
-	}
-
-	@Override
-	protected List<BigInteger> getIncrIdList(Map<String, Object> params) {
-		return incrHotelDao.getIncrIdList(params);
-	}
-
-	@Override
-	protected int deleteByIncrIdList(List<BigInteger> incrIdList) {
-		return incrHotelDao.deleteByIncrIdList(incrIdList);
-	}
-
-	@Override
-	protected void logger(String message) {
-		logger.info(message);
 	}
 
 }

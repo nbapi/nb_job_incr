@@ -5,7 +5,6 @@
  */
 package com.elong.nb.service.impl;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,13 +37,14 @@ import com.elong.nb.model.GetInvLimitDataRequest;
 import com.elong.nb.model.GetInvLimitResponse;
 import com.elong.nb.model.RequestBase;
 import com.elong.nb.model.ResponseBase;
+import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.domain.InvLimitBlackListVo;
 import com.elong.nb.repository.CommonRepository;
 import com.elong.nb.repository.IncrInventoryRepository;
 import com.elong.nb.repository.MSRelationRepository;
-import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrInventoryService;
 import com.elong.nb.service.IIncrSetInfoService;
+import com.elong.nb.submeter.service.ISubmeterService;
 import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.HttpClientUtils;
 
@@ -63,7 +63,7 @@ import com.elong.nb.util.HttpClientUtils;
  * @since		JDK1.7
  */
 @Service
-public class IncrInventoryServiceImpl extends AbstractDeleteService implements IIncrInventoryService {
+public class IncrInventoryServiceImpl implements IIncrInventoryService {
 
 	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
 
@@ -85,17 +85,8 @@ public class IncrInventoryServiceImpl extends AbstractDeleteService implements I
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
 
-	/** 
-	 * 删除库存增量
-	 * 
-	 *
-	 * @see com.elong.nb.service.IIncrInventoryService#delInventoryFromDB()    
-	 */
-	@Override
-	public void delInventoryFromDB() {
-		// 删除10小时以前的数据
-		deleteExpireIncrData(DateHandlerUtils.getDBExpireDate(-10));
-	}
+	@Resource(name = "incrInventorySubmeterService")
+	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
 	/** 
 	 * 同步库存增量
@@ -199,7 +190,7 @@ public class IncrInventoryServiceImpl extends AbstractDeleteService implements I
 
 		// // 最大支持300线程并行
 		long startTime = System.currentTimeMillis();
-		List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+		List<IncrInventory> rows = new ArrayList<IncrInventory>();
 		for (Map.Entry<String, InvLimitBlackListVo> entry : sourceMap.entrySet()) {
 			try {
 				syncInventoryToDB(entry.getValue(), rows);
@@ -216,17 +207,17 @@ public class IncrInventoryServiceImpl extends AbstractDeleteService implements I
 			return;
 
 		startTime = System.currentTimeMillis();
-		Collections.sort(rows, new Comparator<Map<String, Object>>() {
+		Collections.sort(rows, new Comparator<IncrInventory>() {
 			@Override
-			public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+			public int compare(IncrInventory o1, IncrInventory o2) {
 				if (o1 == null && o2 == null)
 					return 0;
 				if (o1 == null)
 					return -1;
 				if (o2 == null)
 					return 1;
-				Object o1ChangeTimeObj = o1.get("ChangeTime");
-				Object o2ChangeTimeObj = o2.get("ChangeTime");
+				Date o1ChangeTimeObj = o1.getChangeTime();
+				Date o2ChangeTimeObj = o2.getChangeTime();
 				if (o1ChangeTimeObj == null && o2ChangeTimeObj == null)
 					return 0;
 				if (o1ChangeTimeObj == null)
@@ -241,17 +232,10 @@ public class IncrInventoryServiceImpl extends AbstractDeleteService implements I
 		endTime = System.currentTimeMillis();
 		logger.info("syncInventoryDueToBlack，use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
 
-		int successCount = 0;
 		logger.info("syncInventoryDueToBlack,IncrInventory BulkInsert start,recordCount = " + rows.size());
-		String incrInventoryBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryBatchSize");
-		int pageSize = StringUtils.isEmpty(incrInventoryBatchSize) ? 2000 : Integer.valueOf(incrInventoryBatchSize);
-		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		startTime = System.currentTimeMillis();
-		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			int startNum = (pageIndex - 1) * pageSize;
-			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
-		}
+		int successCount = incrInventorySubmeterService.builkInsert(rows);
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert,successCount = " + successCount);
 		endTime = System.currentTimeMillis();
 		logger.info("syncInventoryDueToBlack,use time = " + (endTime - startTime) + ",IncrInventory BulkInsert,successCount = "
 				+ successCount);
@@ -260,7 +244,7 @@ public class IncrInventoryServiceImpl extends AbstractDeleteService implements I
 		logger.info("syncInventoryDueToBlack,put to redis successfully.key = " + rediskey + ",value = " + blackStartTime);
 	}
 
-	private void syncInventoryToDB(InvLimitBlackListVo vo, List<Map<String, Object>> rows) {
+	private void syncInventoryToDB(InvLimitBlackListVo vo, List<IncrInventory> rows) {
 		if (vo == null || StringUtils.isEmpty(vo.getHotelId()) || vo.getStayBeginDate() == null || vo.getStayEndDate() == null)
 			return;
 		String mHotelId = this.msRelationRepository.getMHotelId(vo.getHotelId());
@@ -292,22 +276,22 @@ public class IncrInventoryServiceImpl extends AbstractDeleteService implements I
 			Date changeTime = detail.getOperateTime() == null ? null : detail.getOperateTime().toDate();
 			if (changeTime == null || DateHandlerUtils.getDBExpireDate(-10).after(changeTime))
 				continue;
-			Map<String, Object> row = new HashMap<String, Object>();
-			row.put("HotelID", mHotelId);
-			row.put("RoomTypeID", detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail.getRoomTypeID());
-			row.put("HotelCode", detail.getHotelID());
-			row.put("Status", detail.getStatus() == 0);
-			row.put("AvailableDate", detail.getAvailableTime() == null ? null : detail.getAvailableTime().toDate());
-			row.put("AvailableAmount", detail.getAvailableAmount());
-			row.put("OverBooking", detail.getIsOverBooking());
-			row.put("StartDate", detail.getBeginDate() == null ? null : detail.getBeginDate().toDate());
-			row.put("EndDate", detail.getEndDate() == null ? null : detail.getEndDate().toDate());
-			row.put("StartTime", detail.getBeginTime());
-			row.put("EndTime", detail.getEndTime());
-			row.put("OperateTime", detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
-			row.put("InsertTime", DateTime.now().toDate());
-			row.put("ChangeID", DateTime.now().toDate().getTime());
-			row.put("ChangeTime", changeTime);
+			IncrInventory row = new IncrInventory();
+			row.setHotelID(mHotelId);
+			row.setRoomTypeID(detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail.getRoomTypeID());
+			row.setHotelCode(detail.getHotelID());
+			row.setStatus(detail.getStatus() == 0);
+			row.setAvailableDate(detail.getAvailableTime() == null ? null : detail.getAvailableTime().toDate());
+			row.setAvailableAmount(detail.getAvailableAmount());
+			row.setOverBooking(detail.getIsOverBooking());
+			row.setStartDate(detail.getBeginDate() == null ? null : detail.getBeginDate().toDate());
+			row.setEndDate(detail.getEndDate() == null ? null : detail.getEndDate().toDate());
+			row.setStartTime(detail.getBeginTime());
+			row.setEndTime(detail.getEndTime());
+			row.setOperateTime(detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
+			row.setInsertTime(DateTime.now().toDate());
+			row.setChangeID(DateTime.now().toDate().getTime());
+			row.setChangeTime(changeTime);
 			rows.add(row);
 		}
 	}
@@ -334,21 +318,6 @@ public class IncrInventoryServiceImpl extends AbstractDeleteService implements I
 		JSONObject jsonObj = (JSONObject) responseBase.getRealResponse();
 		GetInvLimitResponse realResponse = JSONObject.parseObject(jsonObj.toJSONString(), GetInvLimitResponse.class);
 		return realResponse.getInvLimitList();
-	}
-
-	@Override
-	protected List<BigInteger> getIncrIdList(Map<String, Object> params) {
-		return incrInventoryDao.getIncrIdList(params);
-	}
-
-	@Override
-	protected int deleteByIncrIdList(List<BigInteger> incrIdList) {
-		return incrInventoryDao.deleteByIncrIdList(incrIdList);
-	}
-
-	@Override
-	protected void logger(String message) {
-		logger.info(message);
 	}
 
 }

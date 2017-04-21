@@ -27,11 +27,5 @@ public interface IIncrHotelService {
 	 *
 	 */
 	public void syncHotelToDB();
-	
-	/** 
-	 * 删除酒店增量
-	 *
-	 */
-	public void delHotelFromDB();
 
 }

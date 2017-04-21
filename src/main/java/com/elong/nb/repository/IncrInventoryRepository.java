@@ -9,9 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +33,9 @@ import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryStat
 import com.elong.nb.common.checklist.Constants;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrInventoryDao;
+import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.service.IFilterService;
+import com.elong.nb.submeter.service.ISubmeterService;
 import com.elong.nb.util.ExecutorUtils;
 import com.elong.nb.util.ThreadLocalUtil;
 import com.elong.springmvc_enhance.utilities.ActionLogHelper;
@@ -77,6 +77,9 @@ public class IncrInventoryRepository {
 
 	@Resource
 	private IFilterService filterService;
+
+	@Resource(name = "incrInventorySubmeterService")
+	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
 	/** 
 	 * WCF调用后端接口
@@ -161,7 +164,7 @@ public class IncrInventoryRepository {
 			logger.info("maximumPoolSize = " + maximumPoolSize);
 			startTime = System.currentTimeMillis();
 			ExecutorService executorService = ExecutorUtils.newSelfThreadPool(maximumPoolSize, 400);
-			final List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+			final List<IncrInventory> rows = new ArrayList<IncrInventory>();
 			for (final InventoryChangeModel changeModel : changeList) {
 				executorService.submit(new Runnable() {
 					@Override
@@ -185,10 +188,10 @@ public class IncrInventoryRepository {
 			// ChangeID排序，存数据库
 			if (rows.size() > 0) {
 				startTime = System.currentTimeMillis();
-				Collections.sort(rows, new Comparator<Map<String, Object>>() {
+				Collections.sort(rows, new Comparator<IncrInventory>() {
 					@Override
-					public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-						return (int) ((long) (o1.get("ChangeID")) - (long) (o2.get("ChangeID")));
+					public int compare(IncrInventory o1, IncrInventory o2) {
+						return (int) ((long) (o1.getChangeID()) - (long) (o2.getChangeID()));
 					}
 				});
 				endTime = System.currentTimeMillis();
@@ -196,18 +199,8 @@ public class IncrInventoryRepository {
 
 				int recordCount = rows.size();
 				if (recordCount > 0) {
-					String incrInventoryBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryBatchSize");
-					int pageSize = StringUtils.isEmpty(incrInventoryBatchSize) ? 2000 : Integer.valueOf(incrInventoryBatchSize);
-					int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-					logger.info("IncrInventory BulkInsert start,recordCount = " + rows.size() + ",batchCount = " + pageCount
-							+ ",batchSize = " + pageSize);
 					startTime = System.currentTimeMillis();
-					int successCount = 0;
-					for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-						int startNum = (pageIndex - 1) * pageSize;
-						int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-						successCount += incrInventoryDao.bulkInsert(rows.subList(startNum, endNum));
-					}
+					int successCount = incrInventorySubmeterService.builkInsert(rows);
 					logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert,successCount = "
 							+ successCount);
 				}
@@ -235,7 +228,7 @@ public class IncrInventoryRepository {
 	 * @param changeModel
 	 * @param rows
 	 */
-	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<Map<String, Object>> rows, Set<String> filteredSHotelIds) {
+	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<IncrInventory> rows, Set<String> filteredSHotelIds) {
 		long startTimel = System.currentTimeMillis();
 		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
 		String threadName = Thread.currentThread().getName();
@@ -309,61 +302,53 @@ public class IncrInventoryRepository {
 				resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
 			}
 			if (resourceInventoryStateList != null && resourceInventoryStateList.size() > 0) {
-				// startTime = System.currentTimeMillis();
 				for (ResourceInventoryState detail : resourceInventoryStateList) {
 					synchronized (this.getClass()) {
-						Map<String, Object> row = new HashMap<String, Object>();
-						row.put("HotelID", mHotelId);
-						// TODO 临时处理，需修改表字段长度。后续改回来
-						row.put("RoomTypeID",
-								detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail.getRoomTypeID());
-						row.put("HotelCode", detail.getHotelID());
-						row.put("Status", detail.getStatus() == 0);
-						row.put("AvailableDate", detail.getAvailableTime() == null ? null : detail.getAvailableTime().toDate());
-						row.put("AvailableAmount", detail.getAvailableAmount());
-						row.put("OverBooking", detail.getIsOverBooking());
-						row.put("StartDate", detail.getBeginDate() == null ? null : detail.getBeginDate().toDate());
-						row.put("EndDate", detail.getEndDate() == null ? null : detail.getEndDate().toDate());
-						row.put("StartTime", detail.getBeginTime());
-						row.put("EndTime", detail.getEndTime());
-						row.put("OperateTime", detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
-						row.put("InsertTime", DateTime.now().toDate());
-						row.put("ChangeID", changeModel.getID());
-						row.put("ChangeTime", changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
+						IncrInventory row = new IncrInventory();
+						row.setHotelID(mHotelId);
+						row.setRoomTypeID(detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail
+								.getRoomTypeID());
+						row.setHotelCode(detail.getHotelID());
+						row.setStatus(detail.getStatus() == 0);
+						row.setAvailableDate(detail.getAvailableTime() == null ? null : detail.getAvailableTime().toDate());
+						row.setAvailableAmount(detail.getAvailableAmount());
+						row.setOverBooking(detail.getIsOverBooking());
+						row.setStartDate(detail.getBeginDate() == null ? null : detail.getBeginDate().toDate());
+						row.setEndDate(detail.getEndDate() == null ? null : detail.getEndDate().toDate());
+						row.setStartTime(detail.getBeginTime());
+						row.setEndTime(detail.getEndTime());
+						row.setOperateTime(detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
+						row.setInsertTime(DateTime.now().toDate());
+						row.setChangeID(changeModel.getID());
+						row.setChangeTime(changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
 						rows.add(row);
 					}
 				}
-				// endTime = System.currentTimeMillis();
-				// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap one.");
 			} else {
 				DateTime date = changeModel.getBeginTime();
-				// startTime = System.currentTimeMillis();
 				while (date.compareTo(changeModel.getEndTime()) < 0) {
 					synchronized (this.getClass()) {
-						Map<String, Object> row = new HashMap<String, Object>();
-						row.put("HotelID", mHotelId);
-						// TODO 临时处理，需修改表字段长度。后续改回来
-						row.put("RoomTypeID", changeModel.getRoomTypeID().length() > 50 ? changeModel.getRoomTypeID().substring(0, 50)
+						IncrInventory row = new IncrInventory();
+						row.setHotelID(mHotelId);
+						row.setRoomTypeID(changeModel.getRoomTypeID().length() > 50 ? changeModel.getRoomTypeID().substring(0, 50)
 								: changeModel.getRoomTypeID());
-						row.put("HotelCode", changeModel.getHotelID());
-						row.put("Status", false);
-						row.put("AvailableDate", date == null ? null : date.toDate());
-						row.put("AvailableAmount", 0);
-						row.put("OverBooking", 1);
-						row.put("StartDate", date == null ? null : date.toDate());
-						row.put("EndDate", date == null ? null : date.toDate());
-						row.put("StartTime", "00:00:00");
-						row.put("EndTime", "23:59:59");
-						row.put("OperateTime", changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
-						row.put("InsertTime", DateTime.now().toDate());
-						row.put("ChangeID", changeModel.getID());
-						row.put("ChangeTime", changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
+						row.setHotelCode(changeModel.getHotelID());
+						row.setStatus(false);
+						row.setAvailableDate(date == null ? null : date.toDate());
+						row.setAvailableAmount(0);
+						row.setOverBooking(1);
+						row.setStartDate(date == null ? null : date.toDate());
+						row.setEndDate(date == null ? null : date.toDate());
+						row.setStartTime("00:00:00");
+						row.setEndTime("23:59:59");
+						row.setOperateTime(changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
+						row.setInsertTime(DateTime.now().toDate());
+						row.setChangeID(changeModel.getID());
+						row.setChangeTime(changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
 						rows.add(row);
 					}
 					date = date.plusDays(1);
 				}
-				// endTime = System.currentTimeMillis();
-				// logger.info("use time [" + threadName + "] = " + (endTime - startTime) + ",build rowMap two.");
 			}
 		} catch (Exception ex) {
 			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);

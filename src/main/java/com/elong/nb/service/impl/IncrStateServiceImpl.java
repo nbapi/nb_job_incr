@@ -84,7 +84,7 @@ public class IncrStateServiceImpl extends AbstractDeleteService implements IIncr
 			startTime = JSON.parseObject(jsonStr, Date.class);
 		}
 		logger.info("get startTime = " + startTime + ",from redis key = " + RedisKeyConst.CacheKey_StateSyncTimeKey.getKey());
-		startTime = (startTime == null) ? new Date() : startTime;
+		startTime = (startTime == null) ? DateHandlerUtils.getOffsetDate(Calendar.MINUTE, -500) : startTime;
 		Date endTime = DateHandlerUtils.getOffsetDate(Calendar.MINUTE, -5);
 		logger.info("SyncRatesToDB,startTime = " + DateHandlerUtils.formatDate(startTime, "yyyy-MM-dd HH:mm:ss") + ",endTime = "
 				+ DateHandlerUtils.formatDate(endTime, "yyyy-MM-dd HH:mm:ss"));

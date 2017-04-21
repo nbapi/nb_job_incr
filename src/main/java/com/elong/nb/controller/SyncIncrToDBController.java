@@ -201,10 +201,6 @@ public class SyncIncrToDBController {
 				incrStateService.syncStateToDB();
 			} else if (StringUtils.equals("SyncOrderToDB", pathVariable)) {
 				incrOrderService.syncOrderToDB();
-			} else if (StringUtils.equals("DelHotelFromDB", pathVariable)) {
-				incrHotelService.delHotelFromDB();
-			} else if (StringUtils.equals("DelInventoryFromDB", pathVariable)) {
-				incrInventoryService.delInventoryFromDB();
 			} else if (StringUtils.equals("DelRatesFromDB", pathVariable)) {
 				incrRateService.delRatesFromDB();
 			} else if (StringUtils.equals("DelStateFromDB", pathVariable)) {

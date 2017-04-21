@@ -5,9 +5,9 @@
  */
 package com.elong.nb.dao;
 
-import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
 
 import com.elong.nb.db.DataSource;
 import com.elong.nb.model.bean.IncrHotel;
@@ -29,40 +29,29 @@ import com.elong.nb.model.bean.IncrHotel;
 public interface IncrHotelDao {
 
 	/** 
-	 * 删除过期IncrHotel
-	 *
-	 * @param expireDate
-	 * @param limit
-	 * @return 返回删除数量
-	 */
-	@DataSource("dataSource_nbhotelincr_write")
-	public int deleteByIncrIdList(List<BigInteger> incrIdList);
-	
-	/** 
-	 * 获取指定changeTime之前的IncrId集合
-	 *
-	 * @param params
-	 * @return
-	 */
-	@DataSource("dataSource_nbhotelincr_write")
-	public List<BigInteger> getIncrIdList(Map<String, Object> params);
-
-	/** 
 	 * 获取trigger的最后一条IncrHotel
 	 *
 	 * @param trigger
 	 * @return
 	 */
 	@DataSource("dataSource_nbhotelincr_read")
-	public IncrHotel getLastHotel(String trigger);
-	
+	public IncrHotel getLastHotel(@Param("subTableName")String subTableName, @Param("_triger") String triger);
+
 	/** 
-	 * 批量插入IncrHotel
+	 * 批量插入IncrInventory到指定分表subTableName
 	 *
-	 * @param incrHotelList
+	 * @param incrInventories
 	 */
 	@DataSource("dataSource_nbhotelincr_write")
-	public int bulkInsert(List<IncrHotel> incrHotelList);
-	
+	public int bulkInsertSub(@Param("subTableName") String subTableName, @Param("list") List<IncrHotel> incrHotelList);
+
+	/** 
+	 * 创建分表tableName
+	 *
+	 * @param tableName
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_write")
+	public int createSubTable(@Param("tableName") String tableName);
 
 }

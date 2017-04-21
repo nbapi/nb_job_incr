@@ -53,7 +53,7 @@
 	</aop:config>
 
 	<!-- 配置checklist切面 -->
-	<bean id="checklistAspect" class="com.elong.nb.checklist.ChecklistAspect" />
+	<!-- <bean id="checklistAspect" class="com.elong.nb.checklist.ChecklistAspect" />
 	<aop:config>
 		<aop:aspect id="b2" ref="checklistAspect">
 			<aop:pointcut id="tx2"
@@ -66,6 +66,6 @@
 			<aop:after-returning pointcut-ref="tx2" method="handlerLogAfter" returning="returnValue" />
 			<aop:after-throwing pointcut-ref="tx2" method="handlerLogThrowing" throwing="throwing" />
 		</aop:aspect>
-	</aop:config>
+	</aop:config> -->
 
 </beans>
