@@ -44,10 +44,11 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 	@Resource
 	private IImpulseSenderService impulseSenderService;
-	
+
 	@Resource
 	private SubmeterTableDao submeterTableDao;
 
+	//TODO 改成从配置文件读取
 	private static final long SUBMETER_ROWCOUNT = 100;
 
 	/** 
@@ -71,8 +72,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			long ID = impulseSenderService.getId(tablePrefix + "_ID");
 			row.setID(ID);
 
-			long tableNumber = (int) Math.ceil(ID * 1.0 / SUBMETER_ROWCOUNT);
-			String subTableName = tablePrefix + "_" + tableNumber;
+			String subTableName = getSelectedSubTableName(ID);
 			List<T> subRowList = subTableDataMap.get(subTableName);
 			if (subRowList == null) {
 				subRowList = new ArrayList<T>();
@@ -160,8 +160,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return Collections.emptyList();
 
-		long tableNumber = (int) Math.ceil(lastId * 1.0 / SUBMETER_ROWCOUNT);
-		String selectTableName = tablePrefix + "_" + tableNumber;
+		String selectTableName = getSelectedSubTableName(lastId);
 		int fromIndex = subTableNameList.indexOf(selectTableName);
 		if (fromIndex == -1)
 			return Collections.emptyList();
@@ -184,6 +183,17 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			maxRecordCount = maxRecordCount - subList.size();
 		}
 		return resultList;
+	}
+
+	/** 
+	 * 获取id对应分表名 
+	 *
+	 * @param lastId
+	 * @return
+	 */
+	private String getSelectedSubTableName(long lastId) {
+		long tableNumber = (int) Math.ceil(lastId * 1.0 / SUBMETER_ROWCOUNT);
+		return getTablePrefix() + "_" + tableNumber;
 	}
 
 	/** 

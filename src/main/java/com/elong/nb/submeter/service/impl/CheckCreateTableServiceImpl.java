@@ -55,6 +55,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
 
+	//TODO 改成从配置文件读取
 	private static final int SUBMETER_COUNT = 30;
 
 	/** 
