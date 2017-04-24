@@ -78,7 +78,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 		// 查找末尾连续空表
 		List<String> emptyTableNameList = new ArrayList<String>();
 		for (Map<String, Object> tableMap : allTableMap) {
-			Integer tableRows = (Integer) tableMap.get("table_rows");
+			Long tableRows = (Long) tableMap.get("table_rows");
 			if (tableRows > 0)
 				break;
 			String tableName = (String) tableMap.get("table_name");
