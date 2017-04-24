@@ -48,7 +48,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Resource
 	private SubmeterTableDao submeterTableDao;
 
-	//TODO 改成从配置文件读取
+	// TODO 改成从配置文件读取
 	private static final long SUBMETER_ROWCOUNT = 100;
 
 	/** 
@@ -119,7 +119,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public List<T> getIncrDataList(Date lastTime, int maxRecordCount) {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableDao.querySubTableList(tablePrefix + "%", false, false);
+		List<String> subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", false);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return Collections.emptyList();
 
@@ -156,7 +156,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public List<T> getIncrDataList(long lastId, int maxRecordCount) {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableDao.querySubTableList(tablePrefix + "%", false, false);
+		List<String> subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", false);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return Collections.emptyList();
 
@@ -207,7 +207,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public T getLastIncrData(String trigger) {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableDao.querySubTableList(tablePrefix + "%", false, true);
+		List<String> subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", true);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return null;
 

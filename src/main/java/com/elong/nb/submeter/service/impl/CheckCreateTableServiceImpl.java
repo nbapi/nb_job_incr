@@ -8,6 +8,7 @@ package com.elong.nb.submeter.service.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -55,7 +56,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
 
-	//TODO 改成从配置文件读取
+	// TODO 改成从配置文件读取
 	private static final int SUBMETER_COUNT = 30;
 
 	/** 
@@ -70,13 +71,28 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	public List<String> checkSubTable(EnumIncrType incrType) {
 		ISubmeterService<?> submeterCommonService = getSubmeterService(incrType);
 		String tablePrefix = submeterCommonService.getTablePrefix();
-		List<String> emptyTableNameList = submeterTableDao.querySubTableList(tablePrefix + "%", true, false);
+		List<Map<String, Object>> allTableMap = submeterTableDao.queryAllSubTableList(tablePrefix + "%", SUBMETER_COUNT);
+		if (allTableMap == null || allTableMap.size() == 0) {
+			throw new IllegalStateException("EnumIncrType = " + incrType + " has no submeter!!!");
+		}
+		// 查找末尾连续空表
+		List<String> emptyTableNameList = new ArrayList<String>();
+		for (Map<String, Object> tableMap : allTableMap) {
+			Integer tableRows = (Integer) tableMap.get("table_rows");
+			if (tableRows > 0)
+				break;
+			String tableName = (String) tableMap.get("table_name");
+			emptyTableNameList.add(tableName);
+		}
+
+		// 末尾连续空表数量
 		int currentEmptyCount = emptyTableNameList == null ? 0 : emptyTableNameList.size();
 		logger.info("currentEmptyCount = " + currentEmptyCount);
 		logger.info("currentEmptyTable = " + JSON.toJSONString(emptyTableNameList));
 		if (currentEmptyCount >= SUBMETER_COUNT)
 			return Collections.emptyList();
 
+		// 需要创建分表
 		List<String> needCreateTableList = new ArrayList<String>();
 		String lastNumberStr = incrSetInfoService.get(tablePrefix + ".SubTable.Number");
 		lastNumberStr = StringUtils.isEmpty(lastNumberStr) ? "0" : lastNumberStr;
