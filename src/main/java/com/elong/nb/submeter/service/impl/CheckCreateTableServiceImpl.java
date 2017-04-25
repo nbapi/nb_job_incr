@@ -71,13 +71,13 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	public List<String> checkSubTable(EnumIncrType incrType) {
 		ISubmeterService<?> submeterCommonService = getSubmeterService(incrType);
 		String tablePrefix = submeterCommonService.getTablePrefix();
-		List<Map<String, Object>> allTableMap = submeterTableDao.queryAllSubTableList(tablePrefix + "%", SUBMETER_COUNT);
-		if (allTableMap == null || allTableMap.size() == 0) {
+		List<Map<String, Object>> tableMapList = submeterTableDao.queryAllSubTableList(tablePrefix + "%", SUBMETER_COUNT);
+		if (tableMapList == null || tableMapList.size() == 0) {
 			throw new IllegalStateException("EnumIncrType = " + incrType + " has no submeter!!!");
 		}
 		// 查找末尾连续空表
 		List<String> emptyTableNameList = new ArrayList<String>();
-		for (Map<String, Object> tableMap : allTableMap) {
+		for (Map<String, Object> tableMap : tableMapList) {
 			Long tableRows = (Long) tableMap.get("table_rows");
 			if (tableRows > 0)
 				break;
@@ -94,8 +94,9 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 
 		// 需要创建分表
 		List<String> needCreateTableList = new ArrayList<String>();
-		String lastExistTableName = emptyTableNameList.get(0);
+		String lastExistTableName = (String) tableMapList.get(0).get("table_name");
 		String lastNumberStr = StringUtils.substringAfter(lastExistTableName, "_");
+		lastNumberStr = StringUtils.isEmpty(lastNumberStr) ? incrSetInfoService.get(tablePrefix + ".SubTable.Number") : lastNumberStr;
 		int lastNumber = Integer.valueOf(lastNumberStr);
 		int needCreateCount = SUBMETER_COUNT - currentEmptyCount;
 		for (int i = 1; i <= needCreateCount; i++) {

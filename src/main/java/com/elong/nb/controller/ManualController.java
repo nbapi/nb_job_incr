@@ -20,6 +20,7 @@ import com.alibaba.fastjson.JSON;
 import com.elong.common.util.StringUtils;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
+import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.ISubmeterService;
 
@@ -42,6 +43,9 @@ public class ManualController {
 
 	@Resource
 	private IImpulseSenderService impulseSenderService;
+
+	@Resource
+	private IIncrSetInfoService incrSetInfoService;
 
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
@@ -79,6 +83,17 @@ public class ManualController {
 			e.printStackTrace();
 		}
 		return "resetId success.key = " + key;
+	}
+
+	@RequestMapping(value = "/putSubTableNumber/{tablePrefix}/{subTableNumber}")
+	public @ResponseBody String putSubTableNumber(@PathVariable("tablePrefix") String tablePrefix,
+			@PathVariable("subTableNumber") String subTableNumber) {
+		try {
+			incrSetInfoService.put(tablePrefix + ".SubTable.Number", Long.valueOf(subTableNumber));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "putSubTableNumber success.tablePrefix = " + tablePrefix + ",subTableNumber = " + subTableNumber;
 	}
 
 	protected List<IncrHotel> buildIncrHotelList() {
