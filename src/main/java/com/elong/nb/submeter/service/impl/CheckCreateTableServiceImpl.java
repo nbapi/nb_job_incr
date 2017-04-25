@@ -93,12 +93,25 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 			return Collections.emptyList();
 
 		// 需要创建分表
-		List<String> needCreateTableList = new ArrayList<String>();
 		String lastExistTableName = (String) tableMapList.get(0).get("table_name");
 		String lastNumberStr = StringUtils.substringAfter(lastExistTableName, "_");
+		// 首次创建分表，序号读取数据库设置序号
 		lastNumberStr = StringUtils.isEmpty(lastNumberStr) ? incrSetInfoService.get(tablePrefix + ".SubTable.Number") : lastNumberStr;
-		int lastNumber = Integer.valueOf(lastNumberStr);
+		// 数据库未设置分表序号，直接异常
+		if (StringUtils.isEmpty(lastNumberStr)) {
+			throw new IllegalStateException(tablePrefix + " createSubTable first,please set value whose key is " + tablePrefix
+					+ ".SubTable.Number!!!");
+		}
+		int lastNumber = 0;
+		try {
+			lastNumber = Integer.valueOf(lastNumberStr);
+		} catch (NumberFormatException e) {
+			// 数据库未设置分表序号设置非数字，直接异常
+			throw new IllegalStateException(tablePrefix + " createSubTable first,please set Integer value whose key is " + tablePrefix
+					+ ".SubTable.Number!!!");
+		}
 		int needCreateCount = SUBMETER_COUNT - currentEmptyCount;
+		List<String> needCreateTableList = new ArrayList<String>();
 		for (int i = 1; i <= needCreateCount; i++) {
 			needCreateTableList.add(tablePrefix + "_" + (lastNumber + i));
 		}
