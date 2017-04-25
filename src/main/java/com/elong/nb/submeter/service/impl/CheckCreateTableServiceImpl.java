@@ -94,8 +94,8 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 
 		// 需要创建分表
 		List<String> needCreateTableList = new ArrayList<String>();
-		String lastNumberStr = incrSetInfoService.get(tablePrefix + ".SubTable.Number");
-		lastNumberStr = StringUtils.isEmpty(lastNumberStr) ? "0" : lastNumberStr;
+		String lastExistTableName = emptyTableNameList.get(0);
+		String lastNumberStr = StringUtils.substringAfter(lastExistTableName, "_");
 		int lastNumber = Integer.valueOf(lastNumberStr);
 		int needCreateCount = SUBMETER_COUNT - currentEmptyCount;
 		for (int i = 1; i <= needCreateCount; i++) {
@@ -121,14 +121,11 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 			return Collections.emptyList();
 
 		ISubmeterService<?> submeterCommonService = getSubmeterService(incrType);
-		String tablePrefix = submeterCommonService.getTablePrefix();
 		List<String> successTableList = new ArrayList<String>();
 		for (String newTableName : tableNameList) {
 			if (StringUtils.isEmpty(newTableName))
 				continue;
 			submeterCommonService.createSubTable(newTableName);
-			String currentNumber = StringUtils.substringAfter(newTableName, "_");
-			incrSetInfoService.put(tablePrefix + ".SubTable.Number", Integer.valueOf(currentNumber));
 			successTableList.add(newTableName);
 		}
 		logger.info("successCreateCount = " + tableNameList.size());
