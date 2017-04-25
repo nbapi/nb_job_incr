@@ -21,7 +21,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
-	
+
 	<!--actionLogEntity appender -->
 	<appender name="scheduleAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/nb_job_incr_schedule.log" />
@@ -37,18 +37,6 @@
 	<!-- OrderCenter appender -->
 	<appender name="OrderCenterAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="file" value="${catalina.home}/logs/syncIncrlog/OrderCenter.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
-		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="INFO" />
-		</filter>
-	</appender>
-
-	<!-- NoticeService appender -->
-	<appender name="NoticeServiceAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
-		<param name="file" value="${catalina.home}/logs/syncIncrlog/NoticeService.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
@@ -94,18 +82,6 @@
 		</filter>
 	</appender>
 
-	<!--syncIncrOrder appender -->
-	<appender name="syncIncrOrderAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
-		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrOrder.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
-		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="INFO" />
-		</filter>
-	</appender>
-
 	<!--syncIncrHotel appender -->
 	<appender name="syncIncrHotelAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrHotel.log" />
@@ -140,7 +116,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
-	
+
 	<appender name="ImpulseSenderAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/ImpulseSenderAppender.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
@@ -162,7 +138,7 @@
 			<param name="LevelMin" value="INFO" />
 		</filter>
 	</appender>
-	
+
 	<!--syncIncrRate appender -->
 	<appender name="syncIncrRateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrRate.log" />
@@ -180,11 +156,6 @@
 		<level value="info" />
 		<appender-ref ref="OrderCenterAppender" />
 	</logger>
-	<!-- NoticeService 日志器 -->
-	<logger name="NoticeServiceLogger" additivity="false">
-		<level value="info" />
-		<appender-ref ref="NoticeServiceAppender" />
-	</logger>
 	<!-- IncrCommon同步日志器 -->
 	<logger name="IncrCommonLogger" additivity="false">
 		<level value="INFO" />
@@ -194,11 +165,6 @@
 	<logger name="IncrOrderJobLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="syncIncrOrderJobAppender" />
-	</logger>
-	<!-- IncrOrder同步日志器 -->
-	<logger name="IncrOrderLogger" additivity="false">
-		<level value="INFO" />
-		<appender-ref ref="syncIncrOrderAppender" />
 	</logger>
 	<!-- IncrInventory同步日志器 -->
 	<logger name="IncrInventoryLogger" additivity="false">
@@ -232,7 +198,6 @@
 		<level value="INFO" />
 		<appender-ref ref="ImpulseSenderAppender" />
 	</logger>
-	
 
 	<category name="actionLogEntityLogger" additivity="false">
 		<level value="INFO" />

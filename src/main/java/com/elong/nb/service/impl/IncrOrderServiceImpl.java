@@ -35,7 +35,6 @@ import com.elong.nb.model.bean.IncrOrder;
 import com.elong.nb.model.enums.EnumPayStatus;
 import com.elong.nb.model.enums.OrderChangeStatusEnum;
 import com.elong.nb.repository.CommonRepository;
-import com.elong.nb.repository.IncrOrderRepository;
 import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.IIncrSetInfoService;
@@ -63,9 +62,6 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 
 	@Resource
 	private IncrOrderDao incrOrderDao;
-
-	@Resource
-	private IncrOrderRepository incrOrderRepository;
 
 	@Resource
 	private CommonRepository commonRepository;
