@@ -46,6 +46,9 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	private IImpulseSenderService impulseSenderService;
 
 	@Resource
+	private SubmeterTableCache submeterTableCache;
+
+	@Resource
 	private SubmeterTableDao submeterTableDao;
 
 	// TODO 改成从配置文件读取
@@ -102,6 +105,9 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			}
 			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName = " + subTableName
 					+ ",bulkInsert successCount = " + subSuccessCount);
+			if (subSuccessCount > 0) {
+				submeterTableCache.lpushLimit(tablePrefix, subTableName);
+			}
 			successCount += subSuccessCount;
 		}
 		return successCount;
@@ -119,7 +125,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public List<T> getIncrDataList(Date lastTime, int maxRecordCount) {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", false);
+		List<String> subTableNameList = submeterTableCache.queryNoEmptySubTableList(tablePrefix + "%", false);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return Collections.emptyList();
 
@@ -156,7 +162,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public List<T> getIncrDataList(long lastId, int maxRecordCount) {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", false);
+		List<String> subTableNameList = submeterTableCache.queryNoEmptySubTableList(tablePrefix + "%", false);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return Collections.emptyList();
 
@@ -207,7 +213,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public T getLastIncrData(String trigger) {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", true);
+		List<String> subTableNameList = submeterTableCache.queryNoEmptySubTableList(tablePrefix + "%", true);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return null;
 
