@@ -47,7 +47,7 @@ public class SubmeterTableCache {
 	 * @return
 	 */
 	public List<String> queryNoEmptySubTableList(String tablePrefix, boolean isDesc) {
-		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + "Submeter.TableNames");
+		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
 		List<String> subTableNameList = redisManager.pull(cacheKey);
 		// 缓存中获取到list默认降序的，根据isDesc决定是否倒序，直接返回
 		if (!CollectionUtils.isEmpty(subTableNameList)) {
@@ -88,10 +88,10 @@ public class SubmeterTableCache {
 	 * @param newTableName
 	 */
 	public void lpushLimit(String tablePrefix, String newTableName) {
-		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + "Submeter.TableNames");
+		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
 		// 暂时下下策
 		List<String> subTableNameList = redisManager.pull(cacheKey);
-		if (CollectionUtils.containsInstance(subTableNameList, newTableName))
+		if (subTableNameList != null && subTableNameList.contains(newTableName))
 			return;
 
 		redisManager.lpush(cacheKey, newTableName.getBytes());
