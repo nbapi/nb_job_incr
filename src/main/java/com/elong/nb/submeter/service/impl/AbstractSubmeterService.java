@@ -52,7 +52,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	private SubmeterTableDao submeterTableDao;
 
 	// TODO 改成从配置文件读取
-	private static final long SUBMETER_ROWCOUNT = 1000;
+	private static final long SUBMETER_ROWCOUNT = 100000;
 
 	/** 
 	 * 插入分表数据

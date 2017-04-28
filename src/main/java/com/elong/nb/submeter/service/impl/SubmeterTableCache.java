@@ -95,7 +95,7 @@ public class SubmeterTableCache {
 			return;
 
 		redisManager.lpush(cacheKey, newTableName.getBytes());
-		redisManager.ltrim(cacheKey, 0, 500);
+		redisManager.ltrim(cacheKey, 0, 100);
 	}
 
 }

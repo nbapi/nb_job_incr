@@ -3,7 +3,7 @@
 <mapper namespace="com.elong.nb.dao.SqlServerDataDao">
 
 	<select id="getDataFromPriceInfo" resultType="java.util.HashMap">
-		select top 10000 PriceID ChangeID,OperateTime
+		select top 1000 PriceID ChangeID,OperateTime
 				ChangeTime,OperateTime,isnull(RoomTypeID,'') RoomTypeID,isnull(RatePlanID,'') as RateplanID,isnull(HotelID,'')
 				HotelCode,BeginDate StartDate,EndDate,isnull(IsEffective,'') Status,isnull(GenSalePrice,0)
 				Member,
