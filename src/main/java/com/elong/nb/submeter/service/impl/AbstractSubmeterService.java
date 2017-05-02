@@ -103,6 +103,9 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			}
 			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName = " + subTableName
 					+ ",bulkInsert successCount = " + subSuccessCount);
+			if (subSuccessCount > 0) {
+				submeterTableCache.lpushLimit(tablePrefix, subTableName);
+			}
 			successCount += subSuccessCount;
 		}
 		return successCount;

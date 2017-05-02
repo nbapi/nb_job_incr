@@ -101,7 +101,7 @@ public class SubmeterTableCache {
 	 * @param tablePrefix
 	 * @param newTableName
 	 */
-	private void lpushLimit(String tablePrefix, String newTableName) {
+	public void lpushLimit(String tablePrefix, String newTableName) {
 		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
 		// 暂时下下策
 		List<String> subTableNameList = redisManager.pull(cacheKey);
