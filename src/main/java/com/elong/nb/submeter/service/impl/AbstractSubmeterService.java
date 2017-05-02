@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.SubmeterTableDao;
 import com.elong.nb.model.bean.Idable;
+import com.elong.nb.submeter.consts.SubmeterConst;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.ISubmeterService;
 
@@ -50,9 +51,6 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 	@Resource
 	private SubmeterTableDao submeterTableDao;
-
-	// TODO 改成从配置文件读取
-	private static final long SUBMETER_ROWCOUNT = 100000;
 
 	/** 
 	 * 插入分表数据
@@ -195,7 +193,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	 * @return
 	 */
 	private String getSelectedSubTableName(long lastId) {
-		long tableNumber = (int) Math.ceil(lastId * 1.0 / SUBMETER_ROWCOUNT);
+		long tableNumber = (int) Math.ceil(lastId * 1.0 / SubmeterConst.PER_SUBMETER_ROW_COUNT);
 		return getTablePrefix() + "_" + tableNumber;
 	}
 

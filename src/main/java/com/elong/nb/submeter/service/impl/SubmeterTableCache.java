@@ -16,6 +16,7 @@ import org.springframework.util.CollectionUtils;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.dao.SubmeterTableDao;
+import com.elong.nb.submeter.consts.SubmeterConst;
 
 /**
  * 表元数据信息缓存
@@ -108,7 +109,7 @@ public class SubmeterTableCache {
 			return;
 
 		redisManager.lpush(cacheKey, newTableName.getBytes());
-		redisManager.ltrim(cacheKey, 0, 100);
+		redisManager.ltrim(cacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
 	}
 
 }

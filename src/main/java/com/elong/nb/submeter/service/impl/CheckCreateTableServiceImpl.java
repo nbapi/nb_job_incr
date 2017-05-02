@@ -22,6 +22,7 @@ import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.enums.EnumIncrType;
 import com.elong.nb.service.IIncrSetInfoService;
+import com.elong.nb.submeter.consts.SubmeterConst;
 import com.elong.nb.submeter.service.ICheckCreateTableService;
 import com.elong.nb.submeter.service.ISubmeterService;
 
@@ -56,9 +57,6 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
 
-	// TODO 改成从配置文件读取
-	private static final int SUBMETER_COUNT = 30;
-
 	/** 
 	 * 检查分表数量是否够，返回待创建分表表名 
 	 *
@@ -71,7 +69,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	public List<String> checkSubTable(EnumIncrType incrType) {
 		ISubmeterService<?> submeterCommonService = getSubmeterService(incrType);
 		String tablePrefix = submeterCommonService.getTablePrefix();
-		List<Map<String, Object>> tableMapList = submeterTableDao.queryAllSubTableList(tablePrefix + "%", SUBMETER_COUNT);
+		List<Map<String, Object>> tableMapList = submeterTableDao.queryAllSubTableList(tablePrefix + "%", SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB);
 		if (tableMapList == null || tableMapList.size() == 0) {
 			throw new IllegalStateException("EnumIncrType = " + incrType + " has no submeter!!!");
 		}
@@ -89,7 +87,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 		int currentEmptyCount = emptyTableNameList == null ? 0 : emptyTableNameList.size();
 		logger.info("currentEmptyCount = " + currentEmptyCount);
 		logger.info("currentEmptyTable = " + JSON.toJSONString(emptyTableNameList));
-		if (currentEmptyCount >= SUBMETER_COUNT)
+		if (currentEmptyCount >= SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB)
 			return Collections.emptyList();
 
 		// 需要创建分表
@@ -110,7 +108,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 			throw new IllegalStateException(tablePrefix + " createSubTable first,please set Integer value whose key is " + tablePrefix
 					+ ".SubTable.Number!!!");
 		}
-		int needCreateCount = SUBMETER_COUNT - currentEmptyCount;
+		int needCreateCount = SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB - currentEmptyCount;
 		List<String> needCreateTableList = new ArrayList<String>();
 		for (int i = 1; i <= needCreateCount; i++) {
 			needCreateTableList.add(tablePrefix + "_" + (lastNumber + i));
