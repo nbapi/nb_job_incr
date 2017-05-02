@@ -40,6 +40,13 @@ public class SubmeterTableCache {
 	private SubmeterTableDao submeterTableDao;
 
 	/** 
+	 * 上次缓存更新时间
+	 *
+	 * long SubmeterTableCache.java lastChangeTime
+	 */
+	private long lastChangeTime = 0l;
+
+	/** 
 	 * 查询指定tablePrefix的所有非空分表
 	 *
 	 * @param tablePrefix
@@ -49,12 +56,18 @@ public class SubmeterTableCache {
 	public List<String> queryNoEmptySubTableList(String tablePrefix, boolean isDesc) {
 		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
 		List<String> subTableNameList = redisManager.pull(cacheKey);
+		long currentTime = System.currentTimeMillis();
 		// 缓存中获取到list默认降序的，根据isDesc决定是否倒序，直接返回
-		if (!CollectionUtils.isEmpty(subTableNameList)) {
+		if (!CollectionUtils.isEmpty(subTableNameList) && (currentTime - lastChangeTime) <= 3 * 60 * 1000) {
 			if (!isDesc) {
 				Collections.reverse(subTableNameList);
 			}
 			return subTableNameList;
+		}
+		lastChangeTime = currentTime;
+		// 清除老数据
+		if (!CollectionUtils.isEmpty(subTableNameList)) {
+			redisManager.del(cacheKey);
 		}
 		// 数据库获取到表名list
 		subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", isDesc);
@@ -87,7 +100,7 @@ public class SubmeterTableCache {
 	 * @param tablePrefix
 	 * @param newTableName
 	 */
-	public void lpushLimit(String tablePrefix, String newTableName) {
+	private void lpushLimit(String tablePrefix, String newTableName) {
 		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
 		// 暂时下下策
 		List<String> subTableNameList = redisManager.pull(cacheKey);
