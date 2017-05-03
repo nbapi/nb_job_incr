@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.SubmeterTableDao;
 import com.elong.nb.model.bean.Idable;
-import com.elong.nb.submeter.consts.SubmeterConst;
+import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.ISubmeterService;
 

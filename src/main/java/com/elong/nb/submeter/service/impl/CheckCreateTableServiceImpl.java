@@ -21,8 +21,8 @@ import com.elong.nb.dao.SubmeterTableDao;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.enums.EnumIncrType;
+import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.service.IIncrSetInfoService;
-import com.elong.nb.submeter.consts.SubmeterConst;
 import com.elong.nb.submeter.service.ICheckCreateTableService;
 import com.elong.nb.submeter.service.ISubmeterService;
 

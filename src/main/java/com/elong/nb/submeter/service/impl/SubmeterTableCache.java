@@ -16,7 +16,7 @@ import org.springframework.util.CollectionUtils;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.dao.SubmeterTableDao;
-import com.elong.nb.submeter.consts.SubmeterConst;
+import com.elong.nb.model.enums.SubmeterConst;
 
 /**
  * 表元数据信息缓存
