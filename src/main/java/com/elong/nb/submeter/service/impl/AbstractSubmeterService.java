@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.elong.nb.common.util.CommonsUtil;
-import com.elong.nb.dao.SubmeterTableDao;
 import com.elong.nb.model.bean.Idable;
 import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.submeter.service.IImpulseSenderService;
@@ -48,9 +47,6 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 	@Resource
 	private SubmeterTableCache submeterTableCache;
-
-	@Resource
-	private SubmeterTableDao submeterTableDao;
 
 	/** 
 	 * 插入分表数据
