@@ -8,7 +8,7 @@
 		<where>
 			<if test="_triger != null and !_triger.equals('')"> and `Trigger` = #{_triger} </if>
 		</where>
-		order by ID desc limit 0,1
+		order by TriggerID desc limit 0,1
 	</select>
 
 	<!-- 批量插入IncrHotel到指定分表subTableName -->
