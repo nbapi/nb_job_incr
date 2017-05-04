@@ -35,7 +35,7 @@ import com.elong.nb.model.enums.SubmeterConst;
  */
 @Repository
 public class SubmeterTableCache {
-	
+
 	private static final Logger logger = Logger.getLogger("SubmeterLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
@@ -86,8 +86,9 @@ public class SubmeterTableCache {
 			Collections.reverse(subTableNameList);
 		}
 
+		String source = "定时从数据库一次查询所有非空表名更新缓存";
+		long lockTime = lock(source);
 		try {
-			lock();
 			// 清除老数据
 			redisManager.del(cacheKey);
 			// 存入redis
@@ -96,7 +97,7 @@ public class SubmeterTableCache {
 				redisManager.ltrim(cacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
 			}
 		} finally {
-			unlock();
+			unlock(source, lockTime);
 		}
 		// redis重新获取
 		subTableNameList = redisManager.pull(cacheKey);
@@ -123,28 +124,30 @@ public class SubmeterTableCache {
 		if (subTableNameList != null && subTableNameList.contains(newTableName))
 			return;
 
+		String source = "插入数据及时更新非空表名缓存";
+		long lockTime = lock(source);
 		try {
-			lock();
 			redisManager.lpush(cacheKey, newTableName.getBytes());
 			redisManager.ltrim(cacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
 		} finally {
-			unlock();
+			unlock(source, lockTime);
 		}
 	}
 
-	private void lock() {
+	private long lock(String source) {
 		while (redisManager.setnx(lockCacheKey, "lock") == 0) {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
 		}
-		logger.info("lock successfully.");
+		logger.info("lock successfully.invoke position = " + source);
+		return System.currentTimeMillis();
 	}
 
-	private void unlock() {
+	private void unlock(String source, long lockTime) {
 		redisManager.del(lockCacheKey);
-		logger.info("unlock successfully.");
+		logger.info("unlock successfully.invoke position = " + source + ",lock time = " + (System.currentTimeMillis() - lockTime));
 	}
 
 }
