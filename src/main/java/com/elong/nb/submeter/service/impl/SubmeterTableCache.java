@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -34,11 +35,20 @@ import com.elong.nb.model.enums.SubmeterConst;
  */
 @Repository
 public class SubmeterTableCache {
+	
+	private static final Logger logger = Logger.getLogger("SubmeterLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
 	private SubmeterTableDao submeterTableDao;
+
+	/** 
+	 * redis分布式锁cachekey	
+	 *
+	 * ICacheKey SubmeterTableCache.java lockCacheKey
+	 */
+	private static final ICacheKey lockCacheKey = RedisManager.getCacheKey(SubmeterConst.SUMETER_REDIS_LOCK_KEY);
 
 	/** 
 	 * 上次缓存更新时间
@@ -66,10 +76,6 @@ public class SubmeterTableCache {
 			return subTableNameList;
 		}
 		lastChangeTime = currentTime;
-		// 清除老数据
-		if (!CollectionUtils.isEmpty(subTableNameList)) {
-			redisManager.del(cacheKey);
-		}
 		// 数据库获取到表名list
 		subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", isDesc);
 		if (CollectionUtils.isEmpty(subTableNameList))
@@ -79,9 +85,18 @@ public class SubmeterTableCache {
 		if (isDesc) {
 			Collections.reverse(subTableNameList);
 		}
-		// 存入redis
-		for (String subTableName : subTableNameList) {
-			lpushLimit(tablePrefix, subTableName);
+
+		try {
+			lock();
+			// 清除老数据
+			redisManager.del(cacheKey);
+			// 存入redis
+			for (String subTableName : subTableNameList) {
+				redisManager.lpush(cacheKey, subTableName.getBytes());
+				redisManager.ltrim(cacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
+			}
+		} finally {
+			unlock();
 		}
 		// redis重新获取
 		subTableNameList = redisManager.pull(cacheKey);
@@ -108,8 +123,28 @@ public class SubmeterTableCache {
 		if (subTableNameList != null && subTableNameList.contains(newTableName))
 			return;
 
-		redisManager.lpush(cacheKey, newTableName.getBytes());
-		redisManager.ltrim(cacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
+		try {
+			lock();
+			redisManager.lpush(cacheKey, newTableName.getBytes());
+			redisManager.ltrim(cacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
+		} finally {
+			unlock();
+		}
+	}
+
+	private void lock() {
+		while (redisManager.setnx(lockCacheKey, "lock") == 0) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
+		}
+		logger.info("lock successfully.");
+	}
+
+	private void unlock() {
+		redisManager.del(lockCacheKey);
+		logger.info("unlock successfully.");
 	}
 
 }
