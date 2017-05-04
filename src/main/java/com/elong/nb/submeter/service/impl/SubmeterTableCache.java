@@ -7,6 +7,7 @@ package com.elong.nb.submeter.service.impl;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 
@@ -86,7 +87,7 @@ public class SubmeterTableCache {
 			Collections.reverse(subTableNameList);
 		}
 
-		String source = "定时从数据库一次查询所有非空表名更新缓存";
+		String source = "UUID = " + UUID.randomUUID().toString() + ",定时从数据库一次查询所有非空表名更新缓存";
 		long lockTime = lock(source);
 		try {
 			// 清除老数据
@@ -124,7 +125,7 @@ public class SubmeterTableCache {
 		if (subTableNameList != null && subTableNameList.contains(newTableName))
 			return;
 
-		String source = "插入数据及时更新非空表名缓存";
+		String source = "UUID = " + UUID.randomUUID().toString() + ",插入数据及时更新非空表名缓存";
 		long lockTime = lock(source);
 		try {
 			redisManager.lpush(cacheKey, newTableName.getBytes());
@@ -147,7 +148,7 @@ public class SubmeterTableCache {
 
 	private void unlock(String source, long lockTime) {
 		redisManager.del(lockCacheKey);
-		logger.info("unlock successfully.invoke position = " + source + ",lock time = " + (System.currentTimeMillis() - lockTime));
+		logger.info("lock time = " + (System.currentTimeMillis() - lockTime) + ",unlock successfully.invoke position = " + source);
 	}
 
 }
