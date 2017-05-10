@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.common.util.StringUtils;
+import com.elong.nb.cache.ICacheKey;
+import com.elong.nb.cache.RedisManager;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.service.IIncrSetInfoService;
@@ -53,12 +55,15 @@ public class ManualController {
 	@Resource(name = "incrHotelSubmeterService")
 	private ISubmeterService<IncrHotel> incrHotelSubmeterService;
 
-	@RequestMapping(value = "/test/insert/{tablePrefix}")
-	public @ResponseBody String testInsert(@PathVariable("tablePrefix") String tablePrefix) {
+	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+
+	@RequestMapping(value = "/test/insert/{tablePrefix}/{count}")
+	public @ResponseBody String testInsert(@PathVariable("tablePrefix") String tablePrefix, @PathVariable("count") String count) {
 		Object result = null;
+		int countInt = Integer.valueOf(count);
 		if (StringUtils.equals(tablePrefix, "IncrHotel")) {
 			try {
-				result = incrHotelSubmeterService.builkInsert(buildIncrHotelList());
+				result = incrHotelSubmeterService.builkInsert(buildIncrHotelList(countInt));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -66,7 +71,7 @@ public class ManualController {
 
 		if (StringUtils.equals(tablePrefix, "IncrInventory")) {
 			try {
-				result = incrInventorySubmeterService.builkInsert(buildIncrInventoryList());
+				result = incrInventorySubmeterService.builkInsert(buildIncrInventoryList(countInt));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -74,15 +79,27 @@ public class ManualController {
 		return JSON.toJSONString(result);
 	}
 
-	@RequestMapping(value = "/resetId/{tablePrefix}")
-	public @ResponseBody String resetId(@PathVariable("tablePrefix") String tablePrefix) {
+	@RequestMapping(value = "/test/delImpulseSender/{tablePrefix}")
+	public @ResponseBody String delImpulseSender(@PathVariable("tablePrefix") String tablePrefix) {
 		String key = tablePrefix + "_ID";
 		try {
 			impulseSenderService.del(tablePrefix + "_ID");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return "resetId success.key = " + key;
+		return "delImpulseSender success.key = " + key;
+	}
+
+	@RequestMapping(value = "/test/delSubmeterTableCache/{tablePrefix}")
+	public @ResponseBody String delSubmeterTableCache(@PathVariable("tablePrefix") String tablePrefix) {
+		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
+		try {
+			// 清除老数据
+			redisManager.del(cacheKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "delSubmeterTableCache success.tablePrefix = " + tablePrefix;
 	}
 
 	@RequestMapping(value = "/putSubTableNumber/{tablePrefix}/{subTableNumber}")
@@ -96,9 +113,9 @@ public class ManualController {
 		return "putSubTableNumber success.tablePrefix = " + tablePrefix + ",subTableNumber = " + subTableNumber;
 	}
 
-	protected List<IncrHotel> buildIncrHotelList() {
+	protected List<IncrHotel> buildIncrHotelList(int count) {
 		List<IncrHotel> rowList = new ArrayList<IncrHotel>();
-		for (int i = 0; i < 421; i++) {
+		for (int i = 0; i < count; i++) {
 			IncrHotel row = new IncrHotel();
 			row.setTrigger("asdf");
 			row.setTriggerID(i);
@@ -112,9 +129,9 @@ public class ManualController {
 		return rowList;
 	}
 
-	protected List<IncrInventory> buildIncrInventoryList() {
+	protected List<IncrInventory> buildIncrInventoryList(int count) {
 		List<IncrInventory> rowList = new ArrayList<IncrInventory>();
-		for (int i = 0; i < 421; i++) {
+		for (int i = 0; i < count; i++) {
 			IncrInventory row = new IncrInventory();
 			row.setAvailableAmount(1);
 			row.setAvailableDate(new Date());
