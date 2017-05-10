@@ -79,11 +79,12 @@ public class ManualController {
 		return JSON.toJSONString(result);
 	}
 
-	@RequestMapping(value = "/test/delImpulseSender/{tablePrefix}")
-	public @ResponseBody String delImpulseSender(@PathVariable("tablePrefix") String tablePrefix) {
+	@RequestMapping(value = "/test/initImpulseSender/{tablePrefix}/{idVal}")
+	public @ResponseBody String initImpulseSender(@PathVariable("tablePrefix") String tablePrefix, @PathVariable("idVal") String idVal) {
 		String key = tablePrefix + "_ID";
 		try {
-			impulseSenderService.del(tablePrefix + "_ID");
+			Long idLong = Long.valueOf(idVal);
+			impulseSenderService.putId(tablePrefix + "_ID", idLong);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
