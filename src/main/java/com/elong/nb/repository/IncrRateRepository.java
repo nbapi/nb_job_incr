@@ -78,7 +78,7 @@ public class IncrRateRepository {
 		}
 		logger.info("getDataFromPriceInfoTrack, params = " + params);
 		long startTime = System.currentTimeMillis();
-		List<Map<String, Object>> incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
+		List<Map<String, Object>> incrRateList = null;
 		if (StringUtils.isEmpty(tablename)) {
 			incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
 		} else {
@@ -141,7 +141,7 @@ public class IncrRateRepository {
 			}
 			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,successCount = " + successCount);
-			changID = (long) incrRates.get(incrRates.size() - 1).get("ChangeID");
+			changID = Long.valueOf(incrRates.get(incrRates.size() - 1).get("ChangeID").toString());
 		}
 
 		return changID;
