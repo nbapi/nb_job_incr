@@ -216,6 +216,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			if (StringUtils.isEmpty(subTableName))
 				continue;
 			T result = getLastIncrData(subTableName, trigger);
+			logger.info("subTableName = " + subTableName + ",getLastIncrData trigger = " + trigger + ",result  = " + result);
 			if (result == null)
 				continue;
 			return result;
