@@ -123,7 +123,7 @@ public class DateHandlerUtils {
 	public static Date getCacheExpireDate() {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(new Date());
-		calendar.add(Calendar.HOUR, -300);
+		calendar.add(Calendar.MINUTE, -30);
 		return calendar.getTime();
 	}
 

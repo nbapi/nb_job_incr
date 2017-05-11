@@ -96,7 +96,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 							incrHotel.setStartDate(item.getAvailableDate());
 							incrHotel.setEndDate(item.getAvailableDate());
 							incrHotel.setTrigger(triggerInventory);
-							incrHotel.setTriggerID(Long.valueOf(item.getIncrID() + ""));
+							incrHotel.setTriggerID(Long.valueOf(item.getID() + ""));
 							incrHotel.setInsertTime(new Date());
 							hotels.add(incrHotel);
 						}
