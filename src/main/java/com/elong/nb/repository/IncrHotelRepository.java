@@ -101,16 +101,16 @@ public class IncrHotelRepository {
 	/** 
 	 * 获取大于指定ChangeTime的maxRecordCount条IncrRate
 	 *
-	 * @param changTime
+	 * @param changeTime
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<IncrRate> getIncrRates(Date changTime, int maxRecordCount) {
-		if (changTime == null || maxRecordCount == 0) {
+	public List<IncrRate> getIncrRates(Date changeTime, int maxRecordCount) {
+		if (changeTime == null || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrRates,the paramter ['changeTime' or 'maxRecordCount'] must not be null or 0.");
 		}
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("changTime", changTime);
+		params.put("changeTime", changeTime);
 		params.put("maxRecordCount", maxRecordCount);
 		return incrRateDao.getIncrRates(params);
 	}
