@@ -87,7 +87,7 @@ public class SubmeterTableCache {
 			Collections.reverse(subTableNameList);
 		}
 
-		String source = "UUID = " + UUID.randomUUID().toString() + ",定时从数据库一次查询所有非空表名更新缓存";
+		String source = "UUID = " + UUID.randomUUID().toString() + ",put all noempty tablenames from db into redis";
 		long lockTime = lock(source);
 		try {
 			// 清除老数据
@@ -125,7 +125,7 @@ public class SubmeterTableCache {
 		if (subTableNameList != null && subTableNameList.contains(newTableName))
 			return;
 
-		String source = "UUID = " + UUID.randomUUID().toString() + ",插入数据及时更新非空表名缓存";
+		String source = "UUID = " + UUID.randomUUID().toString() + ",push neweast tablename into redis when inserting data";
 		long lockTime = lock(source);
 		try {
 			redisManager.lpush(cacheKey, newTableName.getBytes());
