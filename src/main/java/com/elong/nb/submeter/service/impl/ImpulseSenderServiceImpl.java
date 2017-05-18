@@ -31,7 +31,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 
 	private static final Logger logger = Logger.getLogger("ImpulseSenderLogger");
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+	private RedisManager redisManager = RedisManager.getInstance("redis_impulseSender", "redis_impulseSender");
 
 	/** 
 	 * 获取id
