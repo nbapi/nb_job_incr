@@ -37,6 +37,7 @@ import com.elong.nb.service.IIncrStateService;
  * @since		JDK1.7
  */
 @Controller
+@RequestMapping("/nbincr")
 public class SyncIncrToDBController {
 
 	private static final Logger logger = Logger.getLogger("IncrCommonLogger");

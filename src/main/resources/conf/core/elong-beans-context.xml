@@ -16,7 +16,8 @@
 	<bean id="incrDataSource" class="com.elong.nb.db.ByKeyRoutingDataSource">
 		<property name="targetDataSources">
 			<map key-type="java.lang.String">
-				<entry key="dataSource_incrorder_write" value-ref="dataSource_incrorder_write" />
+				<entry key="dataSource_nbsubmeter_write" value-ref="dataSource_nbsubmeter_write" />
+				<entry key="dataSource_nbsubmeter_read" value-ref="dataSource_nbsubmeter_read" />
 				<entry key="dataSource_nbhotelincr_write" value-ref="dataSource_nbhotelincr_write" />
 				<entry key="dataSource_nbhotelincr_read" value-ref="dataSource_nbhotelincr_read" />
 				<entry key="dataSource_sqlserver_13" value-ref="dataSource_sqlserver_13" />

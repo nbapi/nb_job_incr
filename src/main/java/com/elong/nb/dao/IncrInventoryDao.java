@@ -36,7 +36,7 @@ public interface IncrInventoryDao {
 	 * @param params
 	 * @return
 	 */
-	@DataSource("dataSource_nbhotelincr_read")
+	@DataSource("dataSource_nbsubmeter_write")
 	public List<IncrInventory> getIncrInventories(@Param("subTableName") String subTableName, @Param("params") Map<String, Object> params);
 
 	/** 
@@ -44,7 +44,7 @@ public interface IncrInventoryDao {
 	 *
 	 * @param incrInventories
 	 */
-	@DataSource("dataSource_nbhotelincr_write")
+	@DataSource("dataSource_nbsubmeter_write")
 	public int bulkInsertSub(@Param("subTableName") String subTableName, @Param("list") List<IncrInventory> incrInventories);
 
 	/** 
@@ -53,7 +53,7 @@ public interface IncrInventoryDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbhotelincr_write")
+	@DataSource("dataSource_nbsubmeter_write")
 	public int createSubTable(@Param("tableName") String tableName);
 
 }

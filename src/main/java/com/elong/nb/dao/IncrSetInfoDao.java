@@ -24,7 +24,7 @@ import com.elong.nb.model.IncrSetInfo;
  */
 public interface IncrSetInfoDao {
 
-	@DataSource("dataSource_nbhotelincr_read")
+	@DataSource("dataSource_nbhotelincr_write")
 	public IncrSetInfo queryByKey(String key);
 
 	@DataSource("dataSource_nbhotelincr_write")
