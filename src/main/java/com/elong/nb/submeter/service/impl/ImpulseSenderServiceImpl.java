@@ -9,8 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import com.elong.nb.cache.RedisManager;
 import com.elong.nb.submeter.service.IImpulseSenderService;
+import com.elong.nb.util.JedisPoolUtil;
 
 /**
  * 发号器接口实现
@@ -31,7 +31,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 
 	private static final Logger logger = Logger.getLogger("ImpulseSenderLogger");
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_impulseSender", "redis_impulseSender");
+	private static final String REDIS_CONFIG = "redis_impulseSender";
 
 	/** 
 	 * 获取id
@@ -45,7 +45,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
-		long id = redisManager.incr(RedisManager.getCacheKey(key));
+		long id = JedisPoolUtil.getJedis(REDIS_CONFIG).incr(key);
 		logger.info("key = " + key + ",value = " + id);
 		return id;
 	}
@@ -62,7 +62,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
-		redisManager.del(RedisManager.getCacheKey(key));
+		JedisPoolUtil.getJedis(REDIS_CONFIG).del(key);
 	}
 
 	/** 
@@ -82,7 +82,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (id == null) {
 			throw new IllegalArgumentException("ImpulseSender putId must not be null parameter['id']");
 		}
-		redisManager.put(RedisManager.getCacheKey(key), id);
+		JedisPoolUtil.getJedis(REDIS_CONFIG).set(key, String.valueOf(id));
 		return id;
 	}
 
@@ -99,7 +99,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender curId must not be null parameter['key']");
 		}
-		String idStr = redisManager.get(RedisManager.getCacheKey(key));
+		String idStr = JedisPoolUtil.getJedis(REDIS_CONFIG).get(key);
 		return Long.valueOf(idStr);
 	}
 }
