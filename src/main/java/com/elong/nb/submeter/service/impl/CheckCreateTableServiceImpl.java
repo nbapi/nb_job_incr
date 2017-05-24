@@ -70,17 +70,17 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 		ISubmeterService<?> submeterCommonService = getSubmeterService(incrType);
 		String tablePrefix = submeterCommonService.getTablePrefix();
 		List<Map<String, Object>> tableMapList = submeterTableDao.queryAllSubTableList(tablePrefix + "%", SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB);
-		if (tableMapList == null || tableMapList.size() == 0) {
-			throw new IllegalStateException("EnumIncrType = " + incrType + " has no submeter!!!");
-		}
+		
 		// 查找末尾连续空表
 		List<String> emptyTableNameList = new ArrayList<String>();
-		for (Map<String, Object> tableMap : tableMapList) {
-			Long tableRows = (Long) tableMap.get("table_rows");
-			if (tableRows > 0)
-				break;
-			String tableName = (String) tableMap.get("table_name");
-			emptyTableNameList.add(tableName);
+		if(tableMapList != null&&tableMapList.size() > 0){
+			for (Map<String, Object> tableMap : tableMapList) {
+				Long tableRows = (Long) tableMap.get("table_rows");
+				if (tableRows > 0)
+					break;
+				String tableName = (String) tableMap.get("table_name");
+				emptyTableNameList.add(tableName);
+			}
 		}
 
 		// 末尾连续空表数量
@@ -91,8 +91,11 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 			return Collections.emptyList();
 
 		// 需要创建分表
-		String lastExistTableName = (String) tableMapList.get(0).get("table_name");
-		String lastNumberStr = StringUtils.substringAfter(lastExistTableName, "_");
+		String lastNumberStr = null;
+		if(tableMapList != null&&tableMapList.size() > 0){
+			String lastExistTableName = (String) tableMapList.get(0).get("table_name");
+			lastNumberStr = StringUtils.substringAfter(lastExistTableName, "_");
+		}
 		// 首次创建分表，序号读取数据库设置序号
 		lastNumberStr = StringUtils.isEmpty(lastNumberStr) ? incrSetInfoService.get(tablePrefix + ".SubTable.Number") : lastNumberStr;
 		// 数据库未设置分表序号，直接异常
