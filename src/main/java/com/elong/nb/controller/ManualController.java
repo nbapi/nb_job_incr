@@ -7,7 +7,9 @@ package com.elong.nb.controller;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -15,6 +17,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisSentinelPool;
 
 import com.elong.common.util.StringUtils;
 import com.elong.nb.cache.ICacheKey;
@@ -55,6 +60,36 @@ public class ManualController {
 
 	@Resource(name = "incrHotelSubmeterService")
 	private ISubmeterService<IncrHotel> incrHotelSubmeterService;
+	
+	@RequestMapping(value = "/test/redissentinel/set/{key}/{value}")
+	public @ResponseBody String redissentinel(@PathVariable("key") String key,
+			@PathVariable("value") String value) {
+		Set<String> sentinels = new HashSet<String>();
+        sentinels.add("10.91.65.18:26379");
+        sentinels.add("10.91.66.11:26379");
+        sentinels.add("10.91.67.8:26379");
+
+        String clusterName = "nbapi01";
+
+        JedisSentinelPool redisSentinelJedisPool = new JedisSentinelPool(clusterName,sentinels);
+
+        String result = null;
+        Jedis jedis = null;
+        try {
+            jedis = redisSentinelJedisPool.getResource();
+            jedis.set("key", "value");
+            result = jedis.get("key");
+        } catch (Exception e) {
+        		result = e.getMessage();
+            e.printStackTrace();
+        } finally {
+            redisSentinelJedisPool.returnBrokenResource(jedis);
+        }
+
+        redisSentinelJedisPool.close();
+        
+        return result;
+	}
 	
 	/** 
 	 * 设置分表开始序号(分表上线时初始化分表开始序号)
