@@ -85,7 +85,7 @@ public class ManualController {
 	public @ResponseBody String putIncrSetInfo(@PathVariable("key") String key,
 			@PathVariable("value") String value) {
 		try {
-			incrSetInfoService.put(key, value);
+			incrSetInfoService.put(key, Long.valueOf(value));
 		} catch (Exception e) {
 			return "putIncrSetInfo error = " + e.getMessage() + ",key = " + key + ",value = " + value;
 		}
