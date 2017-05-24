@@ -75,6 +75,24 @@ public class ManualController {
 	}
 	
 	/** 
+	 * 设置增量配置信息
+	 *
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	@RequestMapping(value = "/test/putIncrSetInfo/{key}/{value}")
+	public @ResponseBody String putIncrSetInfo(@PathVariable("key") String key,
+			@PathVariable("value") String value) {
+		try {
+			incrSetInfoService.put(key, value);
+		} catch (Exception e) {
+			return "putIncrSetInfo error = " + e.getMessage() + ",key = " + key + ",value = " + value;
+		}
+		return "putIncrSetInfo success.key = " + key + ",value = " + value;
+	}
+	
+	/** 
 	 * 设置发号器id(分表上线时初始化发号器id)
 	 *
 	 * @param tablePrefix
