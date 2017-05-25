@@ -26,7 +26,7 @@ import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.repository.IncrHotelRepository;
 import com.elong.nb.service.IIncrHotelService;
-import com.elong.nb.util.DateHandlerUtils;
+import com.elong.nb.service.IIncrSetInfoService;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -53,6 +53,9 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 
 	@Resource
 	private IncrHotelRepository incrHotelRepository;
+	
+	@Resource
+	private IIncrSetInfoService incrSetInfoService;
 
 	/** 
 	 * 同步酒店增量
@@ -78,11 +81,14 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 								+ JSON.toJSONString(hotel));
 						List<IncrInventory> inventorys = null;
 						startTime = System.currentTimeMillis();
+						long incrInventoryTriggerID = 0;
 						if (hotel == null) {
-							inventorys = incrHotelRepository.getIncrInventories(DateHandlerUtils.getCacheExpireDate(), MaxRecordCount);
+//							inventorys = incrHotelRepository.getIncrInventories(DateHandlerUtils.getCacheExpireDate(), MaxRecordCount);
+							incrInventoryTriggerID = Long.valueOf(incrSetInfoService.get("IncrInventory.last.TriggerID"));
 						} else {
-							inventorys = incrHotelRepository.getIncrInventories(hotel.TriggerID, MaxRecordCount);
+							incrInventoryTriggerID = hotel.TriggerID;
 						}
+						inventorys = incrHotelRepository.getIncrInventories(incrInventoryTriggerID, MaxRecordCount);
 						endTime = System.currentTimeMillis();
 						logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerInventory + ",inventorys size = "
 								+ inventorys.size());
@@ -124,11 +130,14 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 								+ JSON.toJSONString(hotel));
 						List<IncrRate> rates = null;
 						startTime = System.currentTimeMillis();
+						long incrRateTriggerID = 0;
 						if (hotel == null) {
-							rates = incrHotelRepository.getIncrRates(DateHandlerUtils.getCacheExpireDate(), MaxRecordCount);
+//							rates = incrHotelRepository.getIncrRates(DateHandlerUtils.getCacheExpireDate(), MaxRecordCount);
+							incrRateTriggerID = Long.valueOf(incrSetInfoService.get("IncrRate.last.TriggerID"));
 						} else {
-							rates = incrHotelRepository.getIncrRates(hotel.TriggerID, MaxRecordCount);
+							incrRateTriggerID = hotel.TriggerID;
 						}
+						rates = incrHotelRepository.getIncrRates(incrRateTriggerID, MaxRecordCount);
 						endTime = System.currentTimeMillis();
 						logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerRate + ",rates size = " + rates.size());
 						if (rates == null || rates.size() == 0)
