@@ -87,5 +87,14 @@ public class JedisPoolUtil {
 		}
 		return pool.getResource();
 	}
+	
+	/**
+     * 释放一个连接
+     *
+     * @param jedis
+     */
+    public static void returnRes(Jedis jedis) {
+        pool.returnResource(jedis);
+    }
 
 }

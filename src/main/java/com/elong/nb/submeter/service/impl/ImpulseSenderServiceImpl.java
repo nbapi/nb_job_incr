@@ -35,15 +35,6 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 
 	private static final String REDIS_CONFIG = "redis_impulseSender";
 
-	private Jedis jedis;
-
-	private Jedis getJedis() {
-		if (jedis == null) {
-			jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
-		}
-		return jedis;
-	}
-
 	/** 
 	 * 获取id
 	 *
@@ -56,7 +47,9 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
-		long id = getJedis().incr(key);
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		long id = jedis.incr(key);
+		JedisPoolUtil.returnRes(jedis);
 		logger.info("key = " + key + ",value = " + id);
 		return id;
 	}
@@ -73,7 +66,9 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
-		getJedis().del(key);
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		jedis.del(key);
+		JedisPoolUtil.returnRes(jedis);
 	}
 
 	/** 
@@ -93,7 +88,9 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (id == null) {
 			throw new IllegalArgumentException("ImpulseSender putId must not be null parameter['id']");
 		}
-		getJedis().set(key, String.valueOf(id));
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		jedis.set(key, String.valueOf(id));
+		JedisPoolUtil.returnRes(jedis);
 		return id;
 	}
 
@@ -110,7 +107,9 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender curId must not be null parameter['key']");
 		}
-		String idStr = getJedis().get(key);
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		String idStr = jedis.get(key);
+		JedisPoolUtil.returnRes(jedis);
 		return Long.valueOf(idStr);
 	}
 }
