@@ -70,16 +70,19 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	public List<String> checkSubTable(EnumIncrType incrType) {
 		ISubmeterService<?> submeterCommonService = getSubmeterService(incrType);
 		String tablePrefix = submeterCommonService.getTablePrefix();
-		List<Map<String, Object>> tableMapList = submeterTableDao.queryAllSubTableList(tablePrefix + "%", SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB);
-		
+		List<Map<String, Object>> tableMapList = submeterTableDao.queryAllSubTableList(tablePrefix + "%",
+				SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB);
+		logger.info("tableMapList = " + (tableMapList == null ? 0 : tableMapList.size()));
+
 		// 查找末尾连续空表
 		List<String> emptyTableNameList = new ArrayList<String>();
-		if(tableMapList != null&&tableMapList.size() > 0){
+		if (tableMapList != null && tableMapList.size() > 0) {
 			for (Map<String, Object> tableMap : tableMapList) {
 				BigInteger tableRows = (BigInteger) tableMap.get("table_rows");
+				String tableName = (String) tableMap.get("table_name");
+				logger.info("tableName = " + tableName + ",tableRows = " + tableRows.longValue());
 				if (tableRows.longValue() > 0)
 					break;
-				String tableName = (String) tableMap.get("table_name");
 				emptyTableNameList.add(tableName);
 			}
 		}
@@ -93,7 +96,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 
 		// 需要创建分表
 		String lastNumberStr = null;
-		if(tableMapList != null&&tableMapList.size() > 0){
+		if (tableMapList != null && tableMapList.size() > 0) {
 			String lastExistTableName = (String) tableMapList.get(0).get("table_name");
 			lastNumberStr = StringUtils.substringAfter(lastExistTableName, "_");
 		}
