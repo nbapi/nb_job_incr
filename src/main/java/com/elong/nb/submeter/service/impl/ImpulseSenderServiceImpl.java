@@ -9,6 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import redis.clients.jedis.Jedis;
+
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.util.JedisPoolUtil;
 
@@ -33,6 +35,15 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 
 	private static final String REDIS_CONFIG = "redis_impulseSender";
 
+	private Jedis jedis;
+
+	private Jedis getJedis() {
+		if (jedis == null) {
+			jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		}
+		return jedis;
+	}
+
 	/** 
 	 * 获取id
 	 *
@@ -45,7 +56,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
-		long id = JedisPoolUtil.getJedis(REDIS_CONFIG).incr(key);
+		long id = getJedis().incr(key);
 		logger.info("key = " + key + ",value = " + id);
 		return id;
 	}
@@ -62,7 +73,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
-		JedisPoolUtil.getJedis(REDIS_CONFIG).del(key);
+		getJedis().del(key);
 	}
 
 	/** 
@@ -82,7 +93,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (id == null) {
 			throw new IllegalArgumentException("ImpulseSender putId must not be null parameter['id']");
 		}
-		JedisPoolUtil.getJedis(REDIS_CONFIG).set(key, String.valueOf(id));
+		getJedis().set(key, String.valueOf(id));
 		return id;
 	}
 
@@ -99,7 +110,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender curId must not be null parameter['key']");
 		}
-		String idStr = JedisPoolUtil.getJedis(REDIS_CONFIG).get(key);
+		String idStr = getJedis().get(key);
 		return Long.valueOf(idStr);
 	}
 }
