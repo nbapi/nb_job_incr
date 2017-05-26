@@ -43,6 +43,16 @@ public interface IImpulseSenderService {
 	 * @return
 	 */
 	public long getId(String key);
+	
+
+	/** 
+	 * 获取id
+	 *
+	 * @param key
+	 * @param incrVal
+	 * @return
+	 */
+	public long getId(String key, long incrVal);
 
 	/** 
 	 * 设置id

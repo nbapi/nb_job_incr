@@ -61,13 +61,17 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			return 0;
 
 		String tablePrefix = getTablePrefix();
+		long incrVal = rowList.size();
+		long endID = impulseSenderService.getId(tablePrefix + "_ID", incrVal);
+		long beginID = endID - incrVal + 1;
+
 		List<String> subTableList = new ArrayList<String>();
 		Map<String, List<T>> subTableDataMap = new HashMap<String, List<T>>();
 		long startTime = System.currentTimeMillis();
 		for (T row : rowList) {
 			if (row == null)
 				continue;
-			long ID = impulseSenderService.getId(tablePrefix + "_ID");
+			long ID = beginID++;
 			row.setID(ID);
 
 			String subTableName = getSelectedSubTableName(ID);
@@ -82,7 +86,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			}
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName and subRowList put to map,rowList size = "
-				+ rowList.size());
+				+ incrVal);
 
 		int successCount = 0;
 		for (String subTableName : subTableList) {

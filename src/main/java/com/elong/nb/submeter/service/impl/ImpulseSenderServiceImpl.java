@@ -113,4 +113,17 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		JedisPoolUtil.returnRes(jedis);
 		return Long.valueOf(idStr);
 	}
+
+	@Override
+	public long getId(String key, long incrVal) {
+		if (StringUtils.isEmpty(key)) {
+			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
+		}
+		long startTime = System.currentTimeMillis();
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		long id = jedis.incrBy(key, incrVal);
+		JedisPoolUtil.returnRes(jedis);
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",key = " + key + ",value = " + id + ",incrVal = " + incrVal);
+		return id;
+	}
 }
