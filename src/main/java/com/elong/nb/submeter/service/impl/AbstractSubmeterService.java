@@ -81,7 +81,8 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 				subTableList.add(subTableName);
 			}
 		}
-		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName and subRowList put to map");
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName and subRowList put to map,rowList size = "
+				+ rowList.size());
 
 		int successCount = 0;
 		for (String subTableName : subTableList) {
@@ -104,7 +105,8 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			if (subSuccessCount > 0) {
 				startTime = System.currentTimeMillis();
 				submeterTableCache.lpushLimit(tablePrefix, subTableName);
-				logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",submeterTableCache.lpushLimit subTableName = " + subTableName);
+				logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",submeterTableCache.lpushLimit subTableName = "
+						+ subTableName);
 			}
 			successCount += subSuccessCount;
 		}
