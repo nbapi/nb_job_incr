@@ -67,6 +67,7 @@
 			`OperateTime` datetime NOT NULL,
 			`InsertTime` datetime NOT NULL,
 			PRIMARY KEY (`IncrID`),
+			KEY `IX_ID` (`ID`),
 			KEY `IX_ChangeTime` (`ChangeTime`)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
 	</update>
