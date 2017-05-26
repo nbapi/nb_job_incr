@@ -63,6 +63,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 		String tablePrefix = getTablePrefix();
 		List<String> subTableList = new ArrayList<String>();
 		Map<String, List<T>> subTableDataMap = new HashMap<String, List<T>>();
+		long startTime = System.currentTimeMillis();
 		for (T row : rowList) {
 			if (row == null)
 				continue;
@@ -80,6 +81,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 				subTableList.add(subTableName);
 			}
 		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName and subRowList put to map");
 
 		int successCount = 0;
 		for (String subTableName : subTableList) {
@@ -90,7 +92,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("BuilkInsertSize");
 			int pageSize = StringUtils.isEmpty(builkInsertSize) ? 50 : Integer.valueOf(builkInsertSize);
 			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-			long startTime = System.currentTimeMillis();
+			startTime = System.currentTimeMillis();
 			int subSuccessCount = 0;
 			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 				int startNum = (pageIndex - 1) * pageSize;
@@ -100,7 +102,9 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName = " + subTableName
 					+ ",bulkInsert successCount = " + subSuccessCount);
 			if (subSuccessCount > 0) {
+				startTime = System.currentTimeMillis();
 				submeterTableCache.lpushLimit(tablePrefix, subTableName);
+				logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",submeterTableCache.lpushLimit subTableName = " + subTableName);
 			}
 			successCount += subSuccessCount;
 		}
