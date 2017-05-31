@@ -5,6 +5,8 @@
  */
 package com.elong.nb.repository;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -140,6 +142,21 @@ public class IncrHotelRepository {
 	public void syncIncrHotelToDB(List<IncrHotel> hotels) {
 		if (hotels == null || hotels.size() == 0)
 			return;
+		
+		Collections.sort(hotels, new Comparator<IncrHotel>() {
+			@Override
+			public int compare(IncrHotel o1, IncrHotel o2) {
+				if (o1 == null && o2 == null)
+					return 0;
+				if (o1 == null)
+					return -1;
+				if (o2 == null)
+					return 1;
+				long diffVal = o1.getTriggerID() - o2.getTriggerID();
+				return diffVal == 0 ? 0 : (diffVal > 0 ? 1 : -1);
+			}
+		});
+		
 		logger.info("IncrHotel BulkInsert start,recordCount = " + hotels.size());
 		long startTime = System.currentTimeMillis();
 		int successCount = incrHotelSubmeterService.builkInsert(hotels);
