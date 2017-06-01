@@ -101,7 +101,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 							hotels.add(incrHotel);
 						}
 						incrHotelRepository.syncIncrHotelToDB(hotels);
-						Thread.sleep(2000);
+						Thread.sleep(1000);
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
@@ -145,7 +145,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 							hotels.add(incrHotel);
 						}
 						incrHotelRepository.syncIncrHotelToDB(hotels);
-						Thread.sleep(2000);
+						Thread.sleep(1000);
 					}
 				} catch (Exception e) {
 					logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
