@@ -74,9 +74,20 @@ public class SyncIncrToDBController {
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/SyncHotelToDB")
-	public @ResponseBody String syncHotelToDB(HttpServletRequest request) {
-		return doHandlerIncrData(request, "SyncHotelToDB");
+	@RequestMapping(value = "/SyncHotelToDBFromRate")
+	public @ResponseBody String syncHotelToDBFromRate(HttpServletRequest request) {
+		return doHandlerIncrData(request, "syncHotelToDBFromRate");
+	}
+	
+	/** 
+	 * 酒店增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/SyncHotelToDBFromInventory")
+	public @ResponseBody String syncHotelToDBFromInventory(HttpServletRequest request) {
+		return doHandlerIncrData(request, "syncHotelToDBFromInventory");
 	}
 
 	/** 
@@ -190,8 +201,10 @@ public class SyncIncrToDBController {
 			result.setCode(ResponseResult.SUCCESS);
 			result.setMessage(pathVariable + " successfully.");
 			logger.info(pathVariable + ",Controller,start.");
-			if (StringUtils.equals("SyncHotelToDB", pathVariable)) {
-				incrHotelService.syncHotelToDB();
+			if (StringUtils.equals("syncHotelToDBFromRate", pathVariable)) {
+				incrHotelService.syncHotelToDBFromRate();
+			} else if (StringUtils.equals("syncHotelToDBFromInventory", pathVariable)) {
+				incrHotelService.syncHotelToDBFromInventory();
 			} else if (StringUtils.equals("SyncInventoryToDB", pathVariable)) {
 				incrInventoryService.syncInventoryToDB();
 			} else if (StringUtils.equals("SyncInventoryDueToBlack", pathVariable)) {

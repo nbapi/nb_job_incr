@@ -21,11 +21,9 @@ package com.elong.nb.service;
  * @since		JDK1.7
  */
 public interface IIncrHotelService {
-
-	/** 
-	 * 同步酒店增量
-	 *
-	 */
-	public void syncHotelToDB();
+	
+	public void syncHotelToDBFromRate();
+	
+	public void syncHotelToDBFromInventory();
 
 }
