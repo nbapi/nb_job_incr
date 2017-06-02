@@ -8,7 +8,7 @@
 		<where>
 			<if test="_triger != null and !_triger.equals('')"> and `Trigger` = #{_triger} </if>
 		</where>
-		order by IncrID desc limit 0,1
+		order by TriggerID desc limit 0,1
 	</select>
 
 	<!-- 批量插入IncrHotel到指定分表subTableName -->
@@ -46,7 +46,7 @@
 			PRIMARY KEY (`IncrID`),
 			KEY `IX_ChangeTime` (`ChangeTime`),
 			KEY `IX_ID` (`ID`),
-			KEY `IX_IncrHotel_Trigger` (`Trigger`,`IncrID`)
+			KEY `IX_IncrHotel_Trigger` (`Trigger`,`TriggerID`)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
 	</update>
 
