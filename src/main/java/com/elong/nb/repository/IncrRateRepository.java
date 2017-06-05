@@ -5,23 +5,32 @@
  */
 package com.elong.nb.repository;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
+import com.alibaba.fastjson.JSON;
+import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbRequest;
+import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbResponse;
+import com.elong.hotel.goods.ds.thrift.HotelBasePriceRequest;
+import com.elong.nb.agent.thrift.utils.ThriftUtils;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrRateDao;
-import com.elong.nb.dao.SqlServerDataDao;
+import com.elong.nb.dao.MySqlDataDao;
+import com.elong.nb.dao.adataper.IncrRateAdapter;
 import com.elong.nb.service.IFilterService;
 
 /**
@@ -52,10 +61,14 @@ public class IncrRateRepository {
 	private IncrRateDao incrRateDao;
 
 	@Resource
-	private SqlServerDataDao sqlServerDataDao;
+	private MySqlDataDao mySqlDataDao;
 
 	@Resource
 	private IFilterService filterService;
+
+	private static final String server_ip = CommonsUtil.CONFIG_PROVIDAR.getProperty("goods.server_ip");
+	private static final int server_port = Integer.valueOf(CommonsUtil.CONFIG_PROVIDAR.getProperty("goods.server_port"));
+	private static final int server_timeout = Integer.valueOf(CommonsUtil.CONFIG_PROVIDAR.getProperty("goods.server_timeout"));
 
 	/** 
 	 * IncrRate同步到数据库
@@ -65,67 +78,48 @@ public class IncrRateRepository {
 	 */
 	public long syncRatesToDB(long changID) {
 		Map<String, Object> params = new HashMap<String, Object>();
-		String tablename = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrRateFromTable");
-		if (StringUtils.isEmpty(tablename)) {
-			params.put("tablename", "PriceInfo_track");
-		} else {
-			params.put("tablename", tablename);
-		}
+		// 延迟5分钟
+		params.put("delay_time", DateTime.now().minusMinutes(5).toString("yyyy-MM-dd HH:mm:ss"));
 		if (changID > 0) {
-			params.put("Id", changID);
+			params.put("id", changID);
 		} else {
-			params.put("InsertTime", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
+			params.put("operate_time", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
 		}
-		logger.info("getDataFromPriceInfoTrack, params = " + params);
+		logger.info("getPriceOperationIncrement, params = " + params);
 		long startTime = System.currentTimeMillis();
-		List<Map<String, Object>> incrRateList = null;
-		if (StringUtils.isEmpty(tablename)) {
-			incrRateList = sqlServerDataDao.getDataFromPriceInfoTrack(params);
-		} else {
-			incrRateList = sqlServerDataDao.getDataFromPriceInfo(params);
-		}
+		List<Map<String, Object>> priceOperationIncrementList = mySqlDataDao.getPriceOperationIncrement(params);
 		long endTime = System.currentTimeMillis();
-		int incrRateListSize = (incrRateList == null) ? 0 : incrRateList.size();
-		logger.info("use time = " + (endTime - startTime) + ",getDataFromPriceInfoTrack, incrRateList size = " + incrRateListSize);
-		if (incrRateList == null || incrRateList.size() == 0)
+		int incrementListSize = (priceOperationIncrementList == null) ? 0 : priceOperationIncrementList.size();
+		logger.info("use time = " + (endTime - startTime) + ",getPriceOperationIncrement, priceOperationIncrementList size = "
+				+ incrementListSize);
+		if (priceOperationIncrementList == null || priceOperationIncrementList.size() == 0)
 			return changID;
 
-		Map<String, String> dict = new HashMap<String, String>();
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
-		Date validDate = DateTime.now().plusYears(1).toDate();
+		for (Map<String, Object> priceOperationIncrement : priceOperationIncrementList) {
+			Long id = (Long) priceOperationIncrement.get("id");
+			Timestamp operate_time = (Timestamp) priceOperationIncrement.get("operate_time");
+			Date changeTime = new Date(operate_time.getTime());
+			String hotel_id = (String) priceOperationIncrement.get("hotel_id");
+			String roomtype_id = (String) priceOperationIncrement.get("roomtype_id");
+			Integer rateplan_id = (Integer) priceOperationIncrement.get("rateplan_id");
+			Timestamp begin_date = (Timestamp) priceOperationIncrement.get("begin_date");
+			Date startDate = new Date(begin_date.getTime());
+			Timestamp end_date = (Timestamp) priceOperationIncrement.get("end_date");
+			Date endDate = new Date(end_date.getTime());
 
-		startTime = System.currentTimeMillis();
-		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
-		for (Map<String, Object> rowMap : incrRateList) {
-			if (rowMap == null)
-				continue;
-			rowMap.put("InsertTime", new Date());
-
-			String shotelId = (String) rowMap.get("HotelCode");
-			if (filteredSHotelIds.contains(shotelId)) {
-				// if (filterService.doFilter(shotelId)) {
-				// logger.info("filteredSHotelIds contain value[" + shotelId + "],ignore it.");
+			Map<String, Object> incrRate = getIncrRate(hotel_id, startDate, endDate, roomtype_id, rateplan_id);
+			if (incrRate == null) {
+				logger.info("id = " + id + ",incrRate is null");
 				continue;
 			}
-
-			String mhotelId = null;
-			if (dict.containsKey(shotelId)) {
-				mhotelId = dict.get(shotelId);
-			} else {
-				mhotelId = msRelationRepository.getMHotelId(shotelId);
-				dict.put(shotelId, mhotelId);
-			}
-			rowMap.put("HotelID", mhotelId);
-
-			Date endDate = (Date) rowMap.get("EndDate");
-			endDate = (endDate.compareTo(validDate) > 0) ? validDate : endDate;
-			rowMap.put("EndDate", endDate);
-
-			incrRates.add(rowMap);
+			incrRate.put("ChangeTime", changeTime);
+			incrRate.put("ChangeID", id);
+			incrRates.add(incrRate);
 		}
-		endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
 
+		incrRates = filterAndHandler(incrRates);
+		// 插入数据库
 		int recordCount = incrRates.size();
 		if (recordCount > 0) {
 			int successCount = 0;
@@ -143,8 +137,93 @@ public class IncrRateRepository {
 			logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,successCount = " + successCount);
 			changID = Long.valueOf(incrRates.get(incrRates.size() - 1).get("ChangeID").toString());
 		}
-
 		return changID;
+	}
+
+	/** 
+	 * shotelid过滤及enddate处理
+	 *
+	 * @param incrRateList
+	 * @return
+	 */
+	private List<Map<String, Object>> filterAndHandler(List<Map<String, Object>> incrRateList) {
+		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
+		Date validDate = DateTime.now().plusYears(1).toDate();
+
+		long startTime = System.currentTimeMillis();
+		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
+		for (Map<String, Object> rowMap : incrRateList) {
+			if (rowMap == null)
+				continue;
+
+			String shotelId = (String) rowMap.get("HotelCode");
+			if (filteredSHotelIds.contains(shotelId)) {
+				continue;
+			}
+			Date endDate = (Date) rowMap.get("EndDate");
+			endDate = (endDate.compareTo(validDate) > 0) ? validDate : endDate;
+			rowMap.put("EndDate", endDate);
+
+			incrRates.add(rowMap);
+		}
+		long endTime = System.currentTimeMillis();
+		logger.info("use time = " + (endTime - startTime) + ",fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
+		return incrRates;
+	}
+
+	/** 
+	 * 商品库获取价格接口
+	 *
+	 * @param hotelCode
+	 * @param startDate
+	 * @param endDate
+	 * @param roomtype_id
+	 * @param rateplan_id
+	 * @return
+	 */
+	public Map<String, Object> getIncrRate(String hotelCode, Date startDate, Date endDate, String roomtype_id, Integer rateplan_id) {
+		List<Map<String, Object>> incrRates = null;
+		GetBasePrice4NbRequest request = new GetBasePrice4NbRequest();
+		request.setBooking_channel(126);
+		request.setSell_channel(65534);
+		request.setMember_level(30);
+		request.setTraceId(UUID.randomUUID().toString());
+		request.setStart_date((int) (startDate.getTime() / 1000));
+		request.setEnd_date((int) (endDate.getTime() / 1000));
+		List<HotelBasePriceRequest> hotelBases = new LinkedList<HotelBasePriceRequest>();
+		HotelBasePriceRequest hotelBase = new HotelBasePriceRequest();
+		String hotelId = msRelationRepository.getMHotelId(hotelCode);
+		hotelBase.setMhotel_id(Integer.valueOf(hotelId));
+		hotelBase.setShotel_id(Integer.valueOf(hotelCode));
+		hotelBases.add(hotelBase);
+		request.setHotel_base_price_request(hotelBases);
+		try {
+			GetBasePrice4NbResponse response = ThriftUtils.getMetaPrice4Nb(request, server_ip, server_port, server_timeout);
+			if (response != null && response.return_code == 0) {
+				IncrRateAdapter adapter = new IncrRateAdapter();
+				incrRates = adapter.toNBObject(response);
+			} else if (response.return_code > 0) {
+				incrRates = new ArrayList<Map<String, Object>>();
+				logger.error("ThriftUtils.getMetaPrice4Nb, response.return_code > 0,request = " + JSON.toJSONString(request));
+			} else {
+				throw new RuntimeException(response.getReturn_msg());
+			}
+		} catch (Exception ex) {
+			throw new RuntimeException("IncrRate:" + ex.getMessage(), ex);
+		}
+
+		for (Map<String, Object> incrRate : incrRates) {
+			if (incrRate == null)
+				continue;
+			String RoomTypeId = (String) incrRate.get("RoomTypeID");
+			Integer RateplanId = (Integer) incrRate.get("RateplanID");
+			if (StringUtils.isEmpty(RoomTypeId) || RateplanId == null)
+				continue;
+			if (StringUtils.equals(roomtype_id, RoomTypeId) && rateplan_id.intValue() == RateplanId.intValue()) {
+				return incrRate;
+			}
+		}
+		return null;
 	}
 
 }

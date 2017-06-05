@@ -25,15 +25,6 @@ import com.elong.nb.db.DataSource;
  * @since		JDK1.7
  */
 public interface SqlServerDataDao {
-	
-	/** 
-	 * 查询增量价格待同步数据
-	 *
-	 * @param params
-	 * @return
-	 */
-	@DataSource("dataSource_sqlserver_13")
-	public List<Map<String, Object>> getDataFromPriceInfo(Map<String, Object> params);
 
 	/** 
 	 * 查询增量价格待同步数据
@@ -42,16 +33,7 @@ public interface SqlServerDataDao {
 	 * @return
 	 */
 	@DataSource("dataSource_sqlserver_14")
-	public List<Map<String, Object>> getDataFromPriceInfoTrack(Map<String, Object> params);
-
-	/** 
-	 * 查询增量订单待同步数据
-	 *
-	 * @param params
-	 * @return
-	 */
-	@DataSource("dataSource_sqlserver_14")
-	public List<Map<String, Object>> getDataFromReserveTrack(Map<String, Object> params);
+	public List<Map<String, Object>> getPriceOperationIncrement(Map<String, Object> params);
 
 	/** 
 	 * hotelId状态增量记录数

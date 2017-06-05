@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.MySqlDataDao">
+
+	<select id="getPriceOperationIncrement" resultType="java.util.HashMap">
+		select * from price_operation_increment t
+		<where>
+			<if test="operate_time != null and !operate_time.equals('')">
+				<![CDATA[ and operate_time > '${operate_time}'  ]]>
+			</if>
+			<if test="id != null and !id.equals('')">
+				<![CDATA[ and id > ${id}   ]]>
+			</if>
+			<if test="delay_time != null and !delay_time.equals('')">
+				<![CDATA[ and operate_time <= '${delay_time}'  ]]>
+			</if>
+		</where>
+		order by t.id limit 0,100
+	</select>
+
+</mapper>

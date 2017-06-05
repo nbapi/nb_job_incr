@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.elong.nb.dao.SqlServerDataDao">
 
-	<select id="getDataFromPriceInfo" resultType="java.util.HashMap">
+	<select id="getPriceOperationIncrement" resultType="java.util.HashMap">
 		select top 1000 PriceID ChangeID,OperateTime
 				ChangeTime,OperateTime,isnull(RoomTypeID,'') RoomTypeID,isnull(RatePlanID,'') as RateplanID,isnull(HotelID,'')
 				HotelCode,BeginDate StartDate,EndDate,isnull(IsEffective,'') Status,isnull(GenSalePrice,0)
@@ -21,56 +21,6 @@
 			</if>
 		</where>
 		order by PriceID
-	</select>
-
-	<select id="getDataFromPriceInfoTrack" resultType="java.util.HashMap">
-		<!-- TODO 正式上线前改为10000 -->
-		select top 10000 ID ChangeID,InsertTime
-				ChangeTime,OperateTime,isnull(RoomTypeID,'') RoomTypeID,isnull(RatePlanID,'') as RateplanID,isnull(HotelID,'')
-				HotelCode,BeginDate StartDate,EndDate,isnull(IsEffective,'') Status,isnull(GenSalePrice,0)
-				Member,
-				isnull(WeekendSalePrice,0) Weekend,isnull(GenSaleCost,0) MemberCost,isnull(WeekendSaleCost,0)
-				WeekendCost,isnull(CASE WHEN
-				AllowAddBed=1 THEN AddBedPrice ELSE -1 END,0)
-				AddBed,isnull(CurrencyCode,'') CurrencyCode,isnull(PriceID,0) PriceID
-		  from ${tablename} PriceInfo_track
-		<where>
-			and datatype=0
-			<if test="InsertTime != null and !InsertTime.equals('')">
-				<![CDATA[ and InsertTime > '${InsertTime}' ]]>
-			</if>
-			<if test="Id != null and !Id.equals('')">
-				<![CDATA[ and Id > ${Id}  ]]>
-			</if>
-		</where>
-		order by Id
-	</select>
-
-	<select id="getDataFromReserveTrack" resultType="java.util.HashMap">
-		select a.*,b.proxy ProxyId from (
-			select  top 10000
-					ID IncrId,
-					InsertTime ChangeTime,
-					reser_no OrderId,
-					reser_status Status,
-					arrive_date ArrivalDate,
-					leave_date DepartureDate,
-					sum_price TotalPrice,
-					num_room NumberOfRooms,
-					card_no CardNo,
-					order_from OrderFrom
-			  from reserve_track
-			<where>
-				and reser_status in('N','A','F','C','Z','D','B','O','G','U','H','B1','B2','B3','S')
-				<if test="InsertTime != null and !InsertTime.equals('')">
-					<![CDATA[ and InsertTime > '${InsertTime}' ]]>
-				</if>
-				<if test="Id != null and !Id.equals('')">
-					<![CDATA[ and Id > ${Id}  ]]>
-				</if>
-			</where>
-			order by Id
-		) a inner join member b on a.CardNo = b.card_no
 	</select>
 	
 	<select id="getHotelIdCount" resultType="java.lang.Integer">

@@ -44,13 +44,13 @@ public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrR
 
 	@Resource
 	private IncrRateRepository incrRateRepository;
-	
+
 	@Resource
 	private IncrRateDao incrRateDao;
 
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
-	
+
 	/** 
 	 * 删除价格增量
 	 * 
@@ -83,9 +83,9 @@ public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrR
 			long newChangID = incrRateRepository.syncRatesToDB(changID);
 			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ", from " + changID + " to " + newChangID);
-			if (newChangID == changID)
+			if (newChangID == changID) {
 				break;
-			else {
+			} else {
 				startTime = System.currentTimeMillis();
 				incrSetInfoService.put(RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey(), newChangID);
 				endTime = System.currentTimeMillis();

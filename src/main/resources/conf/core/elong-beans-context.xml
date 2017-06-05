@@ -16,6 +16,7 @@
 	<bean id="incrDataSource" class="com.elong.nb.db.ByKeyRoutingDataSource">
 		<property name="targetDataSources">
 			<map key-type="java.lang.String">
+				<entry key="dataSource_mysql_product" value-ref="dataSource_mysql_product" />
 				<entry key="dataSource_nbsubmeter_write" value-ref="dataSource_nbsubmeter_write" />
 				<entry key="dataSource_nbsubmeter_read" value-ref="dataSource_nbsubmeter_read" />
 				<entry key="dataSource_nbhotelincr_write" value-ref="dataSource_nbhotelincr_write" />
@@ -52,7 +53,7 @@
 			<aop:before pointcut-ref="tx" method="before" />
 		</aop:aspect>
 	</aop:config>
-
+	
 	<!-- 配置checklist切面 -->
 	<bean id="checklistAspect" class="com.elong.nb.checklist.ChecklistAspect" />
 	<aop:config>
