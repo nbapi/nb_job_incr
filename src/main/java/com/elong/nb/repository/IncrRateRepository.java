@@ -114,6 +114,7 @@ public class IncrRateRepository {
 				continue;
 			}
 			incrRate.put("ChangeTime", changeTime);
+			incrRate.put("OperateTime", changeTime);
 			incrRate.put("ChangeID", id);
 			incrRates.add(incrRate);
 		}
