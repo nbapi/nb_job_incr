@@ -6,12 +6,8 @@
 package com.elong.nb.service.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -88,11 +84,8 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					incrHotel.setInsertTime(new Date());
 					hotels.add(incrHotel);
 				}
-				startTime = System.currentTimeMillis();
-				hotels = filterDuplicationHotel(hotels);
-				endTime = System.currentTimeMillis();
-				logger.info("use time = " + (endTime - startTime) + ",filterDuplicationHotel");
 				incrHotelRepository.syncIncrHotelToDB(hotels);
+				Thread.sleep(200);
 			}
 		} catch (Exception e) {
 			logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
@@ -135,135 +128,12 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					incrHotel.setInsertTime(new Date());
 					hotels.add(incrHotel);
 				}
-				startTime = System.currentTimeMillis();
-				hotels = filterDuplicationHotel(hotels);
-				endTime = System.currentTimeMillis();
-				logger.info("use time = " + (endTime - startTime) + ",filterDuplicationHotel");
 				incrHotelRepository.syncIncrHotelToDB(hotels);
+				Thread.sleep(200);
 			}
 		} catch (Exception e) {
 			logger.error("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
 		}
-	}
-	
-	/** 
-	 * 过滤重复Hotel增量
-	 *
-	 * @param hotels
-	 * @return
-	 */
-	private List<IncrHotel> filterDuplicationHotel(List<IncrHotel> hotels) {
-		if (hotels == null || hotels.size() == 0)
-			return hotels;
-		logger.info("before filterDuplicationHotel,count = " + hotels.size());
-		// group by hotelID,startDate,EndDate
-		Map<String, List<IncrHotel>> groupMap = new HashMap<String, List<IncrHotel>>();
-		for (IncrHotel hotel : hotels) {
-			if (hotel == null)
-				continue;
-			IncrHotel tempHotel = new IncrHotel();
-			tempHotel.setHotelID(hotel.getHotelID());
-			tempHotel.setStartDate(hotel.getStartDate());
-			tempHotel.setEndDate(hotel.getEndDate());
-			String groupKey = JSON.toJSONString(tempHotel);
-
-			List<IncrHotel> groupValList = groupMap.get(groupKey);
-			if (groupValList == null) {
-				groupValList = new ArrayList<IncrHotel>();
-			}
-			tempHotel.setChangeTime(hotel.getChangeTime());
-			tempHotel.setTriggerID(hotel.getTriggerID());
-			tempHotel.setTrigger(hotel.getTrigger());
-			tempHotel.setInsertTime(hotel.getInsertTime());
-			groupValList.add(tempHotel);
-			groupMap.put(groupKey, groupValList);
-		}
-
-		List<IncrHotel> resultlist = new ArrayList<IncrHotel>();
-		for (Map.Entry<String, List<IncrHotel>> entry : groupMap.entrySet()) {
-			List<IncrHotel> groupValList = entry.getValue();
-			// max(changeTime)
-			Collections.sort(groupValList, new Comparator<IncrHotel>() {
-				@Override
-				public int compare(IncrHotel o1, IncrHotel o2) {
-					if (o1 == null && o2 == null)
-						return 0;
-					if (o1 == null)
-						return -1;
-					if (o2 == null)
-						return 1;
-					if (o1.getChangeTime() == null && o2.getChangeTime() == null)
-						return 0;
-					if (o1.getChangeTime() == null)
-						return -1;
-					if (o2.getChangeTime() == null)
-						return 1;
-					return o1.getChangeTime().compareTo(o2.getChangeTime());
-				}
-			});
-			IncrHotel incrHotel = groupValList.get(groupValList.size() - 1);
-			// max(trigger)
-			Collections.sort(groupValList, new Comparator<IncrHotel>() {
-				@Override
-				public int compare(IncrHotel o1, IncrHotel o2) {
-					if (o1 == null && o2 == null)
-						return 0;
-					if (o1 == null)
-						return -1;
-					if (o2 == null)
-						return 1;
-					if (o1.getTrigger() == null && o2.getTrigger() == null)
-						return 0;
-					if (o1.getTrigger() == null)
-						return -1;
-					if (o2.getTrigger() == null)
-						return 1;
-					return o1.getTrigger().compareTo(o2.getTrigger());
-				}
-			});
-			IncrHotel tempHotel = groupValList.get(groupValList.size() - 1);
-			incrHotel.setTrigger(tempHotel.getTrigger());
-			// max(triggerID)
-			Collections.sort(groupValList, new Comparator<IncrHotel>() {
-				@Override
-				public int compare(IncrHotel o1, IncrHotel o2) {
-					if (o1 == null && o2 == null)
-						return 0;
-					if (o1 == null)
-						return -1;
-					if (o2 == null)
-						return 1;
-					long diffVal = o1.getTriggerID() - o2.getTriggerID();
-					return diffVal == 0 ? 0 : (diffVal > 0 ? 1 : -1);
-				}
-			});
-			tempHotel = groupValList.get(groupValList.size() - 1);
-			incrHotel.setTriggerID(tempHotel.getTriggerID());
-			// max(insertTime)
-			Collections.sort(groupValList, new Comparator<IncrHotel>() {
-				@Override
-				public int compare(IncrHotel o1, IncrHotel o2) {
-					if (o1 == null && o2 == null)
-						return 0;
-					if (o1 == null)
-						return -1;
-					if (o2 == null)
-						return 1;
-					if (o1.getInsertTime() == null && o2.getInsertTime() == null)
-						return 0;
-					if (o1.getInsertTime() == null)
-						return -1;
-					if (o2.getInsertTime() == null)
-						return 1;
-					return o1.getInsertTime().compareTo(o2.getInsertTime());
-				}
-			});
-			tempHotel = groupValList.get(groupValList.size() - 1);
-			incrHotel.setInsertTime(tempHotel.getInsertTime());
-			resultlist.add(incrHotel);
-		}
-		logger.info("after filterDuplicationHotel,count = " + resultlist.size());
-		return resultlist;
 	}
 
 }
