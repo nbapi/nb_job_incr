@@ -8,6 +8,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.alibaba.fastjson.JSON;
 import com.elong.nb.common.checklist.Constants;
 import com.elong.nb.util.ThreadLocalUtil;
 import com.elong.springmvc_enhance.utilities.ActionLogHelper;
@@ -58,8 +59,8 @@ public class ChecklistAspect {
 			if (guid == null)
 				guid = UUID.randomUUID().toString();
 
-			ActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null, returnValue,
-					point.getArgs());
+			ActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null,
+					JSON.toJSONString(returnValue), JSON.toJSONString(point.getArgs()));
 		} catch (Exception e) {
 		}
 	}
@@ -77,7 +78,7 @@ public class ChecklistAspect {
 			if (throwing instanceof Exception) {
 				Exception e = (Exception) throwing;
 				ActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), null,
-						point.getArgs());
+						JSON.toJSONString(point.getArgs()));
 			}
 		} catch (Exception e) {
 		}

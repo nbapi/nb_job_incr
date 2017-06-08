@@ -19,6 +19,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
@@ -199,7 +200,7 @@ public class IncrRateRepository {
 		hotelBases.add(hotelBase);
 		request.setHotel_base_price_request(hotelBases);
 		try {
-			GetBasePrice4NbResponse response = ThriftUtils.getMetaPrice4Nb(request, server_ip, server_port, server_timeout);
+			GetBasePrice4NbResponse response = getMetaPrice4Nb(request);
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
 				incrRates = adapter.toNBObject(response);
@@ -225,6 +226,17 @@ public class IncrRateRepository {
 			}
 		}
 		return null;
+	}
+
+	/** 
+	 * 为了记checklist 
+	 *
+	 * @param request
+	 * @return
+	 * @throws TException
+	 */
+	private GetBasePrice4NbResponse getMetaPrice4Nb(GetBasePrice4NbRequest request) throws TException {
+		return ThriftUtils.getMetaPrice4Nb(request, server_ip, server_port, server_timeout);
 	}
 
 }
