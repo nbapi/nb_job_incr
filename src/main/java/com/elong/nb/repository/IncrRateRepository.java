@@ -19,7 +19,6 @@ import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
@@ -27,7 +26,6 @@ import com.alibaba.fastjson.JSON;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbRequest;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbResponse;
 import com.elong.hotel.goods.ds.thrift.HotelBasePriceRequest;
-import com.elong.nb.agent.thrift.utils.ThriftUtils;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.MySqlDataDao;
@@ -53,6 +51,9 @@ public class IncrRateRepository {
 	private static final Logger logger = Logger.getLogger("IncrRateLogger");
 
 	@Resource
+	private GoodsMetaRepository goodsMetaRepository;
+	
+	@Resource
 	private MSRelationRepository msRelationRepository;
 
 	@Resource
@@ -66,10 +67,6 @@ public class IncrRateRepository {
 
 	@Resource
 	private IFilterService filterService;
-
-	private static final String server_ip = CommonsUtil.CONFIG_PROVIDAR.getProperty("goods.server_ip");
-	private static final int server_port = Integer.valueOf(CommonsUtil.CONFIG_PROVIDAR.getProperty("goods.server_port"));
-	private static final int server_timeout = Integer.valueOf(CommonsUtil.CONFIG_PROVIDAR.getProperty("goods.server_timeout"));
 
 	/** 
 	 * IncrRate同步到数据库
@@ -148,7 +145,7 @@ public class IncrRateRepository {
 	 * @param incrRateList
 	 * @return
 	 */
-	public List<Map<String, Object>> filterAndHandler(List<Map<String, Object>> incrRateList) {
+	private List<Map<String, Object>> filterAndHandler(List<Map<String, Object>> incrRateList) {
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		Date validDate = DateTime.now().plusYears(1).toDate();
 
@@ -183,7 +180,7 @@ public class IncrRateRepository {
 	 * @param rateplan_id
 	 * @return
 	 */
-	public Map<String, Object> getIncrRate(String hotelCode, Date startDate, Date endDate, String roomtype_id, Integer rateplan_id) {
+	private Map<String, Object> getIncrRate(String hotelCode, Date startDate, Date endDate, String roomtype_id, Integer rateplan_id) {
 		List<Map<String, Object>> incrRates = null;
 		GetBasePrice4NbRequest request = new GetBasePrice4NbRequest();
 		request.setBooking_channel(126);
@@ -200,7 +197,7 @@ public class IncrRateRepository {
 		hotelBases.add(hotelBase);
 		request.setHotel_base_price_request(hotelBases);
 		try {
-			GetBasePrice4NbResponse response = getMetaPrice4Nb(request);
+			GetBasePrice4NbResponse response = goodsMetaRepository.getMetaPrice4Nb(request);
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
 				incrRates = adapter.toNBObject(response);
@@ -226,17 +223,6 @@ public class IncrRateRepository {
 			}
 		}
 		return null;
-	}
-
-	/** 
-	 * 为了记checklist 
-	 *
-	 * @param request
-	 * @return
-	 * @throws TException
-	 */
-	public GetBasePrice4NbResponse getMetaPrice4Nb(GetBasePrice4NbRequest request) throws TException {
-		return ThriftUtils.getMetaPrice4Nb(request, server_ip, server_port, server_timeout);
 	}
 
 }

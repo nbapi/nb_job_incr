@@ -63,7 +63,7 @@
 							||execution(public * com.elong.nb.controller.*.*(..))
 							||execution(public * com.elong.nb.repository.MSRelationRepository.*(..))
 							||execution(public * com.elong.nb.repository.CommonRepository.*(..))
-							||execution(public * com.elong.nb.repository.IncrRateRepository.*(..))
+							||execution(public * com.elong.nb.repository.GoodsMetaRepository.*(..))
 							||execution(public * com.elong.nb.submeter.service.impl.*.*(..))
 							||execution(public * com.elong.nb.service.impl.OrderCenterServiceImpl.*(..))" />
 			<aop:before pointcut-ref="tx2" method="handlerLogBefore" />
