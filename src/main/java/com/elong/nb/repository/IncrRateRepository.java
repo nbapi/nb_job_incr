@@ -130,9 +130,9 @@ public class IncrRateRepository {
 			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 			startTime = System.currentTimeMillis();
 			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-				int startNum = (pageIndex - 1) * pageSize;
-				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-				successCount += incrRateDao.bulkInsert(incrRates.subList(startNum, endNum));
+//				int startNum = (pageIndex - 1) * pageSize;
+//				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+//				successCount += incrRateDao.bulkInsert(incrRates.subList(startNum, endNum));
 			}
 			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,successCount = " + successCount);
