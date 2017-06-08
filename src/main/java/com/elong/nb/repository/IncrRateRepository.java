@@ -148,7 +148,7 @@ public class IncrRateRepository {
 	 * @param incrRateList
 	 * @return
 	 */
-	private List<Map<String, Object>> filterAndHandler(List<Map<String, Object>> incrRateList) {
+	public List<Map<String, Object>> filterAndHandler(List<Map<String, Object>> incrRateList) {
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		Date validDate = DateTime.now().plusYears(1).toDate();
 
@@ -235,7 +235,7 @@ public class IncrRateRepository {
 	 * @return
 	 * @throws TException
 	 */
-	private GetBasePrice4NbResponse getMetaPrice4Nb(GetBasePrice4NbRequest request) throws TException {
+	public GetBasePrice4NbResponse getMetaPrice4Nb(GetBasePrice4NbRequest request) throws TException {
 		return ThriftUtils.getMetaPrice4Nb(request, server_ip, server_port, server_timeout);
 	}
 
