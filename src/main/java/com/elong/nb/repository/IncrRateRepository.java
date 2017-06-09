@@ -52,7 +52,7 @@ public class IncrRateRepository {
 
 	@Resource
 	private GoodsMetaRepository goodsMetaRepository;
-	
+
 	@Resource
 	private MSRelationRepository msRelationRepository;
 
@@ -93,6 +93,7 @@ public class IncrRateRepository {
 		if (priceOperationIncrementList == null || priceOperationIncrementList.size() == 0)
 			return changID;
 
+		int emptyIncrRateCount = 0;
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		for (Map<String, Object> priceOperationIncrement : priceOperationIncrementList) {
 			Long id = (Long) priceOperationIncrement.get("id");
@@ -106,16 +107,20 @@ public class IncrRateRepository {
 			Timestamp end_date = (Timestamp) priceOperationIncrement.get("end_date");
 			Date endDate = new Date(end_date.getTime());
 
-			Map<String, Object> incrRate = getIncrRate(hotel_id, startDate, endDate, roomtype_id, rateplan_id);
+			Map<String, Object> incrRate = getIncrRate(id, hotel_id, startDate, endDate, roomtype_id, rateplan_id);
 			if (incrRate == null) {
-				logger.info("id = " + id + ",incrRate is null");
+				emptyIncrRateCount++;
+				logger.info("priceOperationIncrement = " + priceOperationIncrement + ",incrRate is null");
 				continue;
 			}
 			incrRate.put("ChangeTime", changeTime);
 			incrRate.put("OperateTime", changeTime);
 			incrRate.put("ChangeID", id);
 			incrRates.add(incrRate);
+			changID = id;
 		}
+		logger.info("emptyIncrRateCount = " + emptyIncrRateCount);
+		changID = (Long) priceOperationIncrementList.get(incrementListSize - 1).get("id");
 
 		incrRates = filterAndHandler(incrRates);
 		// 插入数据库
@@ -128,13 +133,12 @@ public class IncrRateRepository {
 			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 			startTime = System.currentTimeMillis();
 			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-//				int startNum = (pageIndex - 1) * pageSize;
-//				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-//				successCount += incrRateDao.bulkInsert(incrRates.subList(startNum, endNum));
+				// int startNum = (pageIndex - 1) * pageSize;
+				// int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+				// successCount += incrRateDao.bulkInsert(incrRates.subList(startNum, endNum));
 			}
 			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",IncrRate BulkInsert successfully,successCount = " + successCount);
-			changID = Long.valueOf(incrRates.get(incrRates.size() - 1).get("ChangeID").toString());
 		}
 		return changID;
 	}
@@ -146,9 +150,9 @@ public class IncrRateRepository {
 	 * @return
 	 */
 	private List<Map<String, Object>> filterAndHandler(List<Map<String, Object>> incrRateList) {
+		logger.info("before fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		Date validDate = DateTime.now().plusYears(1).toDate();
-
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		for (Map<String, Object> rowMap : incrRateList) {
@@ -180,13 +184,13 @@ public class IncrRateRepository {
 	 * @param rateplan_id
 	 * @return
 	 */
-	private Map<String, Object> getIncrRate(String hotelCode, Date startDate, Date endDate, String roomtype_id, Integer rateplan_id) {
+	private Map<String, Object> getIncrRate(Long id, String hotelCode, Date startDate, Date endDate, String roomtype_id, Integer rateplan_id) {
 		List<Map<String, Object>> incrRates = null;
 		GetBasePrice4NbRequest request = new GetBasePrice4NbRequest();
 		request.setBooking_channel(126);
 		request.setSell_channel(65534);
 		request.setMember_level(30);
-		request.setTraceId(UUID.randomUUID().toString());
+		request.setTraceId(UUID.randomUUID().toString() + "_" + id);
 		request.setStart_date((int) (startDate.getTime() / 1000));
 		request.setEnd_date((int) (endDate.getTime() / 1000));
 		List<HotelBasePriceRequest> hotelBases = new LinkedList<HotelBasePriceRequest>();
