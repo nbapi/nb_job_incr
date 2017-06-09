@@ -301,7 +301,9 @@ public class IncrRateRepository {
 				result = incrRate;
 			}
 		}
-
+		if (incrRates != null && incrRates.size() > 0 && result == null) {
+			logger.info("priceOperationIncrement id = " + id + ",incrRates exists from goods,but roomTypeId and RateplanID doesn't match! ");
+		}
 		if (result != null) {
 			result.put("ChangeTime", changeTime);
 			result.put("OperateTime", changeTime);
