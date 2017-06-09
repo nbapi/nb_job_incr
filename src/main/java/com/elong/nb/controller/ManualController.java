@@ -116,7 +116,6 @@ public class ManualController {
 		try {
 			incrRateLogger.info("request = " + JSON.toJSONString(request));
 			response = goodsMetaRepository.getMetaPrice4Nb(request);
-			incrRateLogger.info("response = " + JSON.toJSONString(response));
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
 				incrRates = adapter.toNBObject(response);
