@@ -113,7 +113,7 @@ public class IncrRateRepository {
 
 		// 多线程调用商品库价格元数据接口
 		String GoodsMetaPriceThreadsStr = CommonsUtil.CONFIG_PROVIDAR.getProperty("GoodsMetaPriceThreads");
-		int GoodsMetaPriceThreads = StringUtils.isEmpty(GoodsMetaPriceThreadsStr) ? 50 : Integer.valueOf(GoodsMetaPriceThreadsStr);
+		int GoodsMetaPriceThreads = StringUtils.isEmpty(GoodsMetaPriceThreadsStr) ? 30 : Integer.valueOf(GoodsMetaPriceThreadsStr);
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(GoodsMetaPriceThreads, 400);
 		int validStateDateCount = 0;
 		final AtomicInteger emptyIncrRateCount = new AtomicInteger();
@@ -131,6 +131,7 @@ public class IncrRateRepository {
 					Map<String, Object> incrRate = getIncrRate(priceOperationIncrement);
 					if (incrRate == null) {
 						emptyIncrRateCount.incrementAndGet();
+						return;
 					}
 					incrRates.add(incrRate);
 				}
@@ -245,8 +246,9 @@ public class IncrRateRepository {
 		hotelBase.setShotel_id(Integer.valueOf(hotelCode));
 		hotelBases.add(hotelBase);
 		request.setHotel_base_price_request(hotelBases);
+		GetBasePrice4NbResponse response = null;
 		try {
-			GetBasePrice4NbResponse response = goodsMetaRepository.getMetaPrice4Nb(request);
+			response = goodsMetaRepository.getMetaPrice4Nb(request);
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
 				incrRates = adapter.toNBObject(response);
@@ -278,6 +280,8 @@ public class IncrRateRepository {
 			result.put("ChangeTime", changeTime);
 			result.put("OperateTime", changeTime);
 			result.put("ChangeID", id);
+		} else {
+			logger.info("incrrate is null,request = " + JSON.toJSONString(request) + ",response = " + JSON.toJSONString(response));
 		}
 		return result;
 	}
