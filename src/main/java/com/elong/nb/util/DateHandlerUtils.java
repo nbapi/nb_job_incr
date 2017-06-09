@@ -5,9 +5,12 @@
  */
 package com.elong.nb.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import org.apache.commons.lang3.time.DateUtils;
 
 /**
  * 日期工具类
@@ -24,6 +27,11 @@ import java.util.Date;
  * @since		JDK1.7
  */
 public class DateHandlerUtils {
+	
+	public static Date convertDateParttern(Date date, String pattern) throws ParseException{
+		String dateStr = formatDate(date, pattern);
+		return DateUtils.parseDate(dateStr, pattern);
+	}
 
 	/** 
 	 * 是否在指定startTime的后十分钟之内
