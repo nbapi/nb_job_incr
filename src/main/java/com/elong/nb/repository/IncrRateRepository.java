@@ -82,21 +82,8 @@ public class IncrRateRepository {
 	 * @return
 	 */
 	public long syncRatesToDB(long changID) {
-		Map<String, Object> params = new HashMap<String, Object>();
-		// 价格变化流水表获取数据，延迟3分钟
-		params.put("delay_time", DateTime.now().minusMinutes(3).toString("yyyy-MM-dd HH:mm:ss"));
-		if (changID > 0) {
-			params.put("id", changID);
-		} else {
-			params.put("operate_time", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
-		}
-		logger.info("getPriceOperationIncrement, params = " + params);
-		long startTime = System.currentTimeMillis();
-		List<Map<String, Object>> priceOperationIncrementList = mySqlDataDao.getPriceOperationIncrement(params);
-		long endTime = System.currentTimeMillis();
-		int incrementListSize = (priceOperationIncrementList == null) ? 0 : priceOperationIncrementList.size();
-		logger.info("use time = " + (endTime - startTime) + ",getPriceOperationIncrement, priceOperationIncrementList size = "
-				+ incrementListSize);
+		// 价格变化流水表获取数据
+		List<Map<String, Object>> priceOperationIncrementList = getPriceOperationIncrement(changID);
 		if (priceOperationIncrementList == null || priceOperationIncrementList.size() == 0)
 			return changID;
 
@@ -112,6 +99,22 @@ public class IncrRateRepository {
 		}
 
 		// 多线程调用商品库价格元数据接口
+		List<Map<String, Object>> incrRates = getIncrRateList(priceOperationIncrementList, validDate);
+		// shotelid过滤及enddate处理
+		List<Map<String, Object>> afterIncrRates = filterAndHandler(incrRates);
+		// 插入数据库
+		builkInsert(afterIncrRates);
+		return (Long) priceOperationIncrementList.get(priceOperationIncrementList.size() - 1).get("id");
+	}
+
+	/** 
+	 * 获取incrrate集合
+	 *
+	 * @param priceOperationIncrementList
+	 * @param validDate
+	 * @return
+	 */
+	private List<Map<String, Object>> getIncrRateList(List<Map<String, Object>> priceOperationIncrementList, Date validDate) {
 		String GoodsMetaPriceThreadsStr = CommonsUtil.CONFIG_PROVIDAR.getProperty("GoodsMetaPriceThreads");
 		int GoodsMetaPriceThreads = StringUtils.isEmpty(GoodsMetaPriceThreadsStr) ? 30 : Integer.valueOf(GoodsMetaPriceThreadsStr);
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(GoodsMetaPriceThreads, 400);
@@ -145,13 +148,32 @@ public class IncrRateRepository {
 		} catch (InterruptedException e) {
 			logger.error(e.getMessage(), e);
 		}
+		return incrRates;
+	}
 
-		changID = (Long) priceOperationIncrementList.get(incrementListSize - 1).get("id");
-		// shotelid过滤及enddate处理
-		List<Map<String, Object>> afterIncrRates = filterAndHandler(incrRates);
-		// 插入数据库
-		builkInsert(afterIncrRates);
-		return changID;
+	/** 
+	 * 价格变化流水表获取数据
+	 *
+	 * @param changID
+	 * @return
+	 */
+	private List<Map<String, Object>> getPriceOperationIncrement(long changID) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		// 延迟3分钟
+		params.put("delay_time", DateTime.now().minusMinutes(3).toString("yyyy-MM-dd HH:mm:ss"));
+		if (changID > 0) {
+			params.put("id", changID);
+		} else {
+			params.put("operate_time", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
+		}
+		logger.info("getPriceOperationIncrement, params = " + params);
+		long startTime = System.currentTimeMillis();
+		List<Map<String, Object>> priceOperationIncrementList = mySqlDataDao.getPriceOperationIncrement(params);
+		long endTime = System.currentTimeMillis();
+		int incrementListSize = (priceOperationIncrementList == null) ? 0 : priceOperationIncrementList.size();
+		logger.info("use time = " + (endTime - startTime) + ",getPriceOperationIncrement, priceOperationIncrementList size = "
+				+ incrementListSize);
+		return priceOperationIncrementList;
 	}
 
 	/** 
@@ -252,6 +274,10 @@ public class IncrRateRepository {
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
 				incrRates = adapter.toNBObject(response);
+				if (incrRates == null || incrRates.size() == 0) {
+					logger.error("ThriftUtils.getMetaPrice4Nb,response.return_code = 0,incrRates size = 0,request = "
+							+ JSON.toJSONString(request) + ",response = " + JSON.toJSONString(response));
+				}
 			} else if (response.return_code > 0) {
 				incrRates = new ArrayList<Map<String, Object>>();
 				logger.info("ThriftUtils.getMetaPrice4Nb, response.return_code > 0,request = " + JSON.toJSONString(request)
@@ -280,8 +306,6 @@ public class IncrRateRepository {
 			result.put("ChangeTime", changeTime);
 			result.put("OperateTime", changeTime);
 			result.put("ChangeID", id);
-		} else {
-			logger.info("incrrate is null,request = " + JSON.toJSONString(request) + ",response = " + JSON.toJSONString(response));
 		}
 		return result;
 	}
