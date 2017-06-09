@@ -93,7 +93,7 @@ public class IncrRateRepository {
 		if (priceOperationIncrementList == null || priceOperationIncrementList.size() == 0)
 			return changID;
 
-		int emptyIncrRateCount = 0;
+		List<Long> emptyIncrRateIDList = new LinkedList<Long>();
 		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		for (Map<String, Object> priceOperationIncrement : priceOperationIncrementList) {
 			Long id = (Long) priceOperationIncrement.get("id");
@@ -109,8 +109,7 @@ public class IncrRateRepository {
 
 			Map<String, Object> incrRate = getIncrRate(id, hotel_id, startDate, endDate, roomtype_id, rateplan_id);
 			if (incrRate == null) {
-				emptyIncrRateCount++;
-				logger.info("priceOperationIncrement = " + priceOperationIncrement + ",incrRate is null");
+				emptyIncrRateIDList.add(id);
 				continue;
 			}
 			incrRate.put("ChangeTime", changeTime);
@@ -119,7 +118,7 @@ public class IncrRateRepository {
 			incrRates.add(incrRate);
 			changID = id;
 		}
-		logger.info("emptyIncrRateCount = " + emptyIncrRateCount);
+		logger.info("emptyIncrRateCount = " + emptyIncrRateIDList.size() + ",emptyIncrRateIDList = " + emptyIncrRateIDList);
 		changID = (Long) priceOperationIncrementList.get(incrementListSize - 1).get("id");
 
 		incrRates = filterAndHandler(incrRates);
@@ -170,7 +169,7 @@ public class IncrRateRepository {
 			incrRates.add(rowMap);
 		}
 		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
+		logger.info("use time = " + (endTime - startTime) + ",after fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
 		return incrRates;
 	}
 
