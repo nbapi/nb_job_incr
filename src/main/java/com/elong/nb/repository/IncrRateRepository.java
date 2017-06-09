@@ -206,7 +206,7 @@ public class IncrRateRepository {
 				incrRates = adapter.toNBObject(response);
 			} else if (response.return_code > 0) {
 				incrRates = new ArrayList<Map<String, Object>>();
-				logger.error("ThriftUtils.getMetaPrice4Nb, response.return_code > 0,request = " + JSON.toJSONString(request));
+				logger.info("ThriftUtils.getMetaPrice4Nb, response.return_code > 0,request = " + JSON.toJSONString(request) + ",response = " + JSON.toJSONString(response));
 			} else {
 				throw new RuntimeException(response.getReturn_msg());
 			}
