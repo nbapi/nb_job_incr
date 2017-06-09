@@ -5,22 +5,36 @@
  */
 package com.elong.nb.controller;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.elong.common.util.StringUtils;
+import com.alibaba.fastjson.JSON;
+import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbRequest;
+import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbResponse;
+import com.elong.hotel.goods.ds.thrift.HotelBasePriceRequest;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
+import com.elong.nb.dao.MySqlDataDao;
+import com.elong.nb.dao.adataper.IncrRateAdapter;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
+import com.elong.nb.repository.GoodsMetaRepository;
+import com.elong.nb.repository.IncrRateRepository;
+import com.elong.nb.repository.MSRelationRepository;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.ISubmeterService;
@@ -42,6 +56,8 @@ import com.elong.nb.submeter.service.ISubmeterService;
 @Controller
 public class ManualController {
 
+	private static final Logger incrRateLogger = Logger.getLogger("IncrRateLogger");
+
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
@@ -55,7 +71,84 @@ public class ManualController {
 
 	@Resource(name = "incrHotelSubmeterService")
 	private ISubmeterService<IncrHotel> incrHotelSubmeterService;
-	
+
+	@Resource
+	private IncrRateRepository incrRateRepository;
+
+	@Resource
+	private GoodsMetaRepository goodsMetaRepository;
+
+	@Resource
+	private MSRelationRepository msRelationRepository;
+
+	@Resource
+	private MySqlDataDao mySqlDataDao;
+
+	@RequestMapping(value = "/test/goodsMetaPrice/{id}")
+	public @ResponseBody String goodsMetaPrice(@PathVariable("id") Long id) {
+		Map<String, Object> priceOperationIncrement = mySqlDataDao.getPriceOperationIncrementByid(id);
+		Timestamp operate_time = (Timestamp) priceOperationIncrement.get("operate_time");
+		Date changeTime = new Date(operate_time.getTime());
+		String hotelCode = (String) priceOperationIncrement.get("hotel_id");
+		String roomtype_id = (String) priceOperationIncrement.get("roomtype_id");
+		Integer rateplan_id = (Integer) priceOperationIncrement.get("rateplan_id");
+		Timestamp begin_date = (Timestamp) priceOperationIncrement.get("begin_date");
+		Date startDate = new Date(begin_date.getTime());
+		Timestamp end_date = (Timestamp) priceOperationIncrement.get("end_date");
+		Date endDate = new Date(end_date.getTime());
+
+		List<Map<String, Object>> incrRates = null;
+		GetBasePrice4NbRequest request = new GetBasePrice4NbRequest();
+		request.setBooking_channel(126);
+		request.setSell_channel(65534);
+		request.setMember_level(30);
+		request.setTraceId(UUID.randomUUID().toString() + "_" + id);
+		request.setStart_date((int) (startDate.getTime() / 1000));
+		request.setEnd_date((int) (endDate.getTime() / 1000));
+		List<HotelBasePriceRequest> hotelBases = new LinkedList<HotelBasePriceRequest>();
+		HotelBasePriceRequest hotelBase = new HotelBasePriceRequest();
+		String hotelId = msRelationRepository.getMHotelId(hotelCode);
+		hotelBase.setMhotel_id(Integer.valueOf(hotelId));
+		hotelBase.setShotel_id(Integer.valueOf(hotelCode));
+		hotelBases.add(hotelBase);
+		request.setHotel_base_price_request(hotelBases);
+		GetBasePrice4NbResponse response = null;
+		try {
+			incrRateLogger.info("request = " + JSON.toJSONString(request));
+			response = goodsMetaRepository.getMetaPrice4Nb(request);
+			incrRateLogger.info("response = " + JSON.toJSONString(response));
+			if (response != null && response.return_code == 0) {
+				IncrRateAdapter adapter = new IncrRateAdapter();
+				incrRates = adapter.toNBObject(response);
+
+			} else if (response.return_code > 0) {
+				incrRates = new ArrayList<Map<String, Object>>();
+			} else {
+				throw new RuntimeException(response.getReturn_msg());
+			}
+		} catch (Exception ex) {
+			throw new RuntimeException("IncrRate:" + ex.getMessage(), ex);
+		}
+		Map<String, Object> result = null;
+		for (Map<String, Object> incrRate : incrRates) {
+			if (incrRate == null)
+				continue;
+			String RoomTypeId = (String) incrRate.get("RoomTypeID");
+			Integer RateplanId = (Integer) incrRate.get("RateplanID");
+			if (StringUtils.isEmpty(RoomTypeId) || RateplanId == null)
+				continue;
+			if (StringUtils.equals(roomtype_id, RoomTypeId) && rateplan_id.intValue() == RateplanId.intValue()) {
+				result = incrRate;
+			}
+		}
+		if (result != null) {
+			result.put("ChangeTime", changeTime);
+			result.put("OperateTime", changeTime);
+			result.put("ChangeID", id);
+		}
+		return JSON.toJSONString(result);
+	}
+
 	/** 
 	 * 设置分表开始序号(分表上线时初始化分表开始序号)
 	 *
@@ -73,7 +166,7 @@ public class ManualController {
 		}
 		return "putSubTableNumber success.tablePrefix = " + tablePrefix + ",subTableNumber = " + subTableNumber;
 	}
-	
+
 	/** 
 	 * 设置增量配置信息
 	 *
@@ -82,8 +175,7 @@ public class ManualController {
 	 * @return
 	 */
 	@RequestMapping(value = "/test/putIncrSetInfo/{key}/{value}")
-	public @ResponseBody String putIncrSetInfo(@PathVariable("key") String key,
-			@PathVariable("value") String value) {
+	public @ResponseBody String putIncrSetInfo(@PathVariable("key") String key, @PathVariable("value") String value) {
 		try {
 			incrSetInfoService.put(key, Long.valueOf(value));
 		} catch (Exception e) {
@@ -91,7 +183,7 @@ public class ManualController {
 		}
 		return "putIncrSetInfo success.key = " + key + ",value = " + value;
 	}
-	
+
 	/** 
 	 * 设置发号器id(分表上线时初始化发号器id)
 	 *
@@ -109,35 +201,6 @@ public class ManualController {
 			return "initImpulseSender error = " + e.getMessage();
 		}
 		return "initImpulseSender success.key = " + key + ",value = " + idVal;
-	}
-
-	/** 
-	 * 测试插入分表数据（供测试用）
-	 *
-	 * @param tablePrefix
-	 * @param count
-	 * @return
-	 */
-	@RequestMapping(value = "/test/insert/{tablePrefix}/{count}")
-	public @ResponseBody String testInsert(@PathVariable("tablePrefix") String tablePrefix, @PathVariable("count") String count) {
-		int result = 0;
-		int countInt = Integer.valueOf(count);
-		if (StringUtils.equals(tablePrefix, "IncrHotel")) {
-			try {
-				result = incrHotelSubmeterService.builkInsert(buildIncrHotelList(countInt));
-			} catch (Exception e) {
-				return tablePrefix + " insert error = " + e.getMessage();
-			}
-		}
-
-		if (StringUtils.equals(tablePrefix, "IncrInventory")) {
-			try {
-				result = incrInventorySubmeterService.builkInsert(buildIncrInventoryList(countInt));
-			} catch (Exception e) {
-				return tablePrefix + " insert error = " + e.getMessage();
-			}
-		}
-		return tablePrefix + " insert successcount = " + result;
 	}
 
 	/** 
@@ -173,49 +236,6 @@ public class ManualController {
 			return "delSubmeterTableCache error = " + e.getMessage() + ",tablePrefix = " + tablePrefix;
 		}
 		return "delSubmeterTableCache success.tablePrefix = " + tablePrefix;
-	}
-
-	protected List<IncrHotel> buildIncrHotelList(int count) {
-		List<IncrHotel> rowList = new ArrayList<IncrHotel>();
-		for (int i = 0; i < count; i++) {
-			IncrHotel row = new IncrHotel();
-			row.setTrigger("asdf");
-			row.setTriggerID(i);
-			row.setChangeTime(new Date());
-			row.setEndDate(new Date());
-			row.setHotelID("13412");
-			row.setInsertTime(new Date());
-			row.setStartDate(new Date());
-			rowList.add(row);
-		}
-		return rowList;
-	}
-
-	protected List<IncrInventory> buildIncrInventoryList(int count) {
-		List<IncrInventory> rowList = new ArrayList<IncrInventory>();
-		for (int i = 0; i < count; i++) {
-			IncrInventory row = new IncrInventory();
-			row.setAvailableAmount(1);
-			row.setAvailableDate(new Date());
-			row.setChangeID((long) i);
-			row.setChangeTime(new Date());
-			row.setEndDate(new Date());
-			row.setEndTime("00:00");
-			row.setHotelCode("1234");
-			row.setHotelID("13412");
-			row.setIC_BeginTime("00:00");
-			row.setIC_EndTime("23:49");
-			row.setInsertTime(new Date());
-			row.setIsInstantConfirm(false);
-			row.setOperateTime(new Date());
-			row.setOverBooking(1);
-			row.setRoomTypeID("1234132");
-			row.setStartDate(new Date());
-			row.setStartTime("23:58");
-			row.setStatus(false);
-			rowList.add(row);
-		}
-		return rowList;
 	}
 
 }

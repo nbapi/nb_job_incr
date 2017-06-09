@@ -28,6 +28,10 @@ import org.apache.commons.lang3.time.DateUtils;
  */
 public class DateHandlerUtils {
 	
+	public static Date parseDate(String dateStr, String pattern)  throws ParseException{
+		return DateUtils.parseDate(dateStr, pattern);
+	}
+	
 	public static Date convertDateParttern(Date date, String pattern) throws ParseException{
 		String dateStr = formatDate(date, pattern);
 		return DateUtils.parseDate(dateStr, pattern);
