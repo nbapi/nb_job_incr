@@ -71,6 +71,7 @@ public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrR
 	 */
 	@Override
 	public void syncRatesToDB() {
+		long jobStartTime = System.currentTimeMillis();
 		long startTime = System.currentTimeMillis();
 		//RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey()
 		String changIDStr = incrSetInfoService.get("huidu.incrrate.lastid");
@@ -84,7 +85,7 @@ public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrR
 			long newChangID = incrRateRepository.syncRatesToDB(changID);
 			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ", from " + changID + " to " + newChangID);
-			if (newChangID == changID) {
+			if (newChangID == changID||(endTime - jobStartTime) > 10 * 60 * 1000) {
 				break;
 			} else {
 				startTime = System.currentTimeMillis();
