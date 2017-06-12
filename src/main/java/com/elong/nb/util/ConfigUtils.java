@@ -26,8 +26,13 @@ import com.elong.nb.common.util.CommonsUtil;
 public class ConfigUtils {
 
 	public static int getIntConfigValue(String configKey, int defaultValue) {
-		String goodsRateBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty(configKey);
-		return StringUtils.isEmpty(goodsRateBatchSize) ? defaultValue : Integer.valueOf(goodsRateBatchSize);
+		String configValue = CommonsUtil.CONFIG_PROVIDAR.getProperty(configKey);
+		return StringUtils.isEmpty(configValue) ? defaultValue : Integer.valueOf(configValue);
+	}
+
+	public static String getStringConfigValue(String configKey, String defaultValue) {
+		String configValue = CommonsUtil.CONFIG_PROVIDAR.getProperty(configKey);
+		return StringUtils.isEmpty(configValue) ? defaultValue : configValue;
 	}
 
 }

@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
@@ -31,7 +30,6 @@ import com.alibaba.fastjson.JSON;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbRequest;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbResponse;
 import com.elong.hotel.goods.ds.thrift.HotelBasePriceRequest;
-import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.MySqlDataDao;
 import com.elong.nb.dao.adataper.IncrRateAdapter;
@@ -89,8 +87,7 @@ public class IncrRateRepository {
 			return changID;
 
 		// 最大有效日期跨度
-		String goodsMetaPriceMaxDaysStr = CommonsUtil.CONFIG_PROVIDAR.getProperty("GoodsMetaPriceMaxDays");
-		int GoodsMetaPriceMaxDays = StringUtils.isEmpty(goodsMetaPriceMaxDaysStr) ? 180 : Integer.valueOf(goodsMetaPriceMaxDaysStr);
+		int GoodsMetaPriceMaxDays = ConfigUtils.getIntConfigValue("GoodsMetaPriceMaxDays", 180);
 		Date validDate = DateTime.now().plusDays(GoodsMetaPriceMaxDays).toDate();
 		try {
 			validDate = DateHandlerUtils.convertDateParttern(validDate, "yyyy-MM-dd");
@@ -114,7 +111,6 @@ public class IncrRateRepository {
 		final List<Map<String, Object>> beforeIncrRates = Collections.synchronizedList(new ArrayList<Map<String, Object>>());
 		int goodsRateThreadCount = ConfigUtils.getIntConfigValue("GoodsRateThreadCount", 3);
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsRateThreadCount, 300);
-
 		int recordCount = filterPriceOperationIncrementList.size();
 		int batchSize = ConfigUtils.getIntConfigValue("GoodsRateBatchSize", 10);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / batchSize);
@@ -124,12 +120,8 @@ public class IncrRateRepository {
 			executorService.submit(new Runnable() {
 				@Override
 				public void run() {
-					long startTime = System.currentTimeMillis();
 					List<Map<String, Object>> incrRates = getIncrRateList(filterPriceOperationIncrementList.subList(startNum, endNum));
 					beforeIncrRates.addAll(incrRates);
-					long endTime = System.currentTimeMillis();
-					logger.info("use time = " + (endTime - startTime) + ",thread = " + Thread.currentThread().getName() + ",startNum = "
-							+ startNum + ",endNum = " + endNum + ",incrRates size = " + incrRates.size());
 				}
 			});
 		}
@@ -164,7 +156,7 @@ public class IncrRateRepository {
 			}
 		});
 		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
+		logger.info("use time = " + (endTime - startTime) + ",sortIncrRatesByChangeID");
 	}
 
 	/** 
@@ -363,9 +355,9 @@ public class IncrRateRepository {
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-//			int startNum = (pageIndex - 1) * pageSize;
-//			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-//			successCount += incrRateDao.bulkInsert(afterIncrRates.subList(startNum, endNum));
+			// int startNum = (pageIndex - 1) * pageSize;
+			// int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			// successCount += incrRateDao.bulkInsert(afterIncrRates.subList(startNum, endNum));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrRate BulkInsert successfully,successCount = "
 				+ successCount);
