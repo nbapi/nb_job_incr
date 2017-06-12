@@ -8,6 +8,8 @@ package com.elong.nb.repository;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
@@ -32,7 +36,9 @@ import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.MySqlDataDao;
 import com.elong.nb.dao.adataper.IncrRateAdapter;
 import com.elong.nb.service.IFilterService;
+import com.elong.nb.util.ConfigUtils;
 import com.elong.nb.util.DateHandlerUtils;
+import com.elong.nb.util.ExecutorUtils;
 
 /**
  *
@@ -93,7 +99,7 @@ public class IncrRateRepository {
 			throw new IllegalStateException(e.getMessage());
 		}
 		// 过滤掉最大有效日期之外数据
-		List<Map<String, Object>> filterPriceOperationIncrementList = new ArrayList<Map<String, Object>>();
+		final List<Map<String, Object>> filterPriceOperationIncrementList = new ArrayList<Map<String, Object>>();
 		for (Map<String, Object> priceOperationIncrement : priceOperationIncrementList) {
 			Timestamp begin_date = (Timestamp) priceOperationIncrement.get("begin_date");
 			Date startDate = new Date(begin_date.getTime());
@@ -105,26 +111,60 @@ public class IncrRateRepository {
 				+ filterPriceOperationIncrementList.size());
 
 		// 分批次批量调用商品库价格元数据接口
-		List<Map<String, Object>> beforeIncrRates = new ArrayList<Map<String, Object>>();
-		String goodsRateBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("GoodsRateBatchSize");
+		final List<Map<String, Object>> beforeIncrRates = Collections.synchronizedList(new ArrayList<Map<String, Object>>());
+		int goodsRateThreadCount = ConfigUtils.getIntConfigValue("GoodsRateThreadCount", 3);
+		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsRateThreadCount, 300);
+
 		int recordCount = filterPriceOperationIncrementList.size();
-		int batchSize = StringUtils.isEmpty(goodsRateBatchSize) ? 10 : Integer.valueOf(goodsRateBatchSize);
+		int batchSize = ConfigUtils.getIntConfigValue("GoodsRateBatchSize", 10);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / batchSize);
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			long startTime = System.currentTimeMillis();
-			int startNum = (pageIndex - 1) * batchSize;
-			int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
-			List<Map<String, Object>> incrRates = getIncrRateList(filterPriceOperationIncrementList.subList(startNum, endNum), validDate);
-			beforeIncrRates.addAll(incrRates);
-			long endTime = System.currentTimeMillis();
-			logger.info("use time = " + (endTime - startTime) + ",startNum = " + startNum + ",endNum = " + endNum + ",incrRates size = "
-					+ incrRates.size());
+			final int startNum = (pageIndex - 1) * batchSize;
+			final int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
+			executorService.submit(new Runnable() {
+				@Override
+				public void run() {
+					long startTime = System.currentTimeMillis();
+					List<Map<String, Object>> incrRates = getIncrRateList(filterPriceOperationIncrementList.subList(startNum, endNum));
+					beforeIncrRates.addAll(incrRates);
+					long endTime = System.currentTimeMillis();
+					logger.info("use time = " + (endTime - startTime) + ",thread = " + Thread.currentThread().getName() + ",startNum = "
+							+ startNum + ",endNum = " + endNum + ",incrRates size = " + incrRates.size());
+				}
+			});
 		}
+		executorService.shutdown();
+		try {
+			while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
+			}
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage(), e);
+		}
+
 		// shotelid过滤及enddate处理
 		List<Map<String, Object>> afterIncrRates = filterAndHandler(beforeIncrRates);
+		// 按照ChangeID排序
+		sortIncrRatesByChangeID(afterIncrRates);
 		// 插入数据库
 		builkInsert(afterIncrRates);
 		return (Long) priceOperationIncrementList.get(priceOperationIncrementList.size() - 1).get("id");
+	}
+
+	/** 
+	 * 按照ChangeID排序
+	 *
+	 * @param afterIncrRates
+	 */
+	private void sortIncrRatesByChangeID(List<Map<String, Object>> afterIncrRates) {
+		long startTime = System.currentTimeMillis();
+		Collections.sort(afterIncrRates, new Comparator<Map<String, Object>>() {
+			@Override
+			public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+				return (int) ((long) (o1.get("ChangeID")) - (long) (o2.get("ChangeID")));
+			}
+		});
+		long endTime = System.currentTimeMillis();
+		logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
 	}
 
 	/** 
@@ -174,7 +214,7 @@ public class IncrRateRepository {
 	 * @param validDate
 	 * @return
 	 */
-	private List<Map<String, Object>> getIncrRateList(List<Map<String, Object>> priceOperationIncrementList, Date validDate) {
+	private List<Map<String, Object>> getIncrRateList(List<Map<String, Object>> priceOperationIncrementList) {
 		List<HotelBasePriceRequest> hotelBases = new LinkedList<HotelBasePriceRequest>();
 		Date minStartDate = null;
 		Date maxEndDate = null;
@@ -182,7 +222,7 @@ public class IncrRateRepository {
 		for (Map<String, Object> priceOperationIncrement : priceOperationIncrementList) {
 			String hotelCode = (String) priceOperationIncrement.get("hotel_id");
 			String hotelId = msRelationRepository.getMHotelId(hotelCode);
-			if(!hotelCodeList.contains(hotelCode)){
+			if (!hotelCodeList.contains(hotelCode)) {
 				HotelBasePriceRequest hotelBase = new HotelBasePriceRequest();
 				hotelBase.setMhotel_id(Integer.valueOf(hotelId));
 				hotelBase.setShotel_id(Integer.valueOf(hotelCode));
@@ -226,7 +266,7 @@ public class IncrRateRepository {
 			List<Map<String, Object>> groupList = groupRateMap.get(key);
 			if (groupList == null || groupList.size() == 0)
 				continue;
-			
+
 			Timestamp operate_time = (Timestamp) priceOperationIncrement.get("operate_time");
 			Date changeTime = new Date(operate_time.getTime());
 			Timestamp begin_date = (Timestamp) priceOperationIncrement.get("begin_date");
@@ -307,7 +347,7 @@ public class IncrRateRepository {
 		logger.info("use time = " + (endTime - startTime) + ",after fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
 		return incrRates;
 	}
-	
+
 	/** 
 	 * 批量插入数据库 
 	 *
@@ -319,14 +359,13 @@ public class IncrRateRepository {
 			return;
 		int successCount = 0;
 		logger.info("IncrRate BulkInsert start,recordCount = " + recordCount);
-		String incrRateBatchSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrRateBatchSize");
-		int pageSize = StringUtils.isEmpty(incrRateBatchSize) ? 2000 : Integer.valueOf(incrRateBatchSize);
+		int pageSize = ConfigUtils.getIntConfigValue("IncrRateBatchSize", 50);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			 int startNum = (pageIndex - 1) * pageSize;
-			 int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			 successCount += incrRateDao.bulkInsert(afterIncrRates.subList(startNum, endNum));
+//			int startNum = (pageIndex - 1) * pageSize;
+//			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+//			successCount += incrRateDao.bulkInsert(afterIncrRates.subList(startNum, endNum));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrRate BulkInsert successfully,successCount = "
 				+ successCount);
