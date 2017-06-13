@@ -96,7 +96,7 @@ public class IncrRateRepository {
 			logger.error(e.getMessage(), e);
 			throw new IllegalStateException(e.getMessage());
 		}
-		// 过滤掉最大有效日期之外数据
+		// 过滤掉最大有效日期之外 和 酒店状态无效数据
 		Iterator<Map<String, Object>> iter = priceOperationIncrementList.iterator();
 		while (iter.hasNext()) {
 			Map<String, Object> priceOperationIncrement = iter.next();
@@ -104,10 +104,17 @@ public class IncrRateRepository {
 			Date startDate = new Date(begin_date.getTime());
 			if (startDate.compareTo(validDate) > 0) {
 				iter.remove();
+				continue;
+			}
+			String hotelCode = (String) priceOperationIncrement.get("hotel_id");
+			String hotelId = msRelationRepository.getValidMHotelId(hotelCode);
+			if (hotelId == null) {
+				iter.remove();
+				continue;
 			}
 		}
 		final List<Map<String, Object>> filterPriceOperationIncrementList = priceOperationIncrementList;
-		logger.info("after filter by validDate[" + validDate + "],PriceOperationIncrementList size = "
+		logger.info("after filter by validDate[" + validDate + "] and invalid hotel status,PriceOperationIncrementList size = "
 				+ filterPriceOperationIncrementList.size());
 
 		// 分批次批量调用商品库价格元数据接口

@@ -43,4 +43,17 @@ public class MSRelationRepository {
 		return StringUtils.isEmpty(mHotelID) ? sHotelID : mHotelID;
 	}
 
+	/** 
+	 * 获取sHotelID对应的mHotelID，保证都是有效的
+	 *
+	 * @param sHotelID
+	 * @return
+	 */
+	public String getValidMHotelId(String sHotelID) {
+		if (!redisManager.exists(RedisKeyConst.CacheKey_KEY_ID_S_M))
+			return null;
+		String mHotelID = redisManager.hashGet(RedisKeyConst.CacheKey_KEY_ID_S_M, sHotelID);
+		return StringUtils.isEmpty(mHotelID) ? null : mHotelID;
+	}
+
 }
