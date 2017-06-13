@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -170,9 +171,12 @@ public class IncrRateRepository {
 	 * @param hotelBases
 	 * @param startDate
 	 * @param endDate
+	 * @param roomTypeIDSet 过滤减少创建没用对象
+	 * @param rateplanIDSet 过滤减少创建没用对象
 	 * @return
 	 */
-	private List<Map<String, Object>> getRatesFromGoods(List<HotelBasePriceRequest> hotelBases, Date startDate, Date endDate) {
+	private List<Map<String, Object>> getRatesFromGoods(List<HotelBasePriceRequest> hotelBases, Date startDate, Date endDate,
+			Set<String> roomTypeIDSet, Set<Integer> rateplanIDSet) {
 		List<Map<String, Object>> incrRates = null;
 		GetBasePrice4NbRequest request = new GetBasePrice4NbRequest();
 		request.setBooking_channel(126);
@@ -186,7 +190,7 @@ public class IncrRateRepository {
 			GetBasePrice4NbResponse response = goodsMetaRepository.getMetaPrice4Nb(request);
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
-				incrRates = adapter.toNBObject(response);
+				incrRates = adapter.toNBObject(response, roomTypeIDSet, rateplanIDSet);
 				if (incrRates == null || incrRates.size() == 0) {
 					logger.error("ThriftUtils.getMetaPrice4Nb,response.return_code = 0,incrRates size = 0,request = "
 							+ JSON.toJSONString(request) + ",response = " + JSON.toJSONString(response));
@@ -216,6 +220,8 @@ public class IncrRateRepository {
 		Date minStartDate = null;
 		Date maxEndDate = null;
 		List<String> hotelCodeList = new ArrayList<String>();
+		Set<String> roomTypeIDSet = new HashSet<String>();
+		Set<Integer> rateplanIDSet = new HashSet<Integer>();
 		for (Map<String, Object> priceOperationIncrement : priceOperationIncrementList) {
 			String hotelCode = (String) priceOperationIncrement.get("hotel_id");
 			String hotelId = msRelationRepository.getValidMHotelId(hotelCode);
@@ -238,9 +244,12 @@ public class IncrRateRepository {
 			if (maxEndDate == null || endDate.after(maxEndDate)) {
 				maxEndDate = endDate;
 			}
+
+			roomTypeIDSet.add((String) priceOperationIncrement.get("roomtype_id"));
+			rateplanIDSet.add((Integer) priceOperationIncrement.get("rateplan_id"));
 		}
 		Map<String, List<Map<String, Object>>> groupRateMap = new HashMap<String, List<Map<String, Object>>>();
-		List<Map<String, Object>> goodsRateList = getRatesFromGoods(hotelBases, minStartDate, maxEndDate);
+		List<Map<String, Object>> goodsRateList = getRatesFromGoods(hotelBases, minStartDate, maxEndDate, roomTypeIDSet, rateplanIDSet);
 		for (Map<String, Object> goodsRate : goodsRateList) {
 			if (goodsRate == null || goodsRate.size() == 0)
 				continue;

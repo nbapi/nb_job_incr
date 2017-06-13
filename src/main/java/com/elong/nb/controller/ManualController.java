@@ -118,7 +118,7 @@ public class ManualController {
 			response = goodsMetaRepository.getMetaPrice4Nb(request);
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
-				incrRates = adapter.toNBObject(response);
+				incrRates = adapter.toNBObject(response, null, null);
 
 			} else if (response.return_code > 0) {
 				incrRates = new ArrayList<Map<String, Object>>();

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.elong.hotel.goods.ds.thrift.BasePrice;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbResponse;
@@ -14,9 +15,9 @@ import com.elong.hotel.goods.ds.thrift.SHotelBasePrice;
 import com.elong.hotel.goods.ds.thrift.SRoomBasePrice;
 import com.elong.nb.common.util.SafeConvertUtils;
 
-public class IncrRateAdapter{
+public class IncrRateAdapter {
 
-	public List<Map<String, Object>> toNBObject(GetBasePrice4NbResponse goodsObject) {
+	public List<Map<String, Object>> toNBObject(GetBasePrice4NbResponse goodsObject, Set<String> roomTypeIDSet, Set<Integer> rateplanIDSet) {
 		if (goodsObject.getMhotel_base_price() != null) {
 			int dataSize = goodsObject.getMhotel_base_price().size();
 			if (dataSize > 0) {
@@ -35,11 +36,15 @@ public class IncrRateAdapter{
 									for (int k = 0; k < roomTypeSize; k++) {
 										SRoomBasePrice roomTypeBasePrice = shotelBasePrice.getSroom_base_price().get(k);
 										String roomTypeId = SafeConvertUtils.ToRoomId(roomTypeBasePrice.getSroom_id());
+										if (roomTypeIDSet != null && !roomTypeIDSet.contains(roomTypeId))
+											continue;
 										if (roomTypeBasePrice.getRateplan_base_price() != null) {
 											int rpSize = roomTypeBasePrice.getRateplan_base_price().size();
 											for (int l = 0; l < rpSize; l++) {
 												RatePlanBasePrice rpBasePrice = roomTypeBasePrice.getRateplan_base_price().get(l);
 												int ratePlanId = rpBasePrice.getRateplan_id();
+												if (rateplanIDSet != null && !rateplanIDSet.contains(ratePlanId))
+													continue;
 												if (rpBasePrice.getBase_price() != null) {
 													int baseSize = rpBasePrice.getBase_price().size();
 													for (int m = 0; m < baseSize; m++) {
