@@ -98,18 +98,18 @@ public class IncrRateRepository {
 		}
 		// 过滤掉最大有效日期之外数据
 		Iterator<Map<String, Object>> iter = priceOperationIncrementList.iterator();
-		while(iter.hasNext()){
+		while (iter.hasNext()) {
 			Map<String, Object> priceOperationIncrement = iter.next();
 			Timestamp begin_date = (Timestamp) priceOperationIncrement.get("begin_date");
 			Date startDate = new Date(begin_date.getTime());
-			if (startDate.compareTo(validDate) > 0){
+			if (startDate.compareTo(validDate) > 0) {
 				iter.remove();
 			}
 		}
 		final List<Map<String, Object>> filterPriceOperationIncrementList = priceOperationIncrementList;
 		logger.info("after filter by validDate[" + validDate + "],PriceOperationIncrementList size = "
 				+ filterPriceOperationIncrementList.size());
-		
+
 		// 分批次批量调用商品库价格元数据接口
 		final List<Map<String, Object>> beforeIncrRates = Collections.synchronizedList(new ArrayList<Map<String, Object>>());
 		int goodsRateThreadCount = ConfigUtils.getIntConfigValue("GoodsRateThreadCount", 3);
@@ -117,6 +117,7 @@ public class IncrRateRepository {
 		int recordCount = filterPriceOperationIncrementList.size();
 		int batchSize = ConfigUtils.getIntConfigValue("GoodsRateBatchSize", 10);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / batchSize);
+		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 			final int startNum = (pageIndex - 1) * batchSize;
 			final int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
@@ -135,6 +136,7 @@ public class IncrRateRepository {
 		} catch (InterruptedException e) {
 			logger.error(e.getMessage(), e);
 		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrRateList from Goods and doHandler");
 
 		// shotelid过滤及enddate处理
 		List<Map<String, Object>> afterIncrRates = filterAndHandler(beforeIncrRates);
