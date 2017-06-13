@@ -15,7 +15,7 @@
 				<![CDATA[ and operate_time <= '${delay_time}'  ]]>
 			</if>
 		</where>
-		order by t.id limit 0,5000
+		order by t.id limit 0,#{maxRecordCount}
 	</select>
 
 	<select id="getPriceOperationIncrementByid" resultType="java.util.HashMap">

@@ -297,7 +297,9 @@ public class IncrRateRepository {
 	 */
 	private List<Map<String, Object>> getPriceOperationIncrement(long changID) {
 		Map<String, Object> params = new HashMap<String, Object>();
-		// 延迟3分钟
+		// 延迟3分钟maxRecordCount
+		int maxRecordCount = ConfigUtils.getIntConfigValue("MaxPriceOperationIncrementCount", 1000);
+		params.put("maxRecordCount", maxRecordCount);
 		params.put("delay_time", DateTime.now().minusMinutes(3).toString("yyyy-MM-dd HH:mm:ss"));
 		if (changID > 0) {
 			params.put("id", changID);
