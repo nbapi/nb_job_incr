@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -96,17 +97,19 @@ public class IncrRateRepository {
 			throw new IllegalStateException(e.getMessage());
 		}
 		// 过滤掉最大有效日期之外数据
-		final List<Map<String, Object>> filterPriceOperationIncrementList = new ArrayList<Map<String, Object>>();
-		for (Map<String, Object> priceOperationIncrement : priceOperationIncrementList) {
+		Iterator<Map<String, Object>> iter = priceOperationIncrementList.iterator();
+		while(iter.hasNext()){
+			Map<String, Object> priceOperationIncrement = iter.next();
 			Timestamp begin_date = (Timestamp) priceOperationIncrement.get("begin_date");
 			Date startDate = new Date(begin_date.getTime());
-			if (startDate.compareTo(validDate) > 0)
-				continue;
-			filterPriceOperationIncrementList.add(priceOperationIncrement);
+			if (startDate.compareTo(validDate) > 0){
+				iter.remove();
+			}
 		}
+		final List<Map<String, Object>> filterPriceOperationIncrementList = priceOperationIncrementList;
 		logger.info("after filter by validDate[" + validDate + "],PriceOperationIncrementList size = "
 				+ filterPriceOperationIncrementList.size());
-
+		
 		// 分批次批量调用商品库价格元数据接口
 		final List<Map<String, Object>> beforeIncrRates = Collections.synchronizedList(new ArrayList<Map<String, Object>>());
 		int goodsRateThreadCount = ConfigUtils.getIntConfigValue("GoodsRateThreadCount", 3);
@@ -317,27 +320,28 @@ public class IncrRateRepository {
 	 */
 	private List<Map<String, Object>> filterAndHandler(List<Map<String, Object>> incrRateList) {
 		logger.info("before fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
-		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
 		Date validDate = DateTime.now().plusYears(1).toDate();
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
-		for (Map<String, Object> rowMap : incrRateList) {
-			if (rowMap == null)
+		Iterator<Map<String, Object>> iter = incrRateList.iterator();
+		while (iter.hasNext()) {
+			Map<String, Object> rowMap = iter.next();
+			if (rowMap == null) {
+				iter.remove();
 				continue;
-
+			}
 			String shotelId = (String) rowMap.get("HotelCode");
 			if (filteredSHotelIds.contains(shotelId)) {
+				iter.remove();
 				continue;
 			}
 			Date endDate = (Date) rowMap.get("EndDate");
 			endDate = (endDate.compareTo(validDate) > 0) ? validDate : endDate;
 			rowMap.put("EndDate", endDate);
-
-			incrRates.add(rowMap);
 		}
 		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime) + ",after fillFilteredSHotelsIds, incrRates size = " + incrRates.size());
-		return incrRates;
+		logger.info("use time = " + (endTime - startTime) + ",after fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
+		return incrRateList;
 	}
 
 	/** 

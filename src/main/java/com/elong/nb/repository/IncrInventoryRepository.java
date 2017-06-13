@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -131,22 +132,25 @@ public class IncrInventoryRepository {
 		ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeList",
 				"IProductForPartnerServiceContract", null, endTime - startTime, 0, changeListSize + "", changID);
 
-		List<InventoryChangeModel> filterChangeList = new ArrayList<InventoryChangeModel>();
 		if (changeList != null && changeList.size() > 0) {
 			startTime = System.currentTimeMillis();
 			// 解决订阅库延时问题，获取明细时延时3分钟
 			String inventoryChangeDelayMinutes = CommonsUtil.CONFIG_PROVIDAR.getProperty("InventoryChangeDelayMinutes");
 			inventoryChangeDelayMinutes = StringUtils.isEmpty(inventoryChangeDelayMinutes) ? "10" : inventoryChangeDelayMinutes;
 			DateTime lastTime = DateTime.now().minusMinutes(1 * Integer.valueOf(inventoryChangeDelayMinutes));
-			for (InventoryChangeModel item : changeList) {
-				if (item == null || item.getUpdateTime() == null)
+			Iterator<InventoryChangeModel> iter = changeList.iterator();
+			while(iter.hasNext()){
+				InventoryChangeModel item = iter.next();
+				if (item == null || item.getUpdateTime() == null){
+					iter.remove();
 					continue;
-				if (item.getUpdateTime().compareTo(lastTime) >= 0)
+				}	
+				if (item.getUpdateTime().compareTo(lastTime) >= 0){
+					iter.remove();
 					continue;
-				filterChangeList.add(item);
+				}
 			}
-			changeList = filterChangeList;
-			int filterChangeListSize = filterChangeList == null ? 0 : filterChangeList.size();
+			int filterChangeListSize = changeList == null ? 0 : changeList.size();
 			logger.info("filterChangeList size = " + filterChangeListSize + ",after dohandler InventoryChangeDelayMinutes = "
 					+ inventoryChangeDelayMinutes);
 			endTime = System.currentTimeMillis();
@@ -272,8 +276,6 @@ public class IncrInventoryRepository {
 				logger.error(e.getMessage(), e);// 异常吃掉，下面会重试
 			}
 			long endTime = System.currentTimeMillis();
-			logger.info("use time [" + threadName + "] = " + (endTime - startTime)
-					+ ",productForPartnerServiceContract.getInventoryChangeDetail");
 			ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeDetail",
 					"IProductForPartnerServiceContract", null, endTime - startTime, 0, null, null);
 
@@ -283,15 +285,11 @@ public class IncrInventoryRepository {
 			}
 			// retry
 			if (resourceInventoryStateList == null || resourceInventoryStateList.size() == 0) {
-				// logger.info(threadName + ":ResourceInventoryStateList is null or empty,and will retry.");
 				if (changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
 					startTime = System.currentTimeMillis();
 					Thread.sleep(2000);
 					response = productForPartnerServiceContract.getInventoryChangeDetail(request);
 					endTime = System.currentTimeMillis();
-					logger.info("use time [" + threadName + "] = " + (endTime - startTime)
-							+ ",retry productForPartnerServiceContract.getInventoryChangeDetail");
-
 					ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "retryGetInventoryChangeDetail",
 							"IProductForPartnerServiceContract", null, endTime - startTime, 0, null, null);
 				}
