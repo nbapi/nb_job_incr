@@ -5,7 +5,6 @@
  */
 package com.elong.nb.submeter.service.impl;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -78,7 +77,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 		List<String> emptyTableNameList = new ArrayList<String>();
 		if (tableMapList != null && tableMapList.size() > 0) {
 			for (Map<String, Object> tableMap : tableMapList) {
-				BigInteger tableRows = (BigInteger) tableMap.get("table_rows");
+				Number tableRows = (Number) tableMap.get("table_rows");
 				String tableName = (String) tableMap.get("table_name");
 				logger.info("tableName = " + tableName + ",tableRows = " + tableRows.longValue());
 				if (tableRows.longValue() > 0)
