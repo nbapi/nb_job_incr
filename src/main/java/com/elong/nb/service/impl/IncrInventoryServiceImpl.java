@@ -107,23 +107,15 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	 *
 	 * @see com.elong.nb.service.IIncrInventoryService#SyncInventoryToDB(long)    
 	 */
-	@Override
-	public void syncInventoryToDB(long changeID, long beginTime) {
-		if (changeID == 0) {
-			long startTime = System.currentTimeMillis();
-			String setValue = incrSetInfoService.get("Submeter." + RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
-			changeID = StringUtils.isEmpty(setValue) ? 0 : Long.valueOf(setValue);
-			long endTime = System.currentTimeMillis();
-			logger.info("use time = " + (endTime - startTime) + ",get value from redis key = "
-					+ "Submeter." + RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",changeID = " + changeID);
-		}
-		if (changeID == 0) {
-			long startTime = System.currentTimeMillis();
-			changeID = incrInventoryRepository.getInventoryChangeMinID(DateHandlerUtils.getCacheExpireDate());
-			logger.info("use time = " + (System.currentTimeMillis() - startTime)
-					+ ",incrInventoryRepository.getInventoryChangeMinID,changeID = " + changeID);
-		}
+	private void syncInventoryToDB(long changeID, long beginTime) {
 		long startTime = System.currentTimeMillis();
+		if (changeID == 0) {
+			String setValue = incrSetInfoService.get(RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
+			changeID = StringUtils.isEmpty(setValue) ? 0 : Long.valueOf(setValue);
+			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",get value from redis key = "
+					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",changeID = " + changeID);
+		}
+		startTime = System.currentTimeMillis();
 		long newLastChgID = incrInventoryRepository.syncInventoryToDB(changeID);
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",syncInventoryToDB,change: from " + changeID + " to "
 				+ newLastChgID);
@@ -132,10 +124,10 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		if (incred > 0) {
 			// 更新LastID
 			startTime = System.currentTimeMillis();
-			incrSetInfoService.put("Submeter." + RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey(), newLastChgID);
+			incrSetInfoService.put(RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey(), newLastChgID);
 			long endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ",put to redis key" + ",incred = " + incred + ",key = "
-					+ "Submeter." + RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);
+					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);
 			if (incred > 100 && (endTime - beginTime) < 10 * 60 * 1000) {
 				// 继续执行
 				syncInventoryToDB(newLastChgID, beginTime);

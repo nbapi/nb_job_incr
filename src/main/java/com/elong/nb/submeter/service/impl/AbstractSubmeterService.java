@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.model.bean.Idable;
 import com.elong.nb.model.enums.SubmeterConst;
@@ -42,6 +43,8 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 	private static final Logger logger = Logger.getLogger("SubmeterLogger");
 
+	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+
 	@Resource
 	private IImpulseSenderService impulseSenderService;
 
@@ -62,7 +65,13 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 		String tablePrefix = getTablePrefix();
 		long incrVal = rowList.size();
-		long endID = impulseSenderService.getId(tablePrefix + "_ID", incrVal);
+		String configValue = CommonsUtil.CONFIG_PROVIDAR.getProperty("ImpulseSenderFromRedisTest");
+		long endID = 0l;
+		if (StringUtils.isEmpty(configValue)) {
+			endID = impulseSenderService.getId(tablePrefix + "_ID", incrVal);
+		} else {
+			endID = redisManager.incrBy(RedisManager.getCacheKey(tablePrefix + "_ID"), incrVal);
+		}
 		long beginID = endID - incrVal + 1;
 
 		List<String> subTableList = new ArrayList<String>();

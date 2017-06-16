@@ -2,6 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.elong.nb.dao.MySqlDataDao">
 
+	<select id="getProductInventoryIncrement" resultType="java.util.HashMap">
+		select * from product_inventory_increment t
+		<where>
+			<if test="op_date != null and !op_date.equals('')">
+				<![CDATA[ and op_date >= '${op_date}'  ]]>
+			</if>
+			<if test="id != null and !id.equals('')">
+				<![CDATA[ and id > ${id}   ]]>
+			</if>
+			<if test="delay_time != null and !delay_time.equals('')">
+				<![CDATA[ and op_date <= '${delay_time}'  ]]>
+			</if>
+		</where>
+		order by t.id limit 0,#{maxRecordCount}
+	</select>
+
 	<select id="getPriceOperationIncrement" resultType="java.util.HashMap">
 		select * from price_operation_increment t
 		<where>

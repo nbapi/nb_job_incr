@@ -29,6 +29,15 @@ import com.elong.nb.db.DataSource;
 public interface MySqlDataDao {
 
 	/** 
+	 * 查询库存增量待同步数据
+	 *
+	 * @param params
+	 * @return
+	 */
+	@DataSource("dataSource_mysql_product")
+	public List<Map<String, Object>> getProductInventoryIncrement(Map<String, Object> params);
+
+	/** 
 	 * 查询增量价格待同步数据
 	 *
 	 * @param params
@@ -36,7 +45,7 @@ public interface MySqlDataDao {
 	 */
 	@DataSource("dataSource_mysql_product")
 	public List<Map<String, Object>> getPriceOperationIncrement(Map<String, Object> params);
-	
+
 	/** 
 	 * 根据id查询价格变化流水 
 	 *

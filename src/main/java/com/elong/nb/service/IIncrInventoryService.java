@@ -27,14 +27,6 @@ public interface IIncrInventoryService {
 	 *
 	 */
 	public void syncInventoryToDB();
-
-	/** 
-	 * 递归，根据changeID同步库存增量 
-	 *
-	 * @param changeID
-	 * @param beginTime 本次递归开始时间
-	 */
-	public void syncInventoryToDB(long changeID, long beginTime);
 	
 	/** 
 	 * 同步库存黑名单引起库存增量

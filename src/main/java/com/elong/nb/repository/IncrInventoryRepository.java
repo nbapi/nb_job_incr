@@ -5,41 +5,37 @@
  */
 package com.elong.nb.repository;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.springframework.stereotype.Repository;
 
-import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailRequest;
-import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeDetailResponse;
-import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeListRequest;
-import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeMinIDRequest;
-import com.elong.nb.agent.ProductForPartnerServiceContract.GetInventoryChangeMinIDResponse;
-import com.elong.nb.agent.ProductForPartnerServiceContract.IProductForPartnerServiceContract;
-import com.elong.nb.agent.ProductForPartnerServiceContract.InventoryChangeModel;
-import com.elong.nb.agent.ProductForPartnerServiceContract.ResourceInventoryState;
-import com.elong.nb.common.checklist.Constants;
-import com.elong.nb.common.util.CommonsUtil;
-import com.elong.nb.dao.IncrInventoryDao;
+import com.alibaba.fastjson.JSON;
+import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmRequest;
+import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmResponse;
+import com.elong.hotel.searchagent.thrift.dss.MhotelAttr;
+import com.elong.hotel.searchagent.thrift.dss.ShotelAttr;
+import com.elong.nb.dao.MySqlDataDao;
+import com.elong.nb.dao.adataper.IncrInventoryAdapter;
 import com.elong.nb.model.bean.IncrInventory;
-import com.elong.nb.service.IFilterService;
 import com.elong.nb.submeter.service.ISubmeterService;
+import com.elong.nb.util.ConfigUtils;
 import com.elong.nb.util.ExecutorUtils;
-import com.elong.nb.util.ThreadLocalUtil;
-import com.elong.springmvc_enhance.utilities.ActionLogHelper;
 
 /**
  *
@@ -62,54 +58,19 @@ public class IncrInventoryRepository {
 	private static final int MAXDAYS = 90;
 
 	@Resource
-	private IncrInventoryDao incrInventoryDao;
-
-	@Resource
-	private IProductForPartnerServiceContract productForPartnerServiceContract;
-
-	@Resource
-	private IProductForPartnerServiceContract productForPartnerServiceContractForList;
-
-	@Resource
 	private MSRelationRepository msRelationRepository;
 
 	@Resource
 	private CommonRepository commonRepository;
 
 	@Resource
-	private IFilterService filterService;
+	private GoodsMetaRepository goodsMetaRepository;
 
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
-	/** 
-	 * WCF调用后端接口
-	 *
-	 * @param lastChangeTime
-	 * @return
-	 */
-	public long getInventoryChangeMinID(Date lastChangeTime) {
-		long startTimel = System.currentTimeMillis();
-		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
-
-		GetInventoryChangeMinIDRequest request = new GetInventoryChangeMinIDRequest();
-		request.setLastUpdateTime(new DateTime(lastChangeTime.getTime()));
-		GetInventoryChangeMinIDResponse response = productForPartnerServiceContract.getInventoryChangeMinID(request);
-		long result = 0;
-		if (response.getResult().getResponseCode() == 0) {
-			result = response.getMinID();
-		} else if (response.getMinID() == Long.MAX_VALUE) {
-			result = 0;
-		} else {
-			RuntimeException exception = new RuntimeException(response.getResult().getErrorMessage());
-			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "getInventoryChangeMinID", "IncrInventoryRepository",
-					exception, System.currentTimeMillis() - startTimel, -1, response.getResult().getErrorMessage(), lastChangeTime);
-			throw exception;
-		}
-		ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeMinID", "IncrInventoryRepository", null,
-				System.currentTimeMillis() - startTimel, 0, result + "", lastChangeTime);
-		return result;
-	}
+	@Resource
+	private MySqlDataDao mySqlDataDao;
 
 	/** 
 	 * 根据changeID同步库存增量
@@ -118,241 +79,317 @@ public class IncrInventoryRepository {
 	 * @return
 	 */
 	public long syncInventoryToDB(long changID) {
+		// 库存变化流水表获取数据
+		final List<Map<String, Object>> productInventoryIncrementList = getProductInventoryIncrement(changID);
+		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
+			return changID;
+
+		// 过滤掉携程去哪儿酒店
+		filterShotelsIds(productInventoryIncrementList);
+		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
+			return changID;
+
+		// 开始结束日期过滤
+		filterUnvalidDate(productInventoryIncrementList);
+		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
+			return changID;
+
+		// 分批次批量调用商品库库存元数据接口
+		final List<IncrInventory> incrInventorys = Collections.synchronizedList(new ArrayList<IncrInventory>());
+		int goodsInventoryThreadCount = ConfigUtils.getIntConfigValue("goodsInventoryThreadCount", 3);
+		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsInventoryThreadCount, 300);
+		int recordCount = productInventoryIncrementList.size();
+		int batchSize = ConfigUtils.getIntConfigValue("GoodsInventoryBatchSize", 10);
+		int pageCount = (int) Math.ceil(recordCount * 1.0 / batchSize);
 		long startTime = System.currentTimeMillis();
-		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
-
-		GetInventoryChangeListRequest request = new GetInventoryChangeListRequest();
-		request.setId(changID);
-		List<InventoryChangeModel> changeList = productForPartnerServiceContractForList.getInventoryChangeList(request)
-				.getInventoryChangeList().getInventoryChangeModel();
-		int changeListSize = changeList == null ? 0 : changeList.size();
-		long endTime = System.currentTimeMillis();
-		logger.info("use time = " + (endTime - startTime)
-				+ ",productForPartnerServiceContractForList.getInventoryChangeList,changeList size = " + changeListSize);
-		ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeList",
-				"IProductForPartnerServiceContract", null, endTime - startTime, 0, changeListSize + "", changID);
-
-		if (changeList != null && changeList.size() > 0) {
-			startTime = System.currentTimeMillis();
-			// 解决订阅库延时问题，获取明细时延时3分钟
-			String inventoryChangeDelayMinutes = CommonsUtil.CONFIG_PROVIDAR.getProperty("InventoryChangeDelayMinutes");
-			inventoryChangeDelayMinutes = StringUtils.isEmpty(inventoryChangeDelayMinutes) ? "10" : inventoryChangeDelayMinutes;
-			DateTime lastTime = DateTime.now().minusMinutes(1 * Integer.valueOf(inventoryChangeDelayMinutes));
-			Iterator<InventoryChangeModel> iter = changeList.iterator();
-			while(iter.hasNext()){
-				InventoryChangeModel item = iter.next();
-				if (item == null || item.getUpdateTime() == null){
-					iter.remove();
-					continue;
-				}	
-				if (item.getUpdateTime().compareTo(lastTime) >= 0){
-					iter.remove();
-					continue;
+		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+			final int startNum = (pageIndex - 1) * batchSize;
+			final int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
+			executorService.submit(new Runnable() {
+				@Override
+				public void run() {
+					List<IncrInventory> incrInventoryList = getIncrInventoryList(productInventoryIncrementList.subList(startNum, endNum));
+					incrInventorys.addAll(incrInventoryList);
 				}
-			}
-			int filterChangeListSize = changeList == null ? 0 : changeList.size();
-			logger.info("filterChangeList size = " + filterChangeListSize + ",after dohandler InventoryChangeDelayMinutes = "
-					+ inventoryChangeDelayMinutes);
-			endTime = System.currentTimeMillis();
-			logger.info("use time = " + (endTime - startTime) + ",dohandler InventoryChangeDelay");
+			});
+
 		}
-
-		if (changeList != null && changeList.size() > 0) {
-			startTime = System.currentTimeMillis();
-			final Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
-			endTime = System.currentTimeMillis();
-
-			logger.info("use time = " + (endTime - startTime) + ",commonRepository.fillFilteredSHotelsIds");
-			// 最大支持300线程并行
-			int maximumPoolSize = changeList.size() < 300 ? changeList.size() : 300;
-			logger.info("maximumPoolSize = " + maximumPoolSize);
-			startTime = System.currentTimeMillis();
-			ExecutorService executorService = ExecutorUtils.newSelfThreadPool(maximumPoolSize, 400);
-			final List<IncrInventory> rows = new ArrayList<IncrInventory>();
-			for (final InventoryChangeModel changeModel : changeList) {
-				executorService.submit(new Runnable() {
-					@Override
-					public void run() {
-						doHandlerChangeModel(changeModel, rows, filteredSHotelIds);
-					}
-				});
+		executorService.shutdown();
+		try {
+			while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
 			}
-			endTime = System.currentTimeMillis();
-			logger.info("use time = " + (endTime - startTime) + ",executorService submit task");
-			executorService.shutdown();
-			try {
-				while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-					// logger.info("thread-pool has not been closed yet.");
-				}
-			} catch (InterruptedException e) {
-				logger.error(e.getMessage(), e);
-			}
-			logger.info("thread-pool has been closed.");
-
-			// ChangeID排序，存数据库
-			if (rows.size() > 0) {
-				startTime = System.currentTimeMillis();
-				Collections.sort(rows, new Comparator<IncrInventory>() {
-					@Override
-					public int compare(IncrInventory o1, IncrInventory o2) {
-						return (int) ((long) (o1.getChangeID()) - (long) (o2.getChangeID()));
-					}
-				});
-				endTime = System.currentTimeMillis();
-				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ChangeID");
-
-				int recordCount = rows.size();
-				if (recordCount > 0) {
-					startTime = System.currentTimeMillis();
-					int successCount = incrInventorySubmeterService.builkInsert(rows);
-					logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert,successCount = "
-							+ successCount);
-				}
-			}
-			// ID排序，去最大ID
-			if (changeList != null && changeList.size() > 0) {
-				startTime = System.currentTimeMillis();
-				Collections.sort(changeList, new Comparator<InventoryChangeModel>() {
-					@Override
-					public int compare(InventoryChangeModel o1, InventoryChangeModel o2) {
-						return o1.getID().compareTo(o2.getID());
-					}
-				});
-				changID = changeList.get(changeList.size() - 1).getID();
-				endTime = System.currentTimeMillis();
-				logger.info("use time = " + (endTime - startTime) + ",sort rowMap by ID");
-			}
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage(), e);
 		}
-		return changID;
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrInventoryList from goods,incrInventorys size = "
+				+ incrInventorys.size());
+
+		// 按照ChangeID排序
+		sortIncrInventorysByChangeID(incrInventorys);
+		// 插入数据库
+		builkInsert(incrInventorys);
+		return (Long) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
 	}
 
 	/** 
-	 * 处理InventoryChangeModel
+	 * 库存变化流水表获取数据
 	 *
-	 * @param changeModel
-	 * @param rows
+	 * @param changID
+	 * @return
 	 */
-	private void doHandlerChangeModel(InventoryChangeModel changeModel, List<IncrInventory> rows, Set<String> filteredSHotelIds) {
-		long startTimel = System.currentTimeMillis();
-		Object guid = ThreadLocalUtil.get(Constants.ELONG_REQUEST_REQUESTGUID);
-		String threadName = Thread.currentThread().getName();
-		GetInventoryChangeDetailRequest request = null;
+	private List<Map<String, Object>> getProductInventoryIncrement(long changID) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		// 延迟3分钟maxRecordCount
+		int maxRecordCount = ConfigUtils.getIntConfigValue("MaxProductInventoryIncrementCount", 1000);
+		params.put("maxRecordCount", maxRecordCount);
+		params.put("delay_time", DateTime.now().minusMinutes(3).toString("yyyy-MM-dd HH:mm:ss"));
+		if (changID > 0) {
+			params.put("id", changID);
+		} else {
+			params.put("op_date", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
+		}
+		logger.info("getProductInventoryIncrement, params = " + params);
+		long startTime = System.currentTimeMillis();
+		List<Map<String, Object>> productInventoryIncrementList = mySqlDataDao.getProductInventoryIncrement(params);
+		long endTime = System.currentTimeMillis();
+		int incrementListSize = (productInventoryIncrementList == null) ? 0 : productInventoryIncrementList.size();
+		logger.info("use time = " + (endTime - startTime) + ",getProductInventoryIncrement, productInventoryIncrementList size = "
+				+ incrementListSize);
+		return productInventoryIncrementList;
+	}
+
+	/** 
+	 * 按照ChangeID排序
+	 *
+	 * @param incrInventorys
+	 */
+	private void sortIncrInventorysByChangeID(List<IncrInventory> incrInventorys) {
+		long startTime = System.currentTimeMillis();
+		Collections.sort(incrInventorys, new Comparator<IncrInventory>() {
+			@Override
+			public int compare(IncrInventory o1, IncrInventory o2) {
+				return (int) ((long) (o1.getChangeID()) - (long) (o2.getChangeID()));
+			}
+		});
+		long endTime = System.currentTimeMillis();
+		logger.info("use time = " + (endTime - startTime) + ",sortIncrInventorysByChangeID");
+	}
+
+	/** 
+	 * 批量插入数据库 
+	 *
+	 * @param incrInventorys
+	 */
+	private void builkInsert(List<IncrInventory> incrInventorys) {
+		int recordCount = incrInventorys.size();
+		if (recordCount == 0)
+			return;
+		int successCount = 0;
+		logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
+		int pageSize = ConfigUtils.getIntConfigValue("IncrRateBatchSize", 50);
+		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+		long startTime = System.currentTimeMillis();
+		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+			int startNum = (pageIndex - 1) * pageSize;
+			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
+		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert successfully,successCount = "
+				+ successCount);
+	}
+
+	/** 
+	 * 获取IncrInventory集合
+	 *
+	 * @param subList
+	 * @return
+	 */
+	private List<IncrInventory> getIncrInventoryList(List<Map<String, Object>> productInventoryIncrementList) {
+		Date minStartDate = null;
+		Date maxEndDate = null;
+		Map<String, List<String>> mhotelParams = new HashMap<String, List<String>>();
+		Map<String, List<Integer>> shotelParams = new HashMap<String, List<Integer>>();
+		for (Map<String, Object> productInventoryIncrement : productInventoryIncrementList) {
+			String shotelid = (String) productInventoryIncrement.get("hotel_id");
+			String mhotelId = msRelationRepository.getValidMHotelId(shotelid);
+			if (mhotelId == null)
+				continue;
+			// 最大日期 与 最小日期
+			Timestamp begin_date = (Timestamp) productInventoryIncrement.get("begin_date");
+			Date startDate = new Date(begin_date.getTime());
+			if (minStartDate == null || startDate.before(minStartDate)) {
+				minStartDate = startDate;
+			}
+			Timestamp end_date = (Timestamp) productInventoryIncrement.get("end_date");
+			Date endDate = new Date(end_date.getTime());
+			if (maxEndDate == null || endDate.after(maxEndDate)) {
+				maxEndDate = endDate;
+			}
+			// shotelid 与 roomtypeid关系
+			List<Integer> roomTypeIds = shotelParams.get(shotelid);
+			if (roomTypeIds == null) {
+				roomTypeIds = new ArrayList<Integer>();
+			}
+			String roomTypeIdStr = (String) productInventoryIncrement.get("room_type_id");
+			Integer roomTypeId = Integer.valueOf(roomTypeIdStr);
+			if (!roomTypeIds.contains(roomTypeId)) {
+				roomTypeIds.add(roomTypeId);
+			}
+			shotelParams.put(shotelid, roomTypeIds);
+
+			// mhotelid 与 shotelid关系
+			List<String> hotelCodes = mhotelParams.get(mhotelId);
+			if (hotelCodes == null) {
+				hotelCodes = new ArrayList<String>();
+			}
+			if (!hotelCodes.contains(shotelid)) {
+				hotelCodes.add(shotelid);
+			}
+			mhotelParams.put(mhotelId, hotelCodes);
+		}
+		// 组装mhotelAttrs
+		List<MhotelAttr> mhotelAttrs = new ArrayList<MhotelAttr>();
+		for (Map.Entry<String, List<String>> mhotelEntry : mhotelParams.entrySet()) {
+			String mhotelid = mhotelEntry.getKey();
+			List<String> shotelids = mhotelEntry.getValue();
+			List<ShotelAttr> shotelAttrs = new ArrayList<ShotelAttr>();
+			for (String shotelid : shotelids) {
+				ShotelAttr shotelAttr = new ShotelAttr();
+				shotelAttr.setShotel_id(Integer.valueOf(shotelid));
+				shotelAttr.setSroom_ids(shotelParams.get(shotelid));
+				shotelAttrs.add(shotelAttr);
+			}
+			MhotelAttr mhotelAttr = new MhotelAttr();
+			mhotelAttr.setMhotel_id(Integer.valueOf(mhotelid));
+			mhotelAttr.setShotel_attr(shotelAttrs);
+			mhotelAttrs.add(mhotelAttr);
+		}
+		Map<String, List<IncrInventory>> incrInventoryMap = getInventorysFromGoods(mhotelAttrs, minStartDate, maxEndDate);
+		List<IncrInventory> resultList = new ArrayList<IncrInventory>();
+		for (Map<String, Object> productInventoryIncrement : productInventoryIncrementList) {
+			String shotelid = (String) productInventoryIncrement.get("hotel_id");
+			String roomTypeIdStr = (String) productInventoryIncrement.get("room_type_id");
+			String key = shotelid + "|" + roomTypeIdStr;
+			List<IncrInventory> incrInventorys = incrInventoryMap.get(key);
+			if (incrInventorys == null || incrInventorys.size() == 0)
+				continue;
+
+			Date opDate = (Date) productInventoryIncrement.get("op_date");
+			Number id = (Number) productInventoryIncrement.get("id");
+			Date startDate = (Date) productInventoryIncrement.get("begin_date");
+			Date endDate = (Date) productInventoryIncrement.get("end_date");
+			for (IncrInventory incrInventory : incrInventorys) {
+				Date availableDate = incrInventory.getAvailableDate();
+				if (availableDate.after(endDate) || availableDate.before(startDate))
+					continue;
+				incrInventory.setOperateTime(opDate);
+				incrInventory.setInsertTime(DateTime.now().toDate());
+				incrInventory.setChangeID(id.longValue());
+				incrInventory.setChangeTime(opDate);
+				resultList.add(incrInventory);
+			}
+		}
+		return resultList;
+	}
+
+	/** 
+	 * 批量调用库存元数据
+	 *
+	 * @param mhotel_attr
+	 * @param startDate
+	 * @param endDate
+	 * @return
+	 */
+	private Map<String, List<IncrInventory>> getInventorysFromGoods(List<MhotelAttr> mhotel_attr, Date startDate, Date endDate) {
+		Map<String, List<IncrInventory>> incrInventoryMap = null;
+		GetInvAndInstantConfirmRequest request = new GetInvAndInstantConfirmRequest();
+		request.setStart_date(startDate.getTime());
+		request.setEnd_date(endDate.getTime());
+		// request.setNeed_instant_confirm(isNeedInstantConfirm);
+		// request.setOrder_from(orderFrom);
+		request.setSearch_from(3);// 3：NBAPI
+		request.setMhotel_attr(mhotel_attr);
 		try {
-			boolean isFileterd = filteredSHotelIds.contains(changeModel.getHotelID());
-			// boolean isFileterd = filterService.doFilter(changeModel.getHotelID());
-			if (isFileterd) {
-				// logger.info(threadName + ":filteredSHotelIds contain hotelID[" + changeModel.getHotelID() + "],ignore it.");
-				return;
-			}
-			// #region 仅提供昨天和最近90天的房态数据 判断开始结束时间段是否在昨天和MaxDays之内
-			int startDays = Days.daysBetween(DateTime.now(), changeModel.getBeginTime()).getDays();
-			int endDays = Days.daysBetween(DateTime.now(), changeModel.getEndTime()).getDays();
-			if (startDays > MAXDAYS || endDays < 0) {
-				return;
-			}
-			if (startDays < -1) {
-				changeModel.setBeginTime(DateTime.now());
-				startDays = 0;
-			}
-			if (endDays > MAXDAYS) {
-				changeModel.setEndTime(DateTime.now().plusDays(MAXDAYS));
-				endDays = MAXDAYS;
-			}
-			if (changeModel.getBeginTime().compareTo(changeModel.getEndTime()) > 0) {
-				return;
-			}
-			// #endregion
-
-			request = new GetInventoryChangeDetailRequest();
-			request.setHotelID(changeModel.getHotelID());
-			request.setBeginTime(changeModel.getBeginTime());
-			request.setEndTime(changeModel.getEndTime());
-			request.setRoomTypeIDs(changeModel.getRoomTypeID());
-			long startTime = System.currentTimeMillis();
-			GetInventoryChangeDetailResponse response = null;
-			try {
-				response = productForPartnerServiceContract.getInventoryChangeDetail(request);
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);// 异常吃掉，下面会重试
-			}
-			long endTime = System.currentTimeMillis();
-			ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "getInventoryChangeDetail",
-					"IProductForPartnerServiceContract", null, endTime - startTime, 0, null, null);
-
-			List<ResourceInventoryState> resourceInventoryStateList = null;
-			if (response != null && response.getResourceInventoryStateList() != null) {
-				resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
-			}
-			// retry
-			if (resourceInventoryStateList == null || resourceInventoryStateList.size() == 0) {
-				if (changeModel.getBeginTime().compareTo(DateTime.now().plusDays(88)) < 0) {
-					startTime = System.currentTimeMillis();
-					Thread.sleep(2000);
-					response = productForPartnerServiceContract.getInventoryChangeDetail(request);
-					endTime = System.currentTimeMillis();
-					ActionLogHelper.businessLog(guid == null ? null : (String) guid, true, "retryGetInventoryChangeDetail",
-							"IProductForPartnerServiceContract", null, endTime - startTime, 0, null, null);
+			GetInvAndInstantConfirmResponse response = goodsMetaRepository.getInventory(request);
+			if (response != null && response.return_code == 0) {
+				IncrInventoryAdapter incrInventoryAdapter = new IncrInventoryAdapter();
+				incrInventoryMap = incrInventoryAdapter.toNBObect(response);
+				if (incrInventoryMap == null || incrInventoryMap.size() == 0) {
+					logger.error("ThriftUtils.getInventory,response.return_code = 0,inventorys size = 0,request = "
+							+ JSON.toJSONString(request) + ",response = " + JSON.toJSONString(response));
 				}
-			}
-			String mHotelId = this.msRelationRepository.getMHotelId(changeModel.getHotelID());
-
-			if (response != null && response.getResourceInventoryStateList() != null) {
-				resourceInventoryStateList = response.getResourceInventoryStateList().getResourceInventoryState();
-			}
-			if (resourceInventoryStateList != null && resourceInventoryStateList.size() > 0) {
-				for (ResourceInventoryState detail : resourceInventoryStateList) {
-					synchronized (this.getClass()) {
-						IncrInventory row = new IncrInventory();
-						row.setHotelID(mHotelId);
-						row.setRoomTypeID(detail.getRoomTypeID().length() > 50 ? detail.getRoomTypeID().substring(0, 50) : detail
-								.getRoomTypeID());
-						row.setHotelCode(detail.getHotelID());
-						row.setStatus(detail.getStatus() == 0);
-						row.setAvailableDate(detail.getAvailableTime() == null ? null : detail.getAvailableTime().toDate());
-						row.setAvailableAmount(detail.getAvailableAmount());
-						row.setOverBooking(detail.getIsOverBooking());
-						row.setStartDate(detail.getBeginDate() == null ? null : detail.getBeginDate().toDate());
-						row.setEndDate(detail.getEndDate() == null ? null : detail.getEndDate().toDate());
-						row.setStartTime(detail.getBeginTime());
-						row.setEndTime(detail.getEndTime());
-						row.setOperateTime(detail.getOperateTime() == null ? null : detail.getOperateTime().toDate());
-						row.setInsertTime(DateTime.now().toDate());
-						row.setChangeID(changeModel.getID());
-						row.setChangeTime(changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
-						rows.add(row);
-					}
-				}
+			} else if (response.return_code > 0) {
+				incrInventoryMap = new HashMap<String, List<IncrInventory>>();
+				logger.info("ThriftUtils.getInventory, response.return_code > 0,request = " + JSON.toJSONString(request) + ",response = "
+						+ JSON.toJSONString(response));
 			} else {
-				DateTime date = changeModel.getBeginTime();
-				while (date.compareTo(changeModel.getEndTime()) < 0) {
-					synchronized (this.getClass()) {
-						IncrInventory row = new IncrInventory();
-						row.setHotelID(mHotelId);
-						row.setRoomTypeID(changeModel.getRoomTypeID().length() > 50 ? changeModel.getRoomTypeID().substring(0, 50)
-								: changeModel.getRoomTypeID());
-						row.setHotelCode(changeModel.getHotelID());
-						row.setStatus(false);
-						row.setAvailableDate(date == null ? null : date.toDate());
-						row.setAvailableAmount(0);
-						row.setOverBooking(1);
-						row.setStartDate(date == null ? null : date.toDate());
-						row.setEndDate(date == null ? null : date.toDate());
-						row.setStartTime("00:00:00");
-						row.setEndTime("23:59:59");
-						row.setOperateTime(changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
-						row.setInsertTime(DateTime.now().toDate());
-						row.setChangeID(changeModel.getID());
-						row.setChangeTime(changeModel.getUpdateTime() == null ? null : changeModel.getUpdateTime().toDate());
-						rows.add(row);
-					}
-					date = date.plusDays(1);
-				}
+				throw new RuntimeException(response.getReturn_msg());
 			}
 		} catch (Exception ex) {
-			logger.error(threadName + ":SyncInventoryToDB,doHandlerChangeModel,error = " + ex.getMessage(), ex);
-			ActionLogHelper.businessLog(guid == null ? null : (String) guid, false, "doHandlerChangeModel", "IncrInventoryRepository", ex,
-					System.currentTimeMillis() - startTimel, -1, ex.getMessage(), null);
+			throw new RuntimeException("getInventorysFromGoods:" + ex.getMessage(), ex);
 		}
+		return incrInventoryMap;
+	}
+
+	/** 
+	 * 仅提供昨天和最近90天的房态数据 判断开始结束时间段是否在昨天和MaxDays之内
+	 *
+	 * @param productInventoryIncrementList
+	 */
+	private void filterUnvalidDate(List<Map<String, Object>> productInventoryIncrementList) {
+		long startTime = System.currentTimeMillis();
+		Iterator<Map<String, Object>> iter = productInventoryIncrementList.iterator();
+		while (iter.hasNext()) {
+			Map<String, Object> productInventoryIncrement = iter.next();
+			if (productInventoryIncrement == null)
+				continue;
+
+			Date startDate = (Date) productInventoryIncrement.get("begin_date");
+			Date endDate = (Date) productInventoryIncrement.get("end_date");
+
+			// #region 仅提供昨天和最近90天的房态数据 判断开始结束时间段是否在昨天和MaxDays之内
+			int startDays = Days.daysBetween(DateTime.now(), new DateTime(startDate.getTime())).getDays();
+			int endDays = Days.daysBetween(DateTime.now(), new DateTime(endDate.getTime())).getDays();
+			if (startDays > MAXDAYS || endDays < 0) {
+				continue;
+			}
+			if (startDays < -1) {
+				startDate = new Date();
+				productInventoryIncrement.put("begin_date", new Date());
+			}
+			if (endDays > MAXDAYS) {
+				endDate = DateTime.now().plusDays(MAXDAYS).toDate();
+				productInventoryIncrement.put("end_date", endDate);
+			}
+			if (startDate.compareTo(endDate) > 0) {
+				iter.remove();
+				continue;
+			}
+		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime)
+				+ ",after filterUnvalidDate,productInventoryIncrementList size = " + productInventoryIncrementList.size());
+	}
+
+	/** 
+	 * 过滤掉携程去哪shotelid 
+	 *
+	 * @param productInventoryIncrementList
+	 */
+	private void filterShotelsIds(List<Map<String, Object>> productInventoryIncrementList) {
+		long startTime = System.currentTimeMillis();
+		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
+		Iterator<Map<String, Object>> iter = productInventoryIncrementList.iterator();
+		while (iter.hasNext()) {
+			Map<String, Object> productInventoryIncrement = iter.next();
+			if (productInventoryIncrement == null)
+				continue;
+			String hotelCode = (String) productInventoryIncrement.get("hotel_id");
+			if (!filteredSHotelIds.contains(hotelCode))
+				continue;
+			iter.remove();
+		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime)
+				+ ",after fillFilteredSHotelsIds,productInventoryIncrementList size = " + productInventoryIncrementList.size());
 	}
 
 }
