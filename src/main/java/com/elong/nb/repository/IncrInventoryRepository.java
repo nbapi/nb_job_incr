@@ -324,8 +324,8 @@ public class IncrInventoryRepository {
 	private Map<String, List<IncrInventory>> getInventorysFromGoods(List<MhotelAttr> mhotel_attr, Date startDate, Date endDate) {
 		Map<String, List<IncrInventory>> incrInventoryMap = null;
 		GetInvAndInstantConfirmRequest request = new GetInvAndInstantConfirmRequest();
-		request.setStart_date(startDate.getTime());
-		request.setEnd_date(endDate.getTime());
+		request.setStart_date(startDate != null ? startDate.getTime() : new Date().getTime());
+		request.setEnd_date(endDate != null ? endDate.getTime() : DateTime.now().plusDays(MAXDAYS).toDate().getTime());
 		// request.setNeed_instant_confirm(isNeedInstantConfirm);
 		// request.setOrder_from(orderFrom);
 		request.setSearch_from(3);// 3：NBAPI
