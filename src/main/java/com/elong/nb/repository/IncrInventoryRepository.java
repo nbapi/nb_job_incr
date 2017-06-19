@@ -108,8 +108,8 @@ public class IncrInventoryRepository {
 			callableList.add(new GoodsInventoryThread(productInventoryIncrementList.subList(startNum, endNum)));
 		}
 
-		final List<IncrInventory> incrInventorys = Collections.synchronizedList(new ArrayList<IncrInventory>());
-		int goodsInventoryThreadCount = ConfigUtils.getIntConfigValue("goodsInventoryThreadCount", 3);
+		List<IncrInventory> incrInventorys = new ArrayList<IncrInventory>();
+		int goodsInventoryThreadCount = ConfigUtils.getIntConfigValue("GoodsInventoryThreadCount", 3);
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsInventoryThreadCount, 300);
 		try {
 			List<Future<List<IncrInventory>>> futureList = executorService.invokeAll(callableList);
@@ -372,6 +372,7 @@ public class IncrInventoryRepository {
 			int startDays = Days.daysBetween(DateTime.now(), new DateTime(startDate.getTime())).getDays();
 			int endDays = Days.daysBetween(DateTime.now(), new DateTime(endDate.getTime())).getDays();
 			if (startDays > MAXDAYS || endDays < 0) {
+				iter.remove();
 				continue;
 			}
 			if (startDays < -1) {
