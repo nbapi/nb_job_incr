@@ -5,7 +5,6 @@
  */
 package com.elong.nb.repository;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -231,13 +230,11 @@ public class IncrInventoryRepository {
 			if (mhotelId == null)
 				continue;
 			// 最大日期 与 最小日期
-			Timestamp begin_date = (Timestamp) productInventoryIncrement.get("begin_date");
-			Date startDate = new Date(begin_date.getTime());
+			Date startDate = (Date) productInventoryIncrement.get("begin_date");
 			if (minStartDate == null || startDate.before(minStartDate)) {
 				minStartDate = startDate;
 			}
-			Timestamp end_date = (Timestamp) productInventoryIncrement.get("end_date");
-			Date endDate = new Date(end_date.getTime());
+			Date endDate = (Date) productInventoryIncrement.get("end_date");
 			if (maxEndDate == null || endDate.after(maxEndDate)) {
 				maxEndDate = endDate;
 			}
