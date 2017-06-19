@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -127,7 +128,7 @@ public class IncrInventoryRepository {
 		sortIncrInventorysByChangeID(incrInventorys);
 		// 插入数据库
 		builkInsert(incrInventorys);
-		Number lastChangeId = (Number)productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
+		Number lastChangeId = (Number) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
 		return lastChangeId.longValue();
 	}
 
@@ -205,9 +206,9 @@ public class IncrInventoryRepository {
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-//			int startNum = (pageIndex - 1) * pageSize;
-//			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-//			successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
+			// int startNum = (pageIndex - 1) * pageSize;
+			// int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			// successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert successfully,successCount = "
 				+ successCount);
@@ -245,10 +246,14 @@ public class IncrInventoryRepository {
 			if (roomTypeIds == null) {
 				roomTypeIds = new ArrayList<Integer>();
 			}
+			// 兼容room_type_id 0001,0003,0004,0005,0006,0007 这种数据格式
 			String roomTypeIdStr = (String) productInventoryIncrement.get("room_type_id");
-			Integer roomTypeId = Integer.valueOf(roomTypeIdStr);
-			if (!roomTypeIds.contains(roomTypeId)) {
-				roomTypeIds.add(roomTypeId);
+			String[] roomTypeIdArray = StringUtils.split(roomTypeIdStr, ",", -1);
+			for (String element : roomTypeIdArray) {
+				Integer roomTypeId = Integer.valueOf(element);
+				if (!roomTypeIds.contains(roomTypeId)) {
+					roomTypeIds.add(roomTypeId);
+				}
 			}
 			shotelParams.put(shotelid, roomTypeIds);
 
@@ -282,26 +287,30 @@ public class IncrInventoryRepository {
 		Map<String, List<IncrInventory>> incrInventoryMap = getInventorysFromGoods(mhotelAttrs, minStartDate, maxEndDate);
 		List<IncrInventory> resultList = new ArrayList<IncrInventory>();
 		for (Map<String, Object> productInventoryIncrement : productInventoryIncrementList) {
-			String shotelid = (String) productInventoryIncrement.get("hotel_id");
-			String roomTypeIdStr = (String) productInventoryIncrement.get("room_type_id");
-			String key = shotelid + "|" + roomTypeIdStr;
-			List<IncrInventory> incrInventorys = incrInventoryMap.get(key);
-			if (incrInventorys == null || incrInventorys.size() == 0)
-				continue;
-
 			Date opDate = (Date) productInventoryIncrement.get("op_date");
 			Number id = (Number) productInventoryIncrement.get("id");
 			Date startDate = (Date) productInventoryIncrement.get("begin_date");
 			Date endDate = (Date) productInventoryIncrement.get("end_date");
-			for (IncrInventory incrInventory : incrInventorys) {
-				Date availableDate = incrInventory.getAvailableDate();
-				if (availableDate.after(endDate) || availableDate.before(startDate))
+
+			String shotelid = (String) productInventoryIncrement.get("hotel_id");
+			String roomTypeIdStr = (String) productInventoryIncrement.get("room_type_id");
+			String[] roomTypeIdArray = StringUtils.split(roomTypeIdStr, ",", -1);
+			for (String roomTypeId : roomTypeIdArray) {
+				String key = shotelid + "|" + roomTypeId;
+				List<IncrInventory> incrInventorys = incrInventoryMap.get(key);
+				if (incrInventorys == null || incrInventorys.size() == 0)
 					continue;
-				incrInventory.setOperateTime(opDate);
-				incrInventory.setInsertTime(DateTime.now().toDate());
-				incrInventory.setChangeID(id.longValue());
-				incrInventory.setChangeTime(opDate);
-				resultList.add(incrInventory);
+
+				for (IncrInventory incrInventory : incrInventorys) {
+					Date availableDate = incrInventory.getAvailableDate();
+					if (availableDate.after(endDate) || availableDate.before(startDate))
+						continue;
+					incrInventory.setOperateTime(opDate);
+					incrInventory.setInsertTime(DateTime.now().toDate());
+					incrInventory.setChangeID(id.longValue());
+					incrInventory.setChangeTime(opDate);
+					resultList.add(incrInventory);
+				}
 			}
 		}
 		return resultList;
