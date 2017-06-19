@@ -15,8 +15,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 
@@ -80,7 +82,7 @@ public class IncrInventoryRepository {
 	 */
 	public long syncInventoryToDB(long changID) {
 		// 库存变化流水表获取数据
-		final List<Map<String, Object>> productInventoryIncrementList = getProductInventoryIncrement(changID);
+		List<Map<String, Object>> productInventoryIncrementList = getProductInventoryIncrement(changID);
 		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
 			return changID;
 
@@ -95,31 +97,28 @@ public class IncrInventoryRepository {
 			return changID;
 
 		// 分批次批量调用商品库库存元数据接口
-		final List<IncrInventory> incrInventorys = Collections.synchronizedList(new ArrayList<IncrInventory>());
-		int goodsInventoryThreadCount = ConfigUtils.getIntConfigValue("goodsInventoryThreadCount", 3);
-		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsInventoryThreadCount, 300);
+		List<Callable<List<IncrInventory>>> callableList = new ArrayList<Callable<List<IncrInventory>>>();
 		int recordCount = productInventoryIncrementList.size();
 		int batchSize = ConfigUtils.getIntConfigValue("GoodsInventoryBatchSize", 10);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / batchSize);
 		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			final int startNum = (pageIndex - 1) * batchSize;
-			final int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
-			executorService.submit(new Runnable() {
-				@Override
-				public void run() {
-					List<IncrInventory> incrInventoryList = getIncrInventoryList(productInventoryIncrementList.subList(startNum, endNum));
-					incrInventorys.addAll(incrInventoryList);
-				}
-			});
-
+			int startNum = (pageIndex - 1) * batchSize;
+			int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
+			callableList.add(new GoodsInventoryThread(productInventoryIncrementList.subList(startNum, endNum)));
 		}
-		executorService.shutdown();
+
+		final List<IncrInventory> incrInventorys = Collections.synchronizedList(new ArrayList<IncrInventory>());
+		int goodsInventoryThreadCount = ConfigUtils.getIntConfigValue("goodsInventoryThreadCount", 3);
+		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsInventoryThreadCount, 300);
 		try {
-			while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
+			List<Future<List<IncrInventory>>> futureList = executorService.invokeAll(callableList);
+			for (Future<List<IncrInventory>> future : futureList) {
+				List<IncrInventory> threadIncrInventorys = future.get();
+				incrInventorys.addAll(threadIncrInventorys);
 			}
-		} catch (InterruptedException e) {
-			logger.error(e.getMessage(), e);
+		} catch (InterruptedException | ExecutionException e) {
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrInventoryList from goods,incrInventorys size = "
 				+ incrInventorys.size());
@@ -128,7 +127,23 @@ public class IncrInventoryRepository {
 		sortIncrInventorysByChangeID(incrInventorys);
 		// 插入数据库
 		builkInsert(incrInventorys);
-		return (Long) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
+		Number lastChangeId = (Number)productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
+		return lastChangeId.longValue();
+	}
+
+	private class GoodsInventoryThread implements Callable<List<IncrInventory>> {
+
+		private List<Map<String, Object>> productInventoryIncrementList;
+
+		public GoodsInventoryThread(List<Map<String, Object>> productInventoryIncrementList) {
+			this.productInventoryIncrementList = productInventoryIncrementList;
+		}
+
+		@Override
+		public List<IncrInventory> call() throws Exception {
+			return getIncrInventoryList(productInventoryIncrementList);
+		}
+
 	}
 
 	/** 
@@ -190,9 +205,9 @@ public class IncrInventoryRepository {
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			int startNum = (pageIndex - 1) * pageSize;
-			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
+//			int startNum = (pageIndex - 1) * pageSize;
+//			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+//			successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert successfully,successCount = "
 				+ successCount);
