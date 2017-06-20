@@ -92,9 +92,9 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",get value from redis key = "
 					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",changeID = " + changeID);
 		}
-		startTime = System.currentTimeMillis();
 		// 库存变化流水表获取数据
 		List<Map<String, Object>> productInventoryIncrementList = getProductInventoryIncrement(changeID);
+		startTime = System.currentTimeMillis();
 		long newLastChgID = incrInventoryRepository.syncInventoryToDB(productInventoryIncrementList);
 		newLastChgID = (newLastChgID == -1) ? changeID : newLastChgID;
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",syncInventoryToDB,change: from " + changeID + " to "
@@ -136,6 +136,7 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 		}
 		logger.info("syncInventoryDueToBlack,get startTime = " + blackStartTime + ",from redis key = " + rediskey);
 
+		long startTime = System.currentTimeMillis();
 		RequestBase<GetInvLimitDataRequest> requestBase = new RequestBase<GetInvLimitDataRequest>();
 		requestBase.setFrom("nb_job_incr");
 		requestBase.setLogId(UUID.randomUUID().toString());
@@ -154,11 +155,15 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 				continue;
 			allInvLimitList.addAll(invLimitList);
 		}
-		logger.info("syncInventoryDueToBlack,allInvLimitList size = " + allInvLimitList.size());
+		logger.info("syncInventoryDueToBlack,use time = " + (System.currentTimeMillis() - startTime)
+				+ ",get allInvLimitList from nb_web_rule,size = " + allInvLimitList.size());
 		blackStartTime = new Date();
 		// 同步库存增量
 		List<Map<String, Object>> productInventoryIncrementList = getProductInventoryIncrement(allInvLimitList);
+		startTime = System.currentTimeMillis();
 		incrInventoryRepository.syncInventoryToDB(productInventoryIncrementList);
+		logger.info("syncInventoryDueToBlack,use time = " + (System.currentTimeMillis() - startTime)
+				+ ",incrInventoryRepository.syncInventoryToDB");
 		// 同步时间存入redis
 		incrSetInfoService.put(rediskey, blackStartTime);
 		logger.info("syncInventoryDueToBlack,put to redis successfully.key = " + rediskey + ",value = " + blackStartTime);
