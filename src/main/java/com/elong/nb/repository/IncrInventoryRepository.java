@@ -32,7 +32,6 @@ import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmRequest;
 import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmResponse;
 import com.elong.hotel.searchagent.thrift.dss.MhotelAttr;
 import com.elong.hotel.searchagent.thrift.dss.ShotelAttr;
-import com.elong.nb.dao.MySqlDataDao;
 import com.elong.nb.dao.adataper.IncrInventoryAdapter;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.submeter.service.ISubmeterService;
@@ -71,18 +70,14 @@ public class IncrInventoryRepository {
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
-	@Resource
-	private MySqlDataDao mySqlDataDao;
-
 	/** 
-	 * 根据changeID同步库存增量
+	 * 同步库存增量
 	 *
-	 * @param changID
+	 * @param productInventoryIncrementList
 	 * @return
 	 */
-	public long syncInventoryToDB(long changID) {
-		// 库存变化流水表获取数据
-		List<Map<String, Object>> productInventoryIncrementList = getProductInventoryIncrement(changID);
+	public long syncInventoryToDB(List<Map<String, Object>> productInventoryIncrementList) {
+		long changID = -1;
 		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
 			return changID;
 
@@ -107,7 +102,6 @@ public class IncrInventoryRepository {
 			int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
 			callableList.add(new GoodsInventoryThread(productInventoryIncrementList.subList(startNum, endNum)));
 		}
-
 		List<IncrInventory> incrInventorys = new ArrayList<IncrInventory>();
 		int goodsInventoryThreadCount = ConfigUtils.getIntConfigValue("GoodsInventoryThreadCount", 3);
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsInventoryThreadCount, 300);
@@ -131,54 +125,14 @@ public class IncrInventoryRepository {
 		return lastChangeId.longValue();
 	}
 
-	private class GoodsInventoryThread implements Callable<List<IncrInventory>> {
-
-		private List<Map<String, Object>> productInventoryIncrementList;
-
-		public GoodsInventoryThread(List<Map<String, Object>> productInventoryIncrementList) {
-			this.productInventoryIncrementList = productInventoryIncrementList;
-		}
-
-		@Override
-		public List<IncrInventory> call() throws Exception {
-			return getIncrInventoryList(productInventoryIncrementList);
-		}
-
-	}
-
-	/** 
-	 * 库存变化流水表获取数据
-	 *
-	 * @param changID
-	 * @return
-	 */
-	private List<Map<String, Object>> getProductInventoryIncrement(long changID) {
-		Map<String, Object> params = new HashMap<String, Object>();
-		// 延迟3分钟maxRecordCount
-		int maxRecordCount = ConfigUtils.getIntConfigValue("MaxProductInventoryIncrementCount", 1000);
-		params.put("maxRecordCount", maxRecordCount);
-		params.put("delay_time", DateTime.now().minusMinutes(3).toString("yyyy-MM-dd HH:mm:ss"));
-		if (changID > 0) {
-			params.put("id", changID);
-		} else {
-			params.put("op_date", DateTime.now().minusHours(1).toString("yyyy-MM-dd HH:mm:ss"));
-		}
-		logger.info("getProductInventoryIncrement, params = " + params);
-		long startTime = System.currentTimeMillis();
-		List<Map<String, Object>> productInventoryIncrementList = mySqlDataDao.getProductInventoryIncrement(params);
-		long endTime = System.currentTimeMillis();
-		int incrementListSize = (productInventoryIncrementList == null) ? 0 : productInventoryIncrementList.size();
-		logger.info("use time = " + (endTime - startTime) + ",getProductInventoryIncrement, productInventoryIncrementList size = "
-				+ incrementListSize);
-		return productInventoryIncrementList;
-	}
-
 	/** 
 	 * 按照ChangeID排序
 	 *
 	 * @param incrInventorys
 	 */
 	private void sortIncrInventorysByChangeID(List<IncrInventory> incrInventorys) {
+		if (incrInventorys == null || incrInventorys.size() == 0)
+			return;
 		long startTime = System.currentTimeMillis();
 		Collections.sort(incrInventorys, new Comparator<IncrInventory>() {
 			@Override
@@ -226,7 +180,8 @@ public class IncrInventoryRepository {
 		Map<String, List<Integer>> shotelParams = new HashMap<String, List<Integer>>();
 		for (Map<String, Object> productInventoryIncrement : productInventoryIncrementList) {
 			String shotelid = (String) productInventoryIncrement.get("hotel_id");
-			String mhotelId = msRelationRepository.getValidMHotelId(shotelid);
+			String mhotelId = (String) productInventoryIncrement.get("mhotel_id");
+			mhotelId = StringUtils.isEmpty(mhotelId) ? msRelationRepository.getValidMHotelId(shotelid) : mhotelId;
 			if (mhotelId == null)
 				continue;
 			// 最大日期 与 最小日期
@@ -326,8 +281,6 @@ public class IncrInventoryRepository {
 		GetInvAndInstantConfirmRequest request = new GetInvAndInstantConfirmRequest();
 		request.setStart_date(startDate != null ? startDate.getTime() : new Date().getTime());
 		request.setEnd_date(endDate != null ? endDate.getTime() : DateTime.now().plusDays(MAXDAYS).toDate().getTime());
-		// request.setNeed_instant_confirm(isNeedInstantConfirm);
-		// request.setOrder_from(orderFrom);
 		request.setSearch_from(3);// 3：NBAPI
 		request.setMhotel_attr(mhotel_attr);
 		try {
@@ -412,6 +365,35 @@ public class IncrInventoryRepository {
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime)
 				+ ",after fillFilteredSHotelsIds,productInventoryIncrementList size = " + productInventoryIncrementList.size());
+	}
+
+	/**
+	 * 内部类
+	 *
+	 * <p>
+	 * 修改历史:											<br>  
+	 * 修改日期    		修改人员   	版本	 		修改内容<br>  
+	 * -------------------------------------------------<br>  
+	 * 2017年6月20日 下午5:30:47   suht     1.0    	初始化创建<br>
+	 * </p> 
+	 *
+	 * @author		suht  
+	 * @version		1.0  
+	 * @since		JDK1.7
+	 */
+	private class GoodsInventoryThread implements Callable<List<IncrInventory>> {
+
+		private List<Map<String, Object>> productInventoryIncrementList;
+
+		public GoodsInventoryThread(List<Map<String, Object>> productInventoryIncrementList) {
+			this.productInventoryIncrementList = productInventoryIncrementList;
+		}
+
+		@Override
+		public List<IncrInventory> call() throws Exception {
+			return getIncrInventoryList(productInventoryIncrementList);
+		}
+
 	}
 
 }
