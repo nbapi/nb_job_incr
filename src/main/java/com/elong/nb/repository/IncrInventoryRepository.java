@@ -81,11 +81,6 @@ public class IncrInventoryRepository {
 		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
 			return changID;
 
-		// 过滤掉携程去哪儿酒店
-		filterShotelsIds(productInventoryIncrementList);
-		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
-			return changID;
-
 		// 开始结束日期过滤
 		filterUnvalidDate(productInventoryIncrementList);
 		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
@@ -117,6 +112,8 @@ public class IncrInventoryRepository {
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrInventoryList from goods,incrInventorys size = "
 				+ incrInventorys.size());
 
+		// 过滤掉携程去哪儿酒店
+		filterShotelsIds(incrInventorys);
 		// 按照ChangeID排序
 		sortIncrInventorysByChangeID(incrInventorys);
 		// 插入数据库
@@ -350,25 +347,25 @@ public class IncrInventoryRepository {
 	 *
 	 * @param productInventoryIncrementList
 	 */
-	private void filterShotelsIds(List<Map<String, Object>> productInventoryIncrementList) {
+	private void filterShotelsIds(List<IncrInventory> incrInventorys) {
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
-		Iterator<Map<String, Object>> iter = productInventoryIncrementList.iterator();
+		Iterator<IncrInventory> iter = incrInventorys.iterator();
 		while (iter.hasNext()) {
-			Map<String, Object> productInventoryIncrement = iter.next();
-			if (productInventoryIncrement == null)
+			IncrInventory incrInventory = iter.next();
+			if (incrInventory == null)
 				continue;
-			String hotelCode = (String) productInventoryIncrement.get("hotel_id");
+			String hotelCode = incrInventory.getHotelCode();
 			if (!filteredSHotelIds.contains(hotelCode))
 				continue;
 			iter.remove();
 		}
-		logger.info("use time = " + (System.currentTimeMillis() - startTime)
-				+ ",after fillFilteredSHotelsIds,productInventoryIncrementList size = " + productInventoryIncrementList.size());
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",after fillFilteredSHotelsIds,incrInventorys size = "
+				+ incrInventorys.size());
 	}
 
 	/**
-	 * 内部类
+	 * 商品库库存获取内部类
 	 *
 	 * <p>
 	 * 修改历史:											<br>  

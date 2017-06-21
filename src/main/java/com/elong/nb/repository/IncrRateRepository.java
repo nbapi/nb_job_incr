@@ -19,8 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 
@@ -35,7 +37,6 @@ import com.elong.hotel.goods.ds.thrift.HotelBasePriceRequest;
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.MySqlDataDao;
 import com.elong.nb.dao.adataper.IncrRateAdapter;
-import com.elong.nb.service.IFilterService;
 import com.elong.nb.util.ConfigUtils;
 import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
@@ -73,9 +74,6 @@ public class IncrRateRepository {
 	@Resource
 	private MySqlDataDao mySqlDataDao;
 
-	@Resource
-	private IFilterService filterService;
-
 	/** 
 	 * IncrRate同步到数据库
 	 *
@@ -112,39 +110,36 @@ public class IncrRateRepository {
 				+ filterPriceOperationIncrementList.size());
 
 		// 分批次批量调用商品库价格元数据接口
-		final List<Map<String, Object>> beforeIncrRates = Collections.synchronizedList(new ArrayList<Map<String, Object>>());
-		int goodsRateThreadCount = ConfigUtils.getIntConfigValue("GoodsRateThreadCount", 3);
-		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsRateThreadCount, 300);
+		List<Callable<List<Map<String, Object>>>> callableList = new ArrayList<Callable<List<Map<String, Object>>>>();
 		int recordCount = filterPriceOperationIncrementList.size();
 		int batchSize = ConfigUtils.getIntConfigValue("GoodsRateBatchSize", 10);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / batchSize);
 		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			final int startNum = (pageIndex - 1) * batchSize;
-			final int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
-			executorService.submit(new Runnable() {
-				@Override
-				public void run() {
-					List<Map<String, Object>> incrRates = getIncrRateList(filterPriceOperationIncrementList.subList(startNum, endNum));
-					beforeIncrRates.addAll(incrRates);
-				}
-			});
+			int startNum = (pageIndex - 1) * batchSize;
+			int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
+			callableList.add(new GoodsPriceMetaThread(filterPriceOperationIncrementList.subList(startNum, endNum)));
 		}
-		executorService.shutdown();
+		List<Map<String, Object>> incrRates = new ArrayList<Map<String, Object>>();
+		int goodsRateThreadCount = ConfigUtils.getIntConfigValue("GoodsRateThreadCount", 3);
+		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsRateThreadCount, 300);
 		try {
-			while (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
+			List<Future<List<Map<String, Object>>>> futureList = executorService.invokeAll(callableList);
+			for (Future<List<Map<String, Object>>> future : futureList) {
+				List<Map<String, Object>> threadIncrRates = future.get();
+				incrRates.addAll(threadIncrRates);
 			}
-		} catch (InterruptedException e) {
-			logger.error(e.getMessage(), e);
+		} catch (InterruptedException | ExecutionException e) {
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrRateList from Goods and doHandler");
 
 		// shotelid过滤及enddate处理
-		List<Map<String, Object>> afterIncrRates = filterAndHandler(beforeIncrRates);
+		filterAndHandler(incrRates);
 		// 按照ChangeID排序
-		sortIncrRatesByChangeID(afterIncrRates);
+		sortIncrRatesByChangeID(incrRates);
 		// 插入数据库
-		builkInsert(afterIncrRates);
+		builkInsert(incrRates);
 		return (Long) priceOperationIncrementList.get(priceOperationIncrementList.size() - 1).get("id");
 	}
 
@@ -331,9 +326,8 @@ public class IncrRateRepository {
 	 * shotelid过滤及enddate处理
 	 *
 	 * @param incrRateList
-	 * @return
 	 */
-	private List<Map<String, Object>> filterAndHandler(List<Map<String, Object>> incrRateList) {
+	private void filterAndHandler(List<Map<String, Object>> incrRateList) {
 		logger.info("before fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
 		Date validDate = DateTime.now().plusYears(1).toDate();
 		long startTime = System.currentTimeMillis();
@@ -356,7 +350,6 @@ public class IncrRateRepository {
 		}
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",after fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
-		return incrRateList;
 	}
 
 	/** 
@@ -364,8 +357,8 @@ public class IncrRateRepository {
 	 *
 	 * @param afterIncrRates
 	 */
-	private void builkInsert(List<Map<String, Object>> afterIncrRates) {
-		int recordCount = afterIncrRates.size();
+	private void builkInsert(List<Map<String, Object>> incrRates) {
+		int recordCount = incrRates.size();
 		if (recordCount == 0)
 			return;
 		int successCount = 0;
@@ -376,10 +369,39 @@ public class IncrRateRepository {
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 			int startNum = (pageIndex - 1) * pageSize;
 			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			successCount += incrRateDao.bulkInsert(afterIncrRates.subList(startNum, endNum));
+			successCount += incrRateDao.bulkInsert(incrRates.subList(startNum, endNum));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrRate BulkInsert successfully,successCount = "
 				+ successCount);
+	}
+
+	/**
+	 * 价格元数据处理内部类
+	 *
+	 * <p>
+	 * 修改历史:											<br>  
+	 * 修改日期    		修改人员   	版本	 		修改内容<br>  
+	 * -------------------------------------------------<br>  
+	 * 2017年6月21日 上午10:57:44   suht     1.0    	初始化创建<br>
+	 * </p> 
+	 *
+	 * @author		suht  
+	 * @version		1.0  
+	 * @since		JDK1.7
+	 */
+	private class GoodsPriceMetaThread implements Callable<List<Map<String, Object>>> {
+
+		private List<Map<String, Object>> priceOperationIncrementList;
+
+		public GoodsPriceMetaThread(List<Map<String, Object>> priceOperationIncrementList) {
+			this.priceOperationIncrementList = priceOperationIncrementList;
+		}
+
+		@Override
+		public List<Map<String, Object>> call() throws Exception {
+			return getIncrRateList(priceOperationIncrementList);
+		}
+
 	}
 
 }
