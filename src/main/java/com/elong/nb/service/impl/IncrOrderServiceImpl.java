@@ -251,7 +251,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 			int startNum = (pageIndex - 1) * pageSize;
 			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			int count = 0;//incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
+			int count = incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
 			jobLogger.info("IncrOrder BulkInsert,count = " + count + ",pageIndex = " + pageIndex);
 			successCount += count;
 		}
@@ -266,7 +266,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 						IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 						statisticModel.setBusiness_type(businessType);
 						statisticModel.setIncrType(EnumIncrType.Order.name());
-						statisticModel.setProxyId((String) incrOrderMap.get("ProxyId"));
+						statisticModel.setProxyId(String.valueOf(incrOrderMap.get("OrderFrom")));
 						statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) incrOrderMap.get("ChangeTime"),
 								"yyyy-MM-dd HH:mm:ss"));
 						statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) incrOrderMap.get("InsertTime"),
