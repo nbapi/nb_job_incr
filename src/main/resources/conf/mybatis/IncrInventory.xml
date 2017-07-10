@@ -71,5 +71,12 @@
 			KEY `IX_ChangeTime` (`ChangeTime`)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
 	</update>
+	
+	<select id="getLastIncrData" resultType="incrInventory">
+		select
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime
+		from ${subTableName}
+		order by IncrID desc limit 0,1
+	</select>
 
 </mapper>

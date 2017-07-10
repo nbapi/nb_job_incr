@@ -43,7 +43,7 @@ import com.elong.nb.submeter.service.ISubmeterService;
 
 public abstract class AbstractSubmeterService<T extends Idable> implements ISubmeterService<T> {
 
-	private static final Logger logger = Logger.getLogger("SubmeterLogger");
+	protected static final Logger logger = Logger.getLogger("SubmeterLogger");
 	
 	protected static final Logger minitorLogger = Logger.getLogger("MinitorLogger");
 	
