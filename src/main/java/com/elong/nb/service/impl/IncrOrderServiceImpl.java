@@ -251,7 +251,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 			int startNum = (pageIndex - 1) * pageSize;
 			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			int count = incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
+			int count = 0;//incrOrderDao.bulkInsert(incrOrders.subList(startNum, endNum));
 			jobLogger.info("IncrOrder BulkInsert,count = " + count + ",pageIndex = " + pageIndex);
 			successCount += count;
 		}

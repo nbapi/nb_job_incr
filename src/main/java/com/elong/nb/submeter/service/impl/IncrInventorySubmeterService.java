@@ -84,7 +84,7 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 				}
 			}
 		});
-		return incrInventoryDao.bulkInsertSub(subTableName, subRowList);
+		return 0;//incrInventoryDao.bulkInsertSub(subTableName, subRowList);
 	}
 
 	/** 
