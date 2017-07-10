@@ -70,21 +70,23 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 					String businessType = "nbincrinsert";
 					for (IncrInventory incrInventory : subRowList) {
 						IncrInsertStatistic statisticModel = new IncrInsertStatistic();
+						String logTime = DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss");
 						statisticModel.setBusiness_type(businessType);
 						statisticModel.setIncrType(EnumIncrType.Inventory.name());
 						statisticModel.setChangeTime(DateHandlerUtils.formatDate(incrInventory.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
 						statisticModel.setInsertTime(DateHandlerUtils.formatDate(incrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
-						statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+						statisticModel.setLog_time(logTime);
 						IncrInventory slaveIncrInventory = getLastIncrData(null);
-						statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrInventory.getInsertTime(),
-								"yyyy-MM-dd HH:mm:ss"));
+						String slaveInsertTime = slaveIncrInventory == null ? logTime : DateHandlerUtils.formatDate(
+								slaveIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss");
+						statisticModel.setSlaveInsertTime(slaveInsertTime);
 						minitorLogger.info(JSON.toJSONString(statisticModel));
 					}
 				} catch (Exception e) {
 				}
 			}
 		});
-		return 0;//incrInventoryDao.bulkInsertSub(subTableName, subRowList);
+		return 0;// incrInventoryDao.bulkInsertSub(subTableName, subRowList);
 	}
 
 	/** 
