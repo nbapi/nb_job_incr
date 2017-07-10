@@ -156,9 +156,9 @@ public class IncrInventoryRepository {
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			// int startNum = (pageIndex - 1) * pageSize;
-			// int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			// successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
+			 int startNum = (pageIndex - 1) * pageSize;
+			 int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			 successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert successfully,successCount = "
 				+ successCount);
