@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.annotation.Resource;
 
@@ -42,8 +44,12 @@ import com.elong.nb.submeter.service.ISubmeterService;
 public abstract class AbstractSubmeterService<T extends Idable> implements ISubmeterService<T> {
 
 	private static final Logger logger = Logger.getLogger("SubmeterLogger");
-
+	
+	protected static final Logger minitorLogger = Logger.getLogger("minitorLogger");
+	
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+	
+	protected ExecutorService executorService = Executors.newFixedThreadPool(1);
 
 	@Resource
 	private IImpulseSenderService impulseSenderService;

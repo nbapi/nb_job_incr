@@ -37,7 +37,7 @@ public interface IncrOrderDao {
 	 */
 	@DataSource("dataSource_nbhotelincr_write")
 	public int deleteByIncrIdList(List<BigInteger> incrIdList);
-	
+
 	/** 
 	 * 获取指定changeTime之前的IncrId集合
 	 *
@@ -55,6 +55,15 @@ public interface IncrOrderDao {
 	 */
 	@DataSource("dataSource_nbhotelincr_write")
 	public IncrOrder getLastIncrOrder(Map<String, Object> paramMap);
+
+	/** 
+	 * 获取最大IncrID的订单增量
+	 *
+	 * @param paramMap
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_read")
+	public Map<String,Object> getLastIncrOrderFromRead();
 
 	/** 
 	 * 插入IncrOrder

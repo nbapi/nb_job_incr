@@ -5,6 +5,7 @@
  */
 package com.elong.nb.submeter.service.impl;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -12,8 +13,12 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.alibaba.fastjson.JSON;
+import com.elong.nb.IncrInsertStatistic;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.model.bean.IncrInventory;
+import com.elong.nb.model.enums.EnumIncrType;
+import com.elong.nb.util.DateHandlerUtils;
 
 /**
  * IncrInventory分表实现
@@ -57,7 +62,28 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#bulkInsertSub(java.lang.String, java.util.List)    
 	 */
 	@Override
-	protected int bulkInsertSub(String subTableName, List<IncrInventory> subRowList) {
+	protected int bulkInsertSub(String subTableName, final List<IncrInventory> subRowList) {
+		executorService.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					String businessType = "nbincrinsert";
+					for (IncrInventory incrInventory : subRowList) {
+						IncrInsertStatistic statisticModel = new IncrInsertStatistic();
+						statisticModel.setBusiness_type(businessType);
+						statisticModel.setIncrType(EnumIncrType.Inventory.name());
+						statisticModel.setChangeTime(DateHandlerUtils.formatDate(incrInventory.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
+						statisticModel.setInsertTime(DateHandlerUtils.formatDate(incrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
+						statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+						IncrInventory slaveIncrInventory = getLastIncrData(null);
+						statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrInventory.getInsertTime(),
+								"yyyy-MM-dd HH:mm:ss"));
+						minitorLogger.info(JSON.toJSONString(statisticModel));
+					}
+				} catch (Exception e) {
+				}
+			}
+		});
 		return incrInventoryDao.bulkInsertSub(subTableName, subRowList);
 	}
 
@@ -85,6 +111,20 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 	@Override
 	public void createSubTable(String newTableName) {
 		incrInventoryDao.createSubTable(newTableName);
+	}
+
+	/** 
+	 * 获取最后一条记录
+	 *
+	 * @param subTableName
+	 * @param trigger
+	 * @return 
+	 *
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getLastIncrData(java.lang.String, java.lang.String)    
+	 */
+	@Override
+	protected IncrInventory getLastIncrData(String subTableName, String trigger) {
+		return incrInventoryDao.getLastIncrData(subTableName);
 	}
 
 }

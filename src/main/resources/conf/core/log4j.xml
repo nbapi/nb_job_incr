@@ -9,6 +9,18 @@
 			<param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss.SSS\} %-5p] [%t] (%c{1}:%L) %m%n" />
 		</layout>
 	</appender>
+	
+	<!--nbminitor appender -->
+	<appender name="MinitorAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/nb_job_incr_minitor.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd-HH-mm" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
 
 	<!--actionLogEntity appender -->
 	<appender name="actionLogEntityAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
@@ -197,6 +209,10 @@
 	<logger name="ImpulseSenderLogger" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="ImpulseSenderAppender" />
+	</logger>
+	<logger name="MinitorLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="MinitorAppender" />
 	</logger>
 
 	<category name="actionLogEntityLogger" additivity="false">
