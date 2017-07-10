@@ -64,7 +64,7 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 
 	private static final Logger jobLogger = Logger.getLogger("IncrOrderJobLogger");
 
-	protected static final Logger minitorLogger = Logger.getLogger("minitorLogger");
+	protected static final Logger minitorLogger = Logger.getLogger("MinitorLogger");
 
 	protected ExecutorService executorService = Executors.newFixedThreadPool(1);
 
