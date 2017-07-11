@@ -181,8 +181,24 @@ public class IncrRateRepository {
 		request.setStart_date((int) (startDate.getTime() / 1000));
 		request.setEnd_date((int) (endDate.getTime() / 1000));
 		request.setHotel_base_price_request(hotelBases);
+		
+		GetBasePrice4NbResponse response = null;
+		Exception exception = null;
+		int reqCount = 0;
+		while (response == null && ++reqCount <= 2) {
+			exception = null;
+			try {
+				response = goodsMetaRepository.getMetaPrice4Nb(request);
+			} catch (Exception ex) {
+				logger.error("ThriftUtils.getMetaPrice4Nb,reqCount = " + reqCount + "," + ex.getMessage());
+				exception = ex;
+			}
+		}
+		if (exception != null) {
+			throw new RuntimeException("ThriftUtils.getMetaPrice4Nb:" + exception.getMessage(), exception);
+		}
+		
 		try {
-			GetBasePrice4NbResponse response = goodsMetaRepository.getMetaPrice4Nb(request);
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
 				incrRates = adapter.toNBObject(response, roomTypeIDSet, rateplanIDSet);

@@ -156,9 +156,9 @@ public class IncrInventoryRepository {
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		long startTime = System.currentTimeMillis();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			 int startNum = (pageIndex - 1) * pageSize;
-			 int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			 successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
+			int startNum = (pageIndex - 1) * pageSize;
+			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			successCount += incrInventorySubmeterService.builkInsert(incrInventorys.subList(startNum, endNum));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert successfully,successCount = "
 				+ successCount);
@@ -280,8 +280,24 @@ public class IncrInventoryRepository {
 		request.setEnd_date(endDate != null ? endDate.getTime() : DateTime.now().plusDays(MAXDAYS).toDate().getTime());
 		request.setSearch_from(3);// 3：NBAPI
 		request.setMhotel_attr(mhotel_attr);
+
+		GetInvAndInstantConfirmResponse response = null;
+		Exception exception = null;
+		int reqCount = 0;
+		while (response == null && ++reqCount <= 2) {
+			exception = null;
+			try {
+				response = goodsMetaRepository.getInventory(request);
+			} catch (Exception ex) {
+				logger.error("ThriftUtils.getInventory,reqCount = " + reqCount + "," + ex.getMessage());
+				exception = ex;
+			}
+		}
+		if (exception != null) {
+			throw new RuntimeException("ThriftUtils.getInventory:" + exception.getMessage(), exception);
+		}
+
 		try {
-			GetInvAndInstantConfirmResponse response = goodsMetaRepository.getInventory(request);
 			if (response != null && response.return_code == 0) {
 				IncrInventoryAdapter incrInventoryAdapter = new IncrInventoryAdapter();
 				incrInventoryMap = incrInventoryAdapter.toNBObect(response);
