@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import javax.annotation.Resource;
 
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.IncrInsertStatistic;
@@ -41,6 +42,7 @@ import com.elong.nb.util.DateHandlerUtils;
  * @version		1.0  
  * @since		JDK1.7
  */
+@Service
 public class LogCollectServiceImpl implements LogCollectService {
 
 	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
