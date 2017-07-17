@@ -57,19 +57,23 @@ public class SyncIncrToDBController {
 
 	@Resource
 	private IIncrOrderService incrOrderService;
-	
+
 	@Resource
 	private LogCollectService logCollectService;
-	
+
 	/** 
-	 * 删除酒店增量job
+	 * 日志收集job
 	 *
 	 * @param request
 	 * @return
 	 */
 	@RequestMapping(value = "/logCollect")
 	public @ResponseBody String logCollect(HttpServletRequest request) {
-		return logCollectService.writeLog();
+		logCollectService.writeLog();
+		ResponseResult result = new ResponseResult();
+		result.setCode(ResponseResult.SUCCESS);
+		result.setMessage("logCollect successfully.");
+		return JSON.toJSONString(result);
 	}
 
 	/** 
@@ -93,7 +97,7 @@ public class SyncIncrToDBController {
 	public @ResponseBody String syncHotelToDBFromRate(HttpServletRequest request) {
 		return doHandlerIncrData(request, "syncHotelToDBFromRate");
 	}
-	
+
 	/** 
 	 * 酒店增量job
 	 *
