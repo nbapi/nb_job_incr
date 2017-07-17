@@ -55,6 +55,15 @@ public interface IncrOrderDao {
 	 */
 	@DataSource("dataSource_nbhotelincr_write")
 	public IncrOrder getLastIncrOrder(Map<String, Object> paramMap);
+	
+	/** 
+	 * 获取最大IncrID的订单增量
+	 *
+	 * @param paramMap
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_write")
+	public Map<String,Object> getLastIncrOrderFromWrite();
 
 	/** 
 	 * 获取最大IncrID的订单增量

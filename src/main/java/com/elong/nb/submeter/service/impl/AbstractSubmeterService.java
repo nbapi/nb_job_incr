@@ -11,8 +11,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.annotation.Resource;
 
@@ -45,17 +43,36 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 	protected static final Logger logger = Logger.getLogger("SubmeterLogger");
 	
-	protected static final Logger minitorLogger = Logger.getLogger("MinitorLogger");
-	
 	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 	
-	protected ExecutorService executorService = Executors.newFixedThreadPool(1);
-
 	@Resource
 	private IImpulseSenderService impulseSenderService;
 
 	@Resource
 	private SubmeterTableCache submeterTableCache;
+
+	/** 
+	 * 获取最后一张非空表名 
+	 *
+	 * @return 
+	 *
+	 * @see com.elong.nb.submeter.service.ISubmeterService#getLastTableName()    
+	 */
+	@Override
+	public String getLastTableName() {
+		String tablePrefix = getTablePrefix();
+		List<String> subTableNameList = submeterTableCache.queryNoEmptySubTableList(tablePrefix, true);
+		if (subTableNameList == null || subTableNameList.size() == 0)
+			return null;
+
+		subTableNameList.remove(tablePrefix);
+		for (String subTableName : subTableNameList) {
+			if (StringUtils.isEmpty(subTableName))
+				continue;
+			return subTableName;
+		}
+		return null;
+	}
 
 	/** 
 	 * 插入分表数据

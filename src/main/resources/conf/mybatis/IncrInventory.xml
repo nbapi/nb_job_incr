@@ -72,7 +72,14 @@
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
 	</update>
 	
-	<select id="getLastIncrData" resultType="incrInventory">
+	<select id="getLastIncrFromWrite" resultType="incrInventory">
+		select
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime
+		from ${subTableName}
+		order by IncrID desc limit 0,1
+	</select>
+	
+	<select id="getLastIncrFromRead" resultType="incrInventory">
 		select
 		IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime
 		from ${subTableName}

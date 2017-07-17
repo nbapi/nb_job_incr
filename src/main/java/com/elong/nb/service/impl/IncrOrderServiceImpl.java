@@ -15,8 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.annotation.Resource;
 
@@ -29,13 +27,11 @@ import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.elong.nb.IncrInsertStatistic;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.IncrOrderDao;
 import com.elong.nb.model.OrderCenterResult;
 import com.elong.nb.model.OrderFromResult;
 import com.elong.nb.model.bean.IncrOrder;
-import com.elong.nb.model.enums.EnumIncrType;
 import com.elong.nb.model.enums.EnumPayStatus;
 import com.elong.nb.model.enums.OrderChangeStatusEnum;
 import com.elong.nb.repository.CommonRepository;
@@ -63,10 +59,6 @@ import com.elong.nb.util.DateHandlerUtils;
 public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncrOrderService {
 
 	private static final Logger jobLogger = Logger.getLogger("IncrOrderJobLogger");
-
-	protected static final Logger minitorLogger = Logger.getLogger("MinitorLogger");
-
-	protected ExecutorService executorService = Executors.newFixedThreadPool(1);
 
 	@Resource
 	private IncrOrderDao incrOrderDao;
@@ -256,32 +248,6 @@ public class IncrOrderServiceImpl extends AbstractDeleteService implements IIncr
 			successCount += count;
 		}
 		jobLogger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrOrder BulkInsert,successCount = " + successCount);
-
-		executorService.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					String businessType = "nbincrinsert";
-					for (Map<String, Object> incrOrderMap : incrOrders) {
-						IncrInsertStatistic statisticModel = new IncrInsertStatistic();
-						statisticModel.setBusiness_type(businessType);
-						statisticModel.setIncrType(EnumIncrType.Order.name());
-						statisticModel.setProxyId(String.valueOf(incrOrderMap.get("OrderFrom")));
-						statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) incrOrderMap.get("ChangeTime"),
-								"yyyy-MM-dd HH:mm:ss"));
-						statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) incrOrderMap.get("InsertTime"),
-								"yyyy-MM-dd HH:mm:ss"));
-						statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
-						Map<String, Object> slaveIncrOrder = incrOrderDao.getLastIncrOrderFromRead();
-						statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate((Date) slaveIncrOrder.get("InsertTime"),
-								"yyyy-MM-dd HH:mm:ss"));
-						minitorLogger.info(JSON.toJSONString(statisticModel));
-					}
-				} catch (Exception e) {
-				}
-			}
-		});
-
 	}
 
 	/** 

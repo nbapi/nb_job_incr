@@ -23,6 +23,8 @@ import java.util.List;
  * @since		JDK1.7
  */
 public interface ISubmeterService<T> {
+	
+	public String getLastTableName();
 
 	/** 
 	 * 获取分表前缀 

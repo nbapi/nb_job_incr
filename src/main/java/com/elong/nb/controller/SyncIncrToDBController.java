@@ -21,6 +21,7 @@ import com.elong.nb.service.IIncrInventoryService;
 import com.elong.nb.service.IIncrOrderService;
 import com.elong.nb.service.IIncrRateService;
 import com.elong.nb.service.IIncrStateService;
+import com.elong.nb.service.LogCollectService;
 
 /**
  * IncrHotel、IncrRate、IncrInventory、IncrState、IncrOrder(兜底)同步Controller
@@ -56,6 +57,20 @@ public class SyncIncrToDBController {
 
 	@Resource
 	private IIncrOrderService incrOrderService;
+	
+	@Resource
+	private LogCollectService logCollectService;
+	
+	/** 
+	 * 删除酒店增量job
+	 *
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/logCollect")
+	public @ResponseBody String logCollect(HttpServletRequest request) {
+		return logCollectService.writeLog();
+	}
 
 	/** 
 	 * 删除酒店增量job
