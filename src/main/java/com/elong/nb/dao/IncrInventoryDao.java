@@ -63,7 +63,7 @@ public interface IncrInventoryDao {
 	 * @return
 	 */
 	@DataSource("dataSource_nbsubmeter_write")
-	public IncrInventory getLastIncrFromWrite(@Param("tableName") String tableName);
+	public IncrInventory getLastIncrFromWrite(@Param("subTableName") String subTableName);
 	
 	/** 
 	 * 获取最后一条记录 
@@ -72,6 +72,6 @@ public interface IncrInventoryDao {
 	 * @return
 	 */
 	@DataSource("dataSource_nbsubmeter_read")
-	public IncrInventory getLastIncrFromRead(@Param("tableName") String tableName);
+	public IncrInventory getLastIncrFromRead(@Param("subTableName") String subTableName);
 
 }
