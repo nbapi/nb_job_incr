@@ -12,7 +12,7 @@
 			</foreach>
 		</where>
 	</delete>
-	
+
 	<!-- 获取晚于指定changeTime的IncrID -->
 	<select id="getIncrIdList" resultType="java.math.BigInteger">
 		select IncrID from IncrRate
@@ -24,7 +24,9 @@
 
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条IncrRate -->
 	<select id="getIncrRates" resultType="incrRate">
-		select IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID from IncrRate
+		select
+		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
+		from IncrRate
 		<where>
 			<if test="changeTime != null and !changeTime.equals('')">
 				<![CDATA[ and ChangeTime > #{changeTime} ]]>
@@ -37,13 +39,11 @@
 	</select>
 
 	<!-- 批量插入IncrRate -->
-	<insert id="bulkInsert" parameterType="java.util.List"
-		useGeneratedKeys="false">
+	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
 		insert into IncrRate
 		(IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID)
 		values
-		<foreach collection="list" item="incrRate" index="index"
-			separator=",">
+		<foreach collection="list" item="incrRate" index="index" separator=",">
 			(
 			#{incrRate.IncrID,jdbcType=BIGINT},
 			#{incrRate.ChangeID,jdbcType=BIGINT},
@@ -67,5 +67,19 @@
 			)
 		</foreach>
 	</insert>
+
+	<select id="getLastIncrFromWrite" resultType="java.util.Map">
+		select 
+		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID 
+		from IncrRate 
+		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getLastIncrFromRead" resultType="java.util.Map">
+		select 
+		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID 
+		from IncrRate 
+		order by IncrID desc limit 0,1
+	</select>
 
 </mapper>

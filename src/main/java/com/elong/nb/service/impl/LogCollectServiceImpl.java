@@ -20,8 +20,12 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.IncrInsertStatistic;
+import com.elong.nb.dao.IncrHotelDao;
 import com.elong.nb.dao.IncrInventoryDao;
 import com.elong.nb.dao.IncrOrderDao;
+import com.elong.nb.dao.IncrRateDao;
+import com.elong.nb.dao.IncrStateDao;
+import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.enums.EnumIncrType;
 import com.elong.nb.service.LogCollectService;
@@ -55,12 +59,24 @@ public class LogCollectServiceImpl implements LogCollectService {
 	private IncrOrderDao incrOrderDao;
 
 	@Resource(name = "incrInventorySubmeterService")
-	private ISubmeterService<IncrInventory> submeterService;
+	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
 	@Resource
 	private IncrInventoryDao incrInventoryDao;
 
-	private ExecutorService executorService = Executors.newFixedThreadPool(2);
+	@Resource(name = "incrHotelSubmeterService")
+	private ISubmeterService<IncrInventory> incrHotelSubmeterService;
+
+	@Resource
+	private IncrHotelDao incrHotelDao;
+
+	@Resource
+	private IncrRateDao incrRateDao;
+
+	@Resource
+	private IncrStateDao incrStateDao;
+
+	private ExecutorService executorService = Executors.newFixedThreadPool(5);
 
 	@Override
 	public String writeLog() {
@@ -78,8 +94,31 @@ public class LogCollectServiceImpl implements LogCollectService {
 			}
 		});
 
+		Future<String> future3 = executorService.submit(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				return writeIncrRateLog();
+			}
+		});
+
+		Future<String> future4 = executorService.submit(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				return writeIncrStateLog();
+			}
+		});
+
+		Future<String> future5 = executorService.submit(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				return writeIncrHotelLog();
+			}
+		});
+
 		try {
 			logger.info("writeIncrInventoryLog = " + future1.get() + ",writeIncrOrderLog = " + future2.get());
+			logger.info("writeIncrRateLog = " + future3.get() + ",writeIncrStateLog = " + future4.get());
+			logger.info("writeIncrHotelLog = " + future5.get());
 			return "Success";
 		} catch (InterruptedException | ExecutionException e) {
 			logger.error(e.getMessage(), e);
@@ -87,8 +126,23 @@ public class LogCollectServiceImpl implements LogCollectService {
 		}
 	}
 
+	private String writeIncrHotelLog() {
+		String subTableName = incrHotelSubmeterService.getLastTableName();
+		IncrHotel masterIncrHotel = incrHotelDao.getLastIncrFromWrite(subTableName);
+		IncrHotel slaveIncrHotel = incrHotelDao.getLastIncrFromRead(subTableName);
+		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
+		statisticModel.setBusiness_type(BUSINESS_TYPE);
+		statisticModel.setIncrType(EnumIncrType.Inventory.name());
+		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrHotel.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
+		minitorLogger.info(JSON.toJSONString(statisticModel));
+		return "Success";
+	}
+
 	private String writeIncrInventoryLog() {
-		String subTableName = submeterService.getLastTableName();
+		String subTableName = incrInventorySubmeterService.getLastTableName();
 		IncrInventory masterIncrInventory = incrInventoryDao.getLastIncrFromWrite(subTableName);
 		IncrInventory slaveIncrInventory = incrInventoryDao.getLastIncrFromRead(subTableName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
@@ -112,6 +166,34 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) masterIncrOrder.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate((Date) slaveIncrOrder.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
+		minitorLogger.info(JSON.toJSONString(statisticModel));
+		return "Success";
+	}
+
+	private String writeIncrRateLog() {
+		Map<String, Object> masterIncrRate = incrRateDao.getLastIncrFromWrite();
+		Map<String, Object> slaveIncrRate = incrRateDao.getLastIncrFromRead();
+		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
+		statisticModel.setBusiness_type(BUSINESS_TYPE);
+		statisticModel.setIncrType(EnumIncrType.State.name());
+		statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) masterIncrRate.get("ChangeTime"), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) masterIncrRate.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate((Date) slaveIncrRate.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
+		minitorLogger.info(JSON.toJSONString(statisticModel));
+		return "Success";
+	}
+
+	private String writeIncrStateLog() {
+		Map<String, Object> masterIncrState = incrStateDao.getLastIncrFromWrite();
+		Map<String, Object> slaveIncrState = incrStateDao.getLastIncrFromRead();
+		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
+		statisticModel.setBusiness_type(BUSINESS_TYPE);
+		statisticModel.setIncrType(EnumIncrType.State.name());
+		statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) masterIncrState.get("ChangeTime"), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) masterIncrState.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate((Date) slaveIncrState.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
 	}

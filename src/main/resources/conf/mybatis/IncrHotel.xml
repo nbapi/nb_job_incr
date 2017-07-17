@@ -34,20 +34,34 @@
 	<!-- 创建分表 -->
 	<update id="createSubTable">
 		CREATE TABLE `${tableName}` (
-			`IncrID` bigint(20) NOT NULL auto_increment,
-			`ID` bigint(20) NOT NULL,
-			`HotelID` varchar(50) NOT NULL,
-			`StartDate` datetime NOT NULL,
-			`EndDate` datetime NOT NULL,
-			`Trigger` varchar(50) NOT NULL,
-			`TriggerID` bigint(20) NOT NULL,
-			`ChangeTime` datetime NOT NULL,
-			`InsertTime` datetime NOT NULL,
-			PRIMARY KEY (`IncrID`),
-			KEY `IX_ChangeTime` (`ChangeTime`),
-			KEY `IX_ID` (`ID`),
-			KEY `IX_IncrHotel_Trigger` (`Trigger`,`TriggerID`)
+		`IncrID` bigint(20) NOT NULL auto_increment,
+		`ID` bigint(20) NOT NULL,
+		`HotelID` varchar(50)
+		NOT NULL,
+		`StartDate` datetime NOT NULL,
+		`EndDate` datetime NOT NULL,
+		`Trigger` varchar(50) NOT NULL,
+		`TriggerID` bigint(20) NOT NULL,
+		`ChangeTime` datetime NOT NULL,
+		`InsertTime` datetime NOT NULL,
+		PRIMARY KEY (`IncrID`),
+		KEY `IX_ChangeTime` (`ChangeTime`),
+		KEY `IX_ID`
+		(`ID`),
+		KEY `IX_IncrHotel_Trigger` (`Trigger`,`TriggerID`)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
 	</update>
+
+	<select id="getLastIncrFromWrite" resultType="incrHotel">
+		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime 
+		from ${subTableName} 
+		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getLastIncrFromRead" resultType="incrHotel">
+		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime 
+		from ${subTableName} 
+		order by IncrID desc limit 0,1
+	</select>
 
 </mapper>

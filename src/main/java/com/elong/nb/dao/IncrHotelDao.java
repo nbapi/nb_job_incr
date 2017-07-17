@@ -35,7 +35,7 @@ public interface IncrHotelDao {
 	 * @return
 	 */
 	@DataSource("dataSource_nbsubmeter_write")
-	public IncrHotel getLastHotel(@Param("subTableName")String subTableName, @Param("_triger") String triger);
+	public IncrHotel getLastHotel(@Param("subTableName") String subTableName, @Param("_triger") String triger);
 
 	/** 
 	 * 批量插入IncrInventory到指定分表subTableName
@@ -53,5 +53,23 @@ public interface IncrHotelDao {
 	 */
 	@DataSource("dataSource_nbsubmeter_write")
 	public int createSubTable(@Param("tableName") String tableName);
+
+	/** 
+	 * 获取最后一条记录 
+	 *
+	 * @param tableName
+	 * @return
+	 */
+	@DataSource("dataSource_nbsubmeter_write")
+	public IncrHotel getLastIncrFromWrite(@Param("subTableName") String subTableName);
+
+	/** 
+	 * 获取最后一条记录 
+	 *
+	 * @param tableName
+	 * @return
+	 */
+	@DataSource("dataSource_nbsubmeter_read")
+	public IncrHotel getLastIncrFromRead(@Param("subTableName") String subTableName);
 
 }

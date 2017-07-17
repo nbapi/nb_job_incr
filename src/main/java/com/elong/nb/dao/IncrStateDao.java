@@ -53,5 +53,23 @@ public interface IncrStateDao {
 	 */
 	@DataSource("dataSource_nbhotelincr_write")
 	public int bulkInsert(List<Map<String, Object>> incrStates);
+	
+	/** 
+	 * 获取最后一条记录 
+	 *
+	 * @param tableName
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_write")
+	public Map<String, Object> getLastIncrFromWrite();
+	
+	/** 
+	 * 获取最后一条记录 
+	 *
+	 * @param tableName
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_read")
+	public Map<String, Object> getLastIncrFromRead();
 
 }
