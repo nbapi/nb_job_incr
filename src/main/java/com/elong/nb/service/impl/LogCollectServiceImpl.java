@@ -132,7 +132,7 @@ public class LogCollectServiceImpl implements LogCollectService {
 		IncrHotel slaveIncrHotel = incrHotelDao.getLastIncrFromRead(subTableName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
-		statisticModel.setIncrType(EnumIncrType.Inventory.name());
+		statisticModel.setIncrType(EnumIncrType.Data.name());
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrHotel.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
@@ -175,7 +175,7 @@ public class LogCollectServiceImpl implements LogCollectService {
 		Map<String, Object> slaveIncrRate = incrRateDao.getLastIncrFromRead();
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
-		statisticModel.setIncrType(EnumIncrType.State.name());
+		statisticModel.setIncrType(EnumIncrType.Rate.name());
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) masterIncrRate.get("ChangeTime"), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) masterIncrRate.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
