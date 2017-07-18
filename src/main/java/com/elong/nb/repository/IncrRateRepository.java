@@ -181,7 +181,7 @@ public class IncrRateRepository {
 		request.setStart_date((int) (startDate.getTime() / 1000));
 		request.setEnd_date((int) (endDate.getTime() / 1000));
 		request.setHotel_base_price_request(hotelBases);
-		
+
 		GetBasePrice4NbResponse response = null;
 		Exception exception = null;
 		int reqCount = 0;
@@ -197,7 +197,7 @@ public class IncrRateRepository {
 		if (exception != null) {
 			throw new RuntimeException("ThriftUtils.getMetaPrice4Nb:" + exception.getMessage(), exception);
 		}
-		
+
 		try {
 			if (response != null && response.return_code == 0) {
 				IncrRateAdapter adapter = new IncrRateAdapter();
@@ -233,6 +233,7 @@ public class IncrRateRepository {
 		List<String> hotelCodeList = new ArrayList<String>();
 		Set<String> roomTypeIDSet = new HashSet<String>();
 		Set<Integer> rateplanIDSet = new HashSet<Integer>();
+		boolean isContinue = false;
 		for (Map<String, Object> priceOperationIncrement : priceOperationIncrementList) {
 			String hotelCode = (String) priceOperationIncrement.get("hotel_id");
 			String hotelId = msRelationRepository.getValidMHotelId(hotelCode);
@@ -245,6 +246,7 @@ public class IncrRateRepository {
 				hotelBases.add(hotelBase);
 				hotelCodeList.add(hotelCode);
 			}
+			isContinue = true;
 			Timestamp begin_date = (Timestamp) priceOperationIncrement.get("begin_date");
 			Date startDate = new Date(begin_date.getTime());
 			if (minStartDate == null || startDate.before(minStartDate)) {
@@ -260,7 +262,10 @@ public class IncrRateRepository {
 			rateplanIDSet.add((Integer) priceOperationIncrement.get("rateplan_id"));
 		}
 		Map<String, List<Map<String, Object>>> groupRateMap = new HashMap<String, List<Map<String, Object>>>();
-		List<Map<String, Object>> goodsRateList = getRatesFromGoods(hotelBases, minStartDate, maxEndDate, roomTypeIDSet, rateplanIDSet);
+		List<Map<String, Object>> goodsRateList = Collections.emptyList();
+		if (isContinue) {
+			goodsRateList = getRatesFromGoods(hotelBases, minStartDate, maxEndDate, roomTypeIDSet, rateplanIDSet);
+		}
 		for (Map<String, Object> goodsRate : goodsRateList) {
 			if (goodsRate == null || goodsRate.size() == 0)
 				continue;
