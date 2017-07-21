@@ -22,7 +22,6 @@
 				<entry key="dataSource_nbhotelincr_write" value-ref="dataSource_nbhotelincr_write" />
 				<entry key="dataSource_nbhotelincr_read" value-ref="dataSource_nbhotelincr_read" />
 				<entry key="dataSource_sqlserver_13" value-ref="dataSource_sqlserver_13" />
-				<entry key="dataSource_sqlserver_14" value-ref="dataSource_sqlserver_14" />
 			</map>
 		</property>
 		<property name="defaultTargetDataSource" ref="dataSource_nbhotelincr_write" />

@@ -112,22 +112,4 @@
 		</property>
 	</bean>
 
-	<!-- dataSource_sqlserver_14数据源 -->
-	<bean id="dataSource_sqlserver_14" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-		<property name="driverClassName" value="${jdbc.sql.driverClassName}"></property>
-		<property name="url" value="${jdbc.sql14.url}"></property>
-		<property name="username" value="${jdbc.sql14.username}"></property>
-		<property name="password" value="${jdbc.sql14.password}"></property>
-		<property name="maxActive" value="${jdbc.common.maxActive}"></property>
-		<property name="maxIdle" value="${jdbc.common.maxIdle}"></property>
-		<property name="maxWait" value="${jdbc.common.maxWait}"></property>
-		<property name="timeBetweenEvictionRunsMillis" value="${jdbc.common.timeBetweenEvictionRunsMillis}"></property>
-		<property name="testWhileIdle" value="${jdbc.common.testWhileIdle}"></property>
-		<property name="testOnBorrow" value="${jdbc.common.testOnBorrow}"></property>
-		<property name="testOnReturn" value="${jdbc.common.testOnReturn}"></property>
-		<property name="validationQuery">
-			<value>select 1</value>
-		</property>
-	</bean>
-
 </beans>
