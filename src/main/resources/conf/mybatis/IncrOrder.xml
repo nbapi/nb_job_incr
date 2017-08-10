@@ -57,29 +57,6 @@
 		</where>
 	</select>
 
-	<!-- 插入IncrOrder -->
-	<insert id="insert" parameterType="java.util.Map" useGeneratedKeys="false">
-		insert into IncrOrder
-		(IncrID,ChangeTime,OrderId,Status,payStatus,affiliateconfirmationid,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
-		values
-		(
-		#{IncrID,jdbcType=BIGINT},
-		#{ChangeTime},
-		#{OrderId,jdbcType=BIGINT},
-		#{Status,jdbcType=VARCHAR},
-		#{payStatus,jdbcType=TINYINT},
-		#{AffiliateConfirmationId,jdbcType=VARCHAR},
-		#{ArrivalDate},
-		#{DepartureDate},
-		#{TotalPrice,jdbcType=DOUBLE},
-		#{NumberOfRooms,jdbcType=INTEGER},
-		#{CardNo,jdbcType=BIGINT},
-		#{OrderFrom,jdbcType=INTEGER},
-		#{ProxyId,jdbcType=VARCHAR},
-		#{InsertTime}
-		)
-	</insert>
-
 	<!-- 批量插入IncrOrder -->
 	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
 		insert into IncrOrder

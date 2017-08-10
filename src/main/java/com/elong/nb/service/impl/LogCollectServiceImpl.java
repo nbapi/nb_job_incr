@@ -215,7 +215,7 @@ public class LogCollectServiceImpl implements LogCollectService {
 	private static Date getPreviousMinuteBegin(Date date) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
-		calendar.add(Calendar.MINUTE, -1);
+		calendar.add(Calendar.MINUTE, -5);
 		calendar.set(Calendar.SECOND, 0);
 		return calendar.getTime();
 	}
@@ -223,7 +223,7 @@ public class LogCollectServiceImpl implements LogCollectService {
 	private static Date getPreviousMinuteEnd(Date date) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
-		calendar.add(Calendar.MINUTE, -1);
+		calendar.add(Calendar.MINUTE, -5);
 		calendar.set(Calendar.SECOND, 59);
 		return calendar.getTime();
 	}

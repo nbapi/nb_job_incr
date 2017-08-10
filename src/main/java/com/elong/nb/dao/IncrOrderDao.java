@@ -88,14 +88,6 @@ public interface IncrOrderDao {
 	public int getRecordCountFromRead(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
 	/** 
-	 * 插入IncrOrder
-	 *
-	 * @param incrOrderMap
-	 */
-	@DataSource("dataSource_nbhotelincr_write")
-	public int insert(Map<String, Object> incrOrderMap);
-
-	/** 
 	 * 批量插入IncrOrder
 	 *
 	 * @param incrOrders
