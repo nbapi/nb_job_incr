@@ -1,5 +1,5 @@
 /**   
- * @(#)CheckCreateTableController.java	2017年4月11日	上午10:46:07	   
+ * @(#)SubmeterController.java	2017年4月11日	上午10:46:07	   
  *     
  * Copyrights (C) 2017艺龙旅行网保留所有权利
  */
@@ -36,7 +36,7 @@ import com.elong.nb.submeter.service.ICheckCreateTableService;
  * @since		JDK1.7
  */
 @Controller
-public class CheckCreateTableController {
+public class SubmeterController {
 
 	private static final Logger logger = Logger.getLogger("CheckCreateTableLogger");
 

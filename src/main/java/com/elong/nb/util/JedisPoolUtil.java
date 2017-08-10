@@ -93,7 +93,8 @@ public class JedisPoolUtil {
      *
      * @param jedis
      */
-    public static void returnRes(Jedis jedis) {
+    @SuppressWarnings("deprecation")
+	public static void returnRes(Jedis jedis) {
         pool.returnResource(jedis);
     }
 

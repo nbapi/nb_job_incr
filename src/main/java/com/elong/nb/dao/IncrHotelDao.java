@@ -5,6 +5,7 @@
  */
 package com.elong.nb.dao;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -71,5 +72,16 @@ public interface IncrHotelDao {
 	 */
 	@DataSource("dataSource_nbsubmeter_read")
 	public IncrHotel getLastIncrFromRead(@Param("subTableName") String subTableName);
+	
+	/** 
+	 * 获取指定时间的记录数
+	 *
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	@DataSource("dataSource_nbsubmeter_read")
+	public int getRecordCountFromRead(@Param("subTableName") String subTableName, @Param("startTime") Date startTime,
+			@Param("endTime") Date endTime);
 
 }

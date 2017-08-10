@@ -32,7 +32,7 @@
 		</where>
 		order by ChangeTime desc limit 0,1
 	</select>
-	
+
 	<select id="getLastIncrOrderFromWrite" resultType="java.util.Map">
 		select
 		IncrId,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime,affiliateconfirmationid
@@ -45,6 +45,16 @@
 		IncrId,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime,affiliateconfirmationid
 		from IncrOrder
 		order by IncrId desc limit 0,1
+	</select>
+
+	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
+		select count(*) from IncrOrder
+		<where>
+			<![CDATA[ 
+				and ChangeTime <= #{endTime} 
+				and ChangeTime >= #{startTime} 
+			]]>
+		</where>
 	</select>
 
 	<!-- 插入IncrOrder -->

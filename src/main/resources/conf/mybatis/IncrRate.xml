@@ -81,5 +81,15 @@
 		from IncrRate 
 		order by IncrID desc limit 0,1
 	</select>
+	
+	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
+		select count(*) from IncrRate
+		<where>
+			<![CDATA[ 
+				and ChangeTime <= #{endTime} 
+				and ChangeTime >= #{startTime} 
+			]]>
+		</where>
+	</select>
 
 </mapper>

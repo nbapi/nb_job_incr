@@ -58,15 +58,25 @@
 	</insert>
 
 	<select id="getLastIncrFromWrite" resultType="java.util.Map">
-		select 
-		IncrID,StateType,HotelId,HotelCode,RoomId,RoomTypeId,RatePlanId,Status,ChangeTime,InsertTime,Name from IncrState  
+		select
+		IncrID,StateType,HotelId,HotelCode,RoomId,RoomTypeId,RatePlanId,Status,ChangeTime,InsertTime,Name from IncrState
 		order by IncrID desc limit 0,1
 	</select>
 
 	<select id="getLastIncrFromRead" resultType="java.util.Map">
-		select 
-		IncrID,StateType,HotelId,HotelCode,RoomId,RoomTypeId,RatePlanId,Status,ChangeTime,InsertTime,Name from IncrState 
+		select
+		IncrID,StateType,HotelId,HotelCode,RoomId,RoomTypeId,RatePlanId,Status,ChangeTime,InsertTime,Name from IncrState
 		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
+		select count(*) from IncrRate
+		<where>
+			<![CDATA[ 
+				and ChangeTime <= #{endTime} 
+				and ChangeTime >= #{startTime} 
+			]]>
+		</where>
 	</select>
 
 </mapper>
