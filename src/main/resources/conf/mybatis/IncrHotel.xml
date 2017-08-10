@@ -68,8 +68,8 @@
 		select count(*) from ${subTableName}
 		<where>
 			<![CDATA[ 
-				and ChangeTime <= #{endTime} 
-				and ChangeTime >= #{startTime} 
+				and InsertTime <= #{endTime} 
+				and InsertTime >= #{startTime} 
 			]]>
 		</where>
 	</select>
