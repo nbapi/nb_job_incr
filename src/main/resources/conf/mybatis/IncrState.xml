@@ -70,7 +70,7 @@
 	</select>
 
 	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
-		select count(*) from IncrRate
+		select count(*) from IncrState
 		<where>
 			<![CDATA[ 
 				and ChangeTime <= #{endTime} 
