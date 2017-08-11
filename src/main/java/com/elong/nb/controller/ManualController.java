@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.alibaba.fastjson.JSON;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.IImpulseSenderService;
+import com.elong.nb.submeter.service.impl.SubmeterTableCache;
 
 /**
  * 手动修改某些值
@@ -41,6 +43,20 @@ public class ManualController {
 
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
+
+	@Resource
+	private SubmeterTableCache submeterTableCache;
+
+	/** 
+	 * 获取当前使用非空表名集合
+	 *
+	 * @param tablePrefix
+	 * @return
+	 */
+	@RequestMapping(value = "/test/submeterTableCache/{tablePrefix}")
+	public @ResponseBody String getSubmeterTableNames(@PathVariable("tablePrefix") String tablePrefix) {
+		return JSON.toJSONString(submeterTableCache.queryNoEmptySubTableList(tablePrefix, false));
+	}
 
 	/** 
 	 * 设置分表开始序号(分表上线时初始化分表开始序号)
