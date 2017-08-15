@@ -44,7 +44,7 @@ public class CommonRepository {
 
 	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
 
 	/** 
 	 * 本地缓存文件中过滤SHotelIds	

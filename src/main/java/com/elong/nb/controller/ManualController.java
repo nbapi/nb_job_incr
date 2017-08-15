@@ -36,7 +36,7 @@ import com.elong.nb.submeter.service.impl.SubmeterTableCache;
 @Controller
 public class ManualController {
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
 
 	@Resource
 	private IImpulseSenderService impulseSenderService;

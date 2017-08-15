@@ -43,7 +43,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 	protected static final Logger logger = Logger.getLogger("SubmeterLogger");
 	
-	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
 	
 	@Resource
 	private IImpulseSenderService impulseSenderService;
