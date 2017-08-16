@@ -27,7 +27,7 @@ import com.elong.nb.common.model.RedisKeyConst;
 @Repository
 public class MSRelationRepository {
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
+	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	/** 
 	 * 获取sHotelID对应的mHotelID

@@ -13,6 +13,7 @@
 		<typeAlias alias="incrState" type="com.elong.nb.model.bean.IncrState" />
 		<typeAlias alias="incrHotel" type="com.elong.nb.model.bean.IncrHotel" />
 		<typeAlias alias="incrOrder" type="com.elong.nb.model.bean.IncrOrder" />
+		<typeAlias alias="nbMSRelation" type="com.elong.nb.model.NBMSRelation" />
 		<typeAlias alias="incrSetInfo" type="com.elong.nb.model.IncrSetInfo" />
 	</typeAliases>
 </configuration> 

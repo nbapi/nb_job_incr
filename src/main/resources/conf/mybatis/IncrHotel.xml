@@ -63,15 +63,5 @@
 		from ${subTableName} 
 		order by IncrID desc limit 0,1
 	</select>
-	
-	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
-		select count(*) from ${subTableName}
-		<where>
-			<![CDATA[ 
-				and InsertTime <= #{endTime} 
-				and InsertTime >= #{startTime} 
-			]]>
-		</where>
-	</select>
 
 </mapper>

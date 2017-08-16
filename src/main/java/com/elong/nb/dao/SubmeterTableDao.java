@@ -30,12 +30,13 @@ import com.elong.nb.db.DataSource;
 public interface SubmeterTableDao {
 
 	/** 
-	 * 查询指定前缀的末尾10张非空分表
+	 * 查询指定前缀的非空分表
 	 *
 	 * @param tablePrefix
+	 * @param isDesc
 	 * @return
 	 */
-	public List<String> queryNoEmptySubTableList(@Param("tablePrefix") String tablePrefix);
+	public List<String> queryNoEmptySubTableList(@Param("tablePrefix") String tablePrefix, @Param("isDesc") boolean isDesc);
 
 	/** 
 	 * 查询指定前缀的分表
@@ -44,7 +45,6 @@ public interface SubmeterTableDao {
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<Map<String, Object>> queryAllSubTableList(@Param("tablePrefix") String tablePrefix,
-			@Param("maxRecordCount") int maxRecordCount);
+	public List<Map<String,Object>> queryAllSubTableList(@Param("tablePrefix") String tablePrefix, @Param("maxRecordCount") int maxRecordCount);
 
 }

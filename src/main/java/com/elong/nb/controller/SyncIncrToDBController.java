@@ -69,7 +69,11 @@ public class SyncIncrToDBController {
 	 */
 	@RequestMapping(value = "/logCollect")
 	public @ResponseBody String logCollect(HttpServletRequest request) {
-		return doHandlerIncrData(request, "logCollect");
+		logCollectService.writeLog();
+		ResponseResult result = new ResponseResult();
+		result.setCode(ResponseResult.SUCCESS);
+		result.setMessage("logCollect successfully.");
+		return JSON.toJSONString(result);
 	}
 
 	/** 
@@ -234,8 +238,8 @@ public class SyncIncrToDBController {
 				incrRateService.delRatesFromDB();
 			} else if (StringUtils.equals("DelStateFromDB", pathVariable)) {
 				incrStateService.delStateFromDB();
-			} else if (StringUtils.equals("logCollect", pathVariable)) {
-				logCollectService.writeLog();
+			} else if (StringUtils.equals("DelOrderFromDB", pathVariable)) {
+				incrOrderService.delOrderFromDB();
 			} else {
 				logger.info(pathVariable + ",is not supportted.");
 				result.setMessage(pathVariable + ",is not supportted.");

@@ -32,7 +32,7 @@
 		</where>
 		order by ChangeTime desc limit 0,1
 	</select>
-
+	
 	<select id="getLastIncrOrderFromWrite" resultType="java.util.Map">
 		select
 		IncrId,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime,affiliateconfirmationid
@@ -47,15 +47,28 @@
 		order by IncrId desc limit 0,1
 	</select>
 
-	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
-		select count(*) from IncrOrder
-		<where>
-			<![CDATA[ 
-				and InsertTime <= #{endTime} 
-				and InsertTime >= #{startTime} 
-			]]>
-		</where>
-	</select>
+	<!-- 插入IncrOrder -->
+	<insert id="insert" parameterType="java.util.Map" useGeneratedKeys="false">
+		insert into IncrOrder
+		(IncrID,ChangeTime,OrderId,Status,payStatus,affiliateconfirmationid,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
+		values
+		(
+		#{IncrID,jdbcType=BIGINT},
+		#{ChangeTime},
+		#{OrderId,jdbcType=BIGINT},
+		#{Status,jdbcType=VARCHAR},
+		#{payStatus,jdbcType=TINYINT},
+		#{AffiliateConfirmationId,jdbcType=VARCHAR},
+		#{ArrivalDate},
+		#{DepartureDate},
+		#{TotalPrice,jdbcType=DOUBLE},
+		#{NumberOfRooms,jdbcType=INTEGER},
+		#{CardNo,jdbcType=BIGINT},
+		#{OrderFrom,jdbcType=INTEGER},
+		#{ProxyId,jdbcType=VARCHAR},
+		#{InsertTime}
+		)
+	</insert>
 
 	<!-- 批量插入IncrOrder -->
 	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">

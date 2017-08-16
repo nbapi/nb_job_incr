@@ -24,9 +24,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.elong.nb.common.model.NbapiHttpRequest;
 import com.elong.nb.common.model.RedisKeyConst;
-import com.elong.nb.common.util.HttpClientUtil;
 import com.elong.nb.dao.MySqlDataDao;
 import com.elong.nb.model.GetInvLimitDataRequest;
 import com.elong.nb.model.GetInvLimitResponse;
@@ -37,6 +35,7 @@ import com.elong.nb.repository.IncrInventoryRepository;
 import com.elong.nb.service.IIncrInventoryService;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.util.ConfigUtils;
+import com.elong.nb.util.HttpClientUtils;
 
 /**
  * IncrInventory服务接口实现
@@ -205,13 +204,11 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	 * @return
 	 */
 	private List<InvLimitBlackListVo> getInvLimitBlackList(RequestBase<GetInvLimitDataRequest> requestBase) {
-		NbapiHttpRequest nbapiHttpRequest = new NbapiHttpRequest();
 		String ruleUrl = ConfigUtils.getStringConfigValue("GetInvLimitDataUrl", "http://192.168.233.40:9014/api/Hotel/GetInvLimitData");
-		nbapiHttpRequest.setUrl(ruleUrl);
 		String result = null;
 		try {
-			nbapiHttpRequest.setParamStr(JSON.toJSONString(requestBase));
-			result = HttpClientUtil.httpJsonPost(nbapiHttpRequest);
+			String reqData = JSON.toJSONString(requestBase);
+			result = HttpClientUtils.httpPost(ruleUrl, reqData, "application/json");
 		} catch (Exception e) {
 			logger.error("syncInventoryDueToBlack,GetInvLimitData,httpPost error = " + e.getMessage(), e);
 			throw new IllegalStateException("GetInvLimitData,httpPost error = " + e.getMessage());

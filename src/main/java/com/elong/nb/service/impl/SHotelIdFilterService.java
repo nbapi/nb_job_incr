@@ -16,14 +16,13 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.elong.nb.common.model.NbapiHttpRequest;
 import com.elong.nb.common.util.CommonsUtil;
-import com.elong.nb.common.util.HttpClientUtil;
 import com.elong.nb.model.HotelCodeRuleRealRequest;
 import com.elong.nb.model.HotelCodeRuleRealResponse;
 import com.elong.nb.model.RequestBase;
 import com.elong.nb.model.ResponseBase;
 import com.elong.nb.service.IFilterService;
+import com.elong.nb.util.HttpClientUtils;
 
 /**
  * SHotelId过滤服务
@@ -97,14 +96,11 @@ public class SHotelIdFilterService implements IFilterService {
 		requestBase.setRealRequest(realRequest);
 		String reqData = JSON.toJSONString(requestBase);
 
-		NbapiHttpRequest nbapiHttpRequest = new NbapiHttpRequest();
 		String ruleUrl = CommonsUtil.CONFIG_PROVIDAR.getProperty("GetHitHotelCodeUrl");
 		ruleUrl = StringUtils.isEmpty(ruleUrl) ? "http://192.168.233.40:9014/api/Hotel/GetHitHotelCode" : ruleUrl;
-		nbapiHttpRequest.setUrl(ruleUrl);
-		nbapiHttpRequest.setParamStr(reqData);
 		String result = null;
 		try {
-			result = HttpClientUtil.httpJsonPost(nbapiHttpRequest);
+			result = HttpClientUtils.httpPost(ruleUrl, reqData, "application/json");
 		} catch (Exception e) {
 			logger.error("SHotelIdFilterService,httpPost error = " + e.getMessage(), e);
 		}

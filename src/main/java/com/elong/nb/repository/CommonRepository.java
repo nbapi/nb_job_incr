@@ -20,11 +20,11 @@ import org.springframework.stereotype.Repository;
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
-import com.elong.nb.common.model.NbapiHttpRequest;
 import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.common.util.CommonsUtil;
-import com.elong.nb.common.util.HttpClientUtil;
 import com.elong.nb.model.OrderFromResult;
+import com.elong.nb.util.HttpUtil;
+
 
 /**
  *
@@ -44,7 +44,7 @@ public class CommonRepository {
 
 	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
+	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	/** 
 	 * 本地缓存文件中过滤SHotelIds	
@@ -110,12 +110,10 @@ public class CommonRepository {
 		orderFromNameUrl = StringUtils.isEmpty(orderFromNameUrl) ? "http://api.vip.elong.com/admin.php/Api/getprojectname?orderFromId={0}"
 				: orderFromNameUrl;
 		String url = MessageFormat.format(orderFromNameUrl, orderFromId + "");
-		NbapiHttpRequest nbapiHttpRequest = new NbapiHttpRequest();
-		nbapiHttpRequest.setUrl(orderFromNameUrl);
 
 		try {
 			logger.info("httpGet,url = " + url);
-			String result = HttpClientUtil.httpGet(nbapiHttpRequest);
+			String result = HttpUtil.httpGetData(url);
 			logger.info("httpGet,result = " + result);
 			result = StringUtils.replace(result, "\\", "");
 			orderFromResult = JSON.parseObject(result, OrderFromResult.class);

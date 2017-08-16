@@ -5,7 +5,6 @@
  */
 package com.elong.nb.service.impl;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -81,40 +80,38 @@ public class LogCollectServiceImpl implements LogCollectService {
 
 	@Override
 	public String writeLog() {
-		final Date logTime = new Date();
-
 		Future<String> future1 = executorService.submit(new Callable<String>() {
 			@Override
 			public String call() throws Exception {
-				return writeIncrInventoryLog(logTime);
+				return writeIncrInventoryLog();
 			}
 		});
 
 		Future<String> future2 = executorService.submit(new Callable<String>() {
 			@Override
 			public String call() throws Exception {
-				return writeIncrOrderLog(logTime);
+				return writeIncrOrderLog();
 			}
 		});
 
 		Future<String> future3 = executorService.submit(new Callable<String>() {
 			@Override
 			public String call() throws Exception {
-				return writeIncrRateLog(logTime);
+				return writeIncrRateLog();
 			}
 		});
 
 		Future<String> future4 = executorService.submit(new Callable<String>() {
 			@Override
 			public String call() throws Exception {
-				return writeIncrStateLog(logTime);
+				return writeIncrStateLog();
 			}
 		});
 
 		Future<String> future5 = executorService.submit(new Callable<String>() {
 			@Override
 			public String call() throws Exception {
-				return writeIncrHotelLog(logTime);
+				return writeIncrHotelLog();
 			}
 		});
 
@@ -129,7 +126,7 @@ public class LogCollectServiceImpl implements LogCollectService {
 		}
 	}
 
-	private String writeIncrHotelLog(Date logTime) {
+	private String writeIncrHotelLog() {
 		String subTableName = incrHotelSubmeterService.getLastTableName();
 		IncrHotel masterIncrHotel = incrHotelDao.getLastIncrFromWrite(subTableName);
 		IncrHotel slaveIncrHotel = incrHotelDao.getLastIncrFromRead(subTableName);
@@ -140,13 +137,11 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrHotelDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
-		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
 	}
 
-	private String writeIncrInventoryLog(Date logTime) {
+	private String writeIncrInventoryLog() {
 		String subTableName = incrInventorySubmeterService.getLastTableName();
 		IncrInventory masterIncrInventory = incrInventoryDao.getLastIncrFromWrite(subTableName);
 		IncrInventory slaveIncrInventory = incrInventoryDao.getLastIncrFromRead(subTableName);
@@ -157,14 +152,11 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrInventoryDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime),
-				getPreviousMinuteEnd(logTime));
-		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
 	}
 
-	private String writeIncrOrderLog(Date logTime) {
+	private String writeIncrOrderLog() {
 		Map<String, Object> masterIncrOrder = incrOrderDao.getLastIncrOrderFromWrite();
 		Map<String, Object> slaveIncrOrder = incrOrderDao.getLastIncrOrderFromRead();
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
@@ -172,15 +164,13 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setIncrType(EnumIncrType.Order.name());
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) masterIncrOrder.get("ChangeTime"), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) masterIncrOrder.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setLog_time(DateHandlerUtils.formatDate(logTime, "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate((Date) slaveIncrOrder.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrOrderDao.getRecordCountFromRead(getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
-		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
 	}
 
-	private String writeIncrRateLog(Date logTime) {
+	private String writeIncrRateLog() {
 		Map<String, Object> masterIncrRate = incrRateDao.getLastIncrFromWrite();
 		Map<String, Object> slaveIncrRate = incrRateDao.getLastIncrFromRead();
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
@@ -188,15 +178,13 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setIncrType(EnumIncrType.Rate.name());
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) masterIncrRate.get("ChangeTime"), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) masterIncrRate.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setLog_time(DateHandlerUtils.formatDate(logTime, "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate((Date) slaveIncrRate.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrRateDao.getRecordCountFromRead(getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
-		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
 	}
 
-	private String writeIncrStateLog(Date logTime) {
+	private String writeIncrStateLog() {
 		Map<String, Object> masterIncrState = incrStateDao.getLastIncrFromWrite();
 		Map<String, Object> slaveIncrState = incrStateDao.getLastIncrFromRead();
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
@@ -204,28 +192,10 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setIncrType(EnumIncrType.State.name());
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) masterIncrState.get("ChangeTime"), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) masterIncrState.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setLog_time(DateHandlerUtils.formatDate(logTime, "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate((Date) slaveIncrState.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrStateDao.getRecordCountFromRead(getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
-		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
-	}
-
-	private static Date getPreviousMinuteBegin(Date date) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		calendar.add(Calendar.MINUTE, -5);
-		calendar.set(Calendar.SECOND, 0);
-		return calendar.getTime();
-	}
-
-	private static Date getPreviousMinuteEnd(Date date) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		calendar.add(Calendar.MINUTE, -5);
-		calendar.set(Calendar.SECOND, 59);
-		return calendar.getTime();
 	}
 
 }

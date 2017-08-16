@@ -5,19 +5,39 @@
  */
 package com.elong.nb.controller;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSON;
+import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbRequest;
+import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbResponse;
+import com.elong.hotel.goods.ds.thrift.HotelBasePriceRequest;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
+import com.elong.nb.dao.MySqlDataDao;
+import com.elong.nb.dao.adataper.IncrRateAdapter;
+import com.elong.nb.model.bean.IncrHotel;
+import com.elong.nb.model.bean.IncrInventory;
+import com.elong.nb.repository.GoodsMetaRepository;
+import com.elong.nb.repository.IncrRateRepository;
+import com.elong.nb.repository.MSRelationRepository;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.IImpulseSenderService;
-import com.elong.nb.submeter.service.impl.SubmeterTableCache;
+import com.elong.nb.submeter.service.ISubmeterService;
 
 /**
  * 手动修改某些值
@@ -36,7 +56,9 @@ import com.elong.nb.submeter.service.impl.SubmeterTableCache;
 @Controller
 public class ManualController {
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
+	private static final Logger incrRateLogger = Logger.getLogger("IncrRateLogger");
+
+	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
 
 	@Resource
 	private IImpulseSenderService impulseSenderService;
@@ -44,18 +66,86 @@ public class ManualController {
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
 
-	@Resource
-	private SubmeterTableCache submeterTableCache;
+	@Resource(name = "incrInventorySubmeterService")
+	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
-	/** 
-	 * 获取当前使用非空表名集合
-	 *
-	 * @param tablePrefix
-	 * @return
-	 */
-	@RequestMapping(value = "/test/submeterTableCache/{tablePrefix}")
-	public @ResponseBody String getSubmeterTableNames(@PathVariable("tablePrefix") String tablePrefix) {
-		return JSON.toJSONString(submeterTableCache.queryNoEmptySubTableList(tablePrefix, false));
+	@Resource(name = "incrHotelSubmeterService")
+	private ISubmeterService<IncrHotel> incrHotelSubmeterService;
+
+	@Resource
+	private IncrRateRepository incrRateRepository;
+
+	@Resource
+	private GoodsMetaRepository goodsMetaRepository;
+
+	@Resource
+	private MSRelationRepository msRelationRepository;
+
+	@Resource
+	private MySqlDataDao mySqlDataDao;
+
+	@RequestMapping(value = "/test/goodsMetaPrice/{id}")
+	public @ResponseBody String goodsMetaPrice(@PathVariable("id") Long id) {
+		Map<String, Object> priceOperationIncrement = mySqlDataDao.getPriceOperationIncrementByid(id);
+		Timestamp operate_time = (Timestamp) priceOperationIncrement.get("operate_time");
+		Date changeTime = new Date(operate_time.getTime());
+		String hotelCode = (String) priceOperationIncrement.get("hotel_id");
+		String roomtype_id = (String) priceOperationIncrement.get("roomtype_id");
+		Integer rateplan_id = (Integer) priceOperationIncrement.get("rateplan_id");
+		Timestamp begin_date = (Timestamp) priceOperationIncrement.get("begin_date");
+		Date startDate = new Date(begin_date.getTime());
+		Timestamp end_date = (Timestamp) priceOperationIncrement.get("end_date");
+		Date endDate = new Date(end_date.getTime());
+
+		List<Map<String, Object>> incrRates = null;
+		GetBasePrice4NbRequest request = new GetBasePrice4NbRequest();
+		request.setBooking_channel(126);
+		request.setSell_channel(65534);
+		request.setMember_level(30);
+		request.setTraceId(UUID.randomUUID().toString() + "_" + id);
+		request.setStart_date((int) (startDate.getTime() / 1000));
+		request.setEnd_date((int) (endDate.getTime() / 1000));
+		List<HotelBasePriceRequest> hotelBases = new LinkedList<HotelBasePriceRequest>();
+		HotelBasePriceRequest hotelBase = new HotelBasePriceRequest();
+		String hotelId = msRelationRepository.getMHotelId(hotelCode);
+		hotelBase.setMhotel_id(Integer.valueOf(hotelId));
+		hotelBase.setShotel_id(Integer.valueOf(hotelCode));
+		hotelBases.add(hotelBase);
+		request.setHotel_base_price_request(hotelBases);
+		GetBasePrice4NbResponse response = null;
+		try {
+			incrRateLogger.info("request = " + JSON.toJSONString(request));
+			response = goodsMetaRepository.getMetaPrice4Nb(request);
+			if (response != null && response.return_code == 0) {
+				IncrRateAdapter adapter = new IncrRateAdapter();
+				incrRates = adapter.toNBObject(response, null, null);
+
+			} else if (response.return_code > 0) {
+				incrRates = new ArrayList<Map<String, Object>>();
+			} else {
+				throw new RuntimeException(response.getReturn_msg());
+			}
+		} catch (Exception ex) {
+			throw new RuntimeException("IncrRate:" + ex.getMessage(), ex);
+		}
+		Map<String, Object> result = null;
+		for (Map<String, Object> incrRate : incrRates) {
+			if (incrRate == null)
+				continue;
+			String RoomTypeId = (String) incrRate.get("RoomTypeID");
+			Integer RateplanId = (Integer) incrRate.get("RateplanID");
+			if (StringUtils.isEmpty(RoomTypeId) || RateplanId == null)
+				continue;
+			if (StringUtils.equals(roomtype_id, RoomTypeId) && rateplan_id.intValue() == RateplanId.intValue()) {
+				result = incrRate;
+			}
+		}
+		if (result != null) {
+			result.put("ChangeTime", changeTime);
+			result.put("OperateTime", changeTime);
+			result.put("ChangeID", id);
+		}
+		return JSON.toJSONString(result);
 	}
 
 	/** 
