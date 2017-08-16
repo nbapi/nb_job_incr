@@ -352,16 +352,10 @@ public class IncrRateRepository {
 		logger.info("before fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
 		Date validDate = DateTime.now().plusYears(1).toDate();
 		long startTime = System.currentTimeMillis();
-		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<Map<String, Object>> iter = incrRateList.iterator();
 		while (iter.hasNext()) {
 			Map<String, Object> rowMap = iter.next();
 			if (rowMap == null) {
-				iter.remove();
-				continue;
-			}
-			String shotelId = (String) rowMap.get("HotelCode");
-			if (filteredSHotelIds.contains(shotelId)) {
 				iter.remove();
 				continue;
 			}

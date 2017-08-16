@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -112,8 +111,6 @@ public class IncrInventoryRepository {
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrInventoryList from goods,incrInventorys size = "
 				+ incrInventorys.size());
 
-		// 过滤掉携程去哪儿酒店
-		filterShotelsIds(incrInventorys);
 		// 按照ChangeID排序
 		sortIncrInventorysByChangeID(incrInventorys);
 		// 插入数据库
@@ -356,28 +353,6 @@ public class IncrInventoryRepository {
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime)
 				+ ",after filterUnvalidDate,productInventoryIncrementList size = " + productInventoryIncrementList.size());
-	}
-
-	/** 
-	 * 过滤掉携程去哪shotelid 
-	 *
-	 * @param productInventoryIncrementList
-	 */
-	private void filterShotelsIds(List<IncrInventory> incrInventorys) {
-		long startTime = System.currentTimeMillis();
-		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
-		Iterator<IncrInventory> iter = incrInventorys.iterator();
-		while (iter.hasNext()) {
-			IncrInventory incrInventory = iter.next();
-			if (incrInventory == null)
-				continue;
-			String hotelCode = incrInventory.getHotelCode();
-			if (!filteredSHotelIds.contains(hotelCode))
-				continue;
-			iter.remove();
-		}
-		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",after fillFilteredSHotelsIds,incrInventorys size = "
-				+ incrInventorys.size());
 	}
 
 	/**
