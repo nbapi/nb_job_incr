@@ -55,8 +55,7 @@ public class IncrRateServiceImpl implements IIncrRateService {
 	public void syncRatesToDB() {
 		long jobStartTime = System.currentTimeMillis();
 		long startTime = jobStartTime;
-		// RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey()
-		String changIDStr = incrSetInfoService.get("huidu.incrrate.lastid");
+		String changIDStr = incrSetInfoService.get(RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",get changID = " + changID + ",from redis key = "
@@ -71,7 +70,7 @@ public class IncrRateServiceImpl implements IIncrRateService {
 				break;
 			} else {
 				startTime = System.currentTimeMillis();
-				incrSetInfoService.put("huidu.incrrate.lastid", newChangID);
+				incrSetInfoService.put(RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey(), newChangID);
 				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",put newChangID = " + newChangID + ",to redis key = "
 						+ RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey());

@@ -5,7 +5,7 @@
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条库存增量 -->
 	<select id="getIncrInventories" resultType="incrInventory">
 		select
-		IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,Channel,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime
 		from ${subTableName}
 		<where>
 			<if test="params.changeTime != null and !params.changeTime.equals('')">
@@ -21,7 +21,7 @@
 	<!-- 批量插入IncrInventory到指定分表subTableName -->
 	<insert id="bulkInsertSub">
 		insert into
-		${subTableName}(IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime)
+		${subTableName}(IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,Channel,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime)
 		values
 		<foreach collection="list" item="incrInventory" index="index" separator=",">
 			(
@@ -32,6 +32,7 @@
 			#{incrInventory.RoomTypeID,jdbcType=VARCHAR},
 			#{incrInventory.HotelCode,jdbcType=VARCHAR},
 			#{incrInventory.Status,jdbcType=INTEGER},
+			#{incrInventory.Channel,jdbcType=INTEGER},
 			#{incrInventory.AvailableDate},
 			#{incrInventory.AvailableAmount,jdbcType=INTEGER},
 			#{incrInventory.OverBooking,jdbcType=INTEGER},
@@ -56,6 +57,7 @@
 			`RoomTypeID` varchar(50) NOT NULL,
 			`HotelCode` varchar(50) NOT NULL,
 			`Status` int(11) NOT NULL,
+			`Channel` INT(1)NOT NULL,
 			`AvailableDate` datetime NOT NULL,
 			`AvailableAmount` int(11) NOT NULL,
 			`OverBooking` int(11) NOT NULL,

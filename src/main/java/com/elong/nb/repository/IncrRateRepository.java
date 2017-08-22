@@ -361,10 +361,10 @@ public class IncrRateRepository {
 				iter.remove();
 				continue;
 			}
+			incrRate.setChannel(0);
 			String shotelId = incrRate.getHotelCode();
 			if (filteredSHotelIds.contains(shotelId)) {
-				iter.remove();
-				continue;
+				incrRate.setChannel(1);
 			}
 			Date endDate = incrRate.getEndDate();
 			endDate = (endDate.compareTo(validDate) > 0) ? validDate : endDate;

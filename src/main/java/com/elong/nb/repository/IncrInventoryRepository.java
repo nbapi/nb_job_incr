@@ -372,9 +372,12 @@ public class IncrInventoryRepository {
 			if (incrInventory == null)
 				continue;
 			String hotelCode = incrInventory.getHotelCode();
-			if (!filteredSHotelIds.contains(hotelCode))
-				continue;
-			iter.remove();
+			if (filteredSHotelIds.contains(hotelCode)) {
+				incrInventory.setChannel(1);
+			} else {
+				incrInventory.setChannel(0);
+			}
+
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",after fillFilteredSHotelsIds,incrInventorys size = "
 				+ incrInventorys.size());
