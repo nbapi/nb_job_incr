@@ -29,7 +29,7 @@
 			#{incrRate.ID,jdbcType=BIGINT},
 			#{incrRate.ChangeID,jdbcType=BIGINT},
 			#{incrRate.HotelID,jdbcType=VARCHAR},
-			#{incrRate.RoomTypeID,jdbcType=VARCHAR},
+			#{incrRate.RoomTypeId,jdbcType=VARCHAR},
 			#{incrRate.RateplanId,jdbcType=INTEGER},
 			#{incrRate.HotelCode,jdbcType=VARCHAR},
 			#{incrRate.StartDate},
