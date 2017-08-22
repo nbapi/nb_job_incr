@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 
 import redis.clients.jedis.Jedis;
 
-import com.elong.nb.common.util.JedisPoolUtil;
 import com.elong.nb.submeter.service.IImpulseSenderService;
+import com.elong.nb.util.JedisPoolUtil;
 
 /**
  * 发号器接口实现
