@@ -26,11 +26,5 @@ public interface IIncrRateService {
 	 *
 	 */
 	public void syncRatesToDB();
-	
-	/** 
-	 * 删除价格增量
-	 *
-	 */
-	public void delRatesFromDB();
 
 }

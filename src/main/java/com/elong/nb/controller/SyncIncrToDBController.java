@@ -73,17 +73,6 @@ public class SyncIncrToDBController {
 	}
 
 	/** 
-	 * 删除酒店增量job
-	 *
-	 * @param request
-	 * @return
-	 */
-	@RequestMapping(value = "/DelHotelFromDB")
-	public @ResponseBody String delHotelFromDB(HttpServletRequest request) {
-		return doHandlerIncrData(request, "DelHotelFromDB");
-	}
-
-	/** 
 	 * 酒店增量job
 	 *
 	 * @param request
@@ -106,17 +95,6 @@ public class SyncIncrToDBController {
 	}
 
 	/** 
-	 * 删除库存增量job
-	 *
-	 * @param request
-	 * @return
-	 */
-	@RequestMapping(value = "/DelInventoryFromDB")
-	public @ResponseBody String delInventoryFromDB(HttpServletRequest request) {
-		return doHandlerIncrData(request, "DelInventoryFromDB");
-	}
-
-	/** 
 	 * 库存增量job
 	 *
 	 * @param request
@@ -136,17 +114,6 @@ public class SyncIncrToDBController {
 	@RequestMapping(value = "/SyncInventoryDueToBlack")
 	public @ResponseBody String syncInventoryDueToBlack(HttpServletRequest request) {
 		return doHandlerIncrData(request, "SyncInventoryDueToBlack");
-	}
-
-	/** 
-	 * 删除房价增量job
-	 *
-	 * @param request
-	 * @return
-	 */
-	@RequestMapping(value = "/DelRatesFromDB")
-	public @ResponseBody String delRatesFromDB(HttpServletRequest request) {
-		return doHandlerIncrData(request, "DelRatesFromDB");
 	}
 
 	/** 
@@ -230,10 +197,10 @@ public class SyncIncrToDBController {
 				incrStateService.syncStateToDB();
 			} else if (StringUtils.equals("SyncOrderToDB", pathVariable)) {
 				incrOrderService.syncOrderToDB();
-			} else if (StringUtils.equals("DelRatesFromDB", pathVariable)) {
-				incrRateService.delRatesFromDB();
 			} else if (StringUtils.equals("DelStateFromDB", pathVariable)) {
 				incrStateService.delStateFromDB();
+			} else if (StringUtils.equals("DelOrderFromDB", pathVariable)) {
+				incrOrderService.delOrderFromDB();
 			} else if (StringUtils.equals("logCollect", pathVariable)) {
 				logCollectService.writeLog();
 			} else {

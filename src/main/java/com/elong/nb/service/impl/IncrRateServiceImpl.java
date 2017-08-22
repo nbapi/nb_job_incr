@@ -5,10 +5,6 @@
  */
 package com.elong.nb.service.impl;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
-
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,10 +14,8 @@ import org.springframework.stereotype.Service;
 import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.repository.IncrRateRepository;
-import com.elong.nb.service.AbstractDeleteService;
 import com.elong.nb.service.IIncrRateService;
 import com.elong.nb.service.IIncrSetInfoService;
-import com.elong.nb.util.DateHandlerUtils;
 
 /**
  * IncrRate服务接口实现
@@ -38,7 +32,7 @@ import com.elong.nb.util.DateHandlerUtils;
  * @since		JDK1.7
  */
 @Service
-public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrRateService {
+public class IncrRateServiceImpl implements IIncrRateService {
 
 	private static final Logger logger = Logger.getLogger("IncrRateLogger");
 
@@ -52,18 +46,6 @@ public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrR
 	private IIncrSetInfoService incrSetInfoService;
 
 	/** 
-	 * 删除价格增量
-	 * 
-	 *
-	 * @see com.elong.nb.service.IIncrRateService#delRatesFromDB()    
-	 */
-	@Override
-	public void delRatesFromDB() {
-		// 删除过期数据
-		deleteExpireIncrData(DateHandlerUtils.getDBExpireDate());
-	}
-
-	/** 
 	 * IncrRate同步到数据库 
 	 * 
 	 *
@@ -73,7 +55,7 @@ public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrR
 	public void syncRatesToDB() {
 		long jobStartTime = System.currentTimeMillis();
 		long startTime = jobStartTime;
-		//RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey()
+		// RedisKeyConst.CacheKey_KEY_Rate_LastID.getKey()
 		String changIDStr = incrSetInfoService.get("huidu.incrrate.lastid");
 		long changID = StringUtils.isEmpty(changIDStr) ? 0 : Long.valueOf(changIDStr);
 		long endTime = System.currentTimeMillis();
@@ -85,7 +67,7 @@ public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrR
 			long newChangID = incrRateRepository.syncRatesToDB(changID);
 			endTime = System.currentTimeMillis();
 			logger.info("use time = " + (endTime - startTime) + ", from " + changID + " to " + newChangID);
-			if (newChangID == changID||(endTime - jobStartTime) > 10 * 60 * 1000) {
+			if (newChangID == changID || (endTime - jobStartTime) > 10 * 60 * 1000) {
 				break;
 			} else {
 				startTime = System.currentTimeMillis();
@@ -96,21 +78,6 @@ public class IncrRateServiceImpl extends AbstractDeleteService implements IIncrR
 				changID = newChangID;
 			}
 		}
-	}
-
-	@Override
-	protected List<BigInteger> getIncrIdList(Map<String, Object> params) {
-		return incrRateDao.getIncrIdList(params);
-	}
-
-	@Override
-	protected int deleteByIncrIdList(List<BigInteger> incrIdList) {
-		return incrRateDao.deleteByIncrIdList(incrIdList);
-	}
-
-	@Override
-	protected void logger(String message) {
-		logger.info(message);
 	}
 
 }

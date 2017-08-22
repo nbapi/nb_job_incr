@@ -28,6 +28,7 @@ import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.dao.IncrStateDao;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
+import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.model.enums.EnumIncrType;
 import com.elong.nb.service.LogCollectService;
 import com.elong.nb.submeter.service.ISubmeterService;
@@ -70,6 +71,9 @@ public class LogCollectServiceImpl implements LogCollectService {
 
 	@Resource
 	private IncrHotelDao incrHotelDao;
+
+	@Resource(name = "incrRateSubmeterService")
+	private ISubmeterService<IncrRate> incrRateSubmeterService;
 
 	@Resource
 	private IncrRateDao incrRateDao;
@@ -181,16 +185,17 @@ public class LogCollectServiceImpl implements LogCollectService {
 	}
 
 	private String writeIncrRateLog(Date logTime) {
-		Map<String, Object> masterIncrRate = incrRateDao.getLastIncrFromWrite();
-		Map<String, Object> slaveIncrRate = incrRateDao.getLastIncrFromRead();
+		String subTableName = incrRateSubmeterService.getLastTableName();
+		IncrRate masterIncrRate = incrRateDao.getLastIncrFromWrite(subTableName);
+		IncrRate slaveIncrRate = incrRateDao.getLastIncrFromRead(subTableName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
 		statisticModel.setIncrType(EnumIncrType.Rate.name());
-		statisticModel.setChangeTime(DateHandlerUtils.formatDate((Date) masterIncrRate.get("ChangeTime"), "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setInsertTime(DateHandlerUtils.formatDate((Date) masterIncrRate.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrRate.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrRate.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(logTime, "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate((Date) slaveIncrRate.get("InsertTime"), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrRateDao.getRecordCountFromRead(getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrRate.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
+		int recordCount = incrRateDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
 		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
