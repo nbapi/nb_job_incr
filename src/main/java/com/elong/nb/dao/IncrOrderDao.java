@@ -6,8 +6,11 @@
 package com.elong.nb.dao;
 
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
 
 import com.elong.nb.db.DataSource;
 import com.elong.nb.model.bean.IncrOrder;
@@ -55,7 +58,7 @@ public interface IncrOrderDao {
 	 */
 	@DataSource("dataSource_nbhotelincr_write")
 	public IncrOrder getLastIncrOrder(Map<String, Object> paramMap);
-	
+
 	/** 
 	 * 获取最大IncrID的订单增量
 	 *
@@ -63,7 +66,7 @@ public interface IncrOrderDao {
 	 * @return
 	 */
 	@DataSource("dataSource_nbhotelincr_write")
-	public Map<String,Object> getLastIncrOrderFromWrite();
+	public Map<String, Object> getLastIncrOrderFromWrite();
 
 	/** 
 	 * 获取最大IncrID的订单增量
@@ -72,15 +75,17 @@ public interface IncrOrderDao {
 	 * @return
 	 */
 	@DataSource("dataSource_nbhotelincr_read")
-	public Map<String,Object> getLastIncrOrderFromRead();
+	public Map<String, Object> getLastIncrOrderFromRead();
 
 	/** 
-	 * 插入IncrOrder
+	 * 获取指定时间的记录数
 	 *
-	 * @param incrOrderMap
+	 * @param startTime
+	 * @param endTime
+	 * @return
 	 */
-	@DataSource("dataSource_nbhotelincr_write")
-	public int insert(Map<String, Object> incrOrderMap);
+	@DataSource("dataSource_nbhotelincr_read")
+	public int getRecordCountFromRead(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
 	/** 
 	 * 批量插入IncrOrder

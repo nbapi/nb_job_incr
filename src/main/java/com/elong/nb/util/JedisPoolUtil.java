@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.cxf.common.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolConfig;
@@ -87,14 +87,15 @@ public class JedisPoolUtil {
 		}
 		return pool.getResource();
 	}
-	
+
 	/**
-     * 释放一个连接
-     *
-     * @param jedis
-     */
-    public static void returnRes(Jedis jedis) {
-        pool.returnResource(jedis);
-    }
+	 * 释放一个连接
+	 *
+	 * @param jedis
+	 */
+	@SuppressWarnings("deprecation")
+	public static void returnRes(Jedis jedis) {
+		pool.returnResource(jedis);
+	}
 
 }

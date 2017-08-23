@@ -20,6 +20,7 @@ import com.alibaba.fastjson.JSON;
 import com.elong.nb.dao.SubmeterTableDao;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
+import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.model.enums.EnumIncrType;
 import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.service.IIncrSetInfoService;
@@ -47,6 +48,9 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
+	
+	@Resource(name = "incrRateSubmeterService")
+	private ISubmeterService<IncrRate> incrRateSubmeterService;
 
 	@Resource(name = "incrHotelSubmeterService")
 	private ISubmeterService<IncrHotel> incrHotelSubmeterService;
@@ -163,6 +167,9 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 		}
 		if (incrType == EnumIncrType.Data) {
 			return incrHotelSubmeterService;
+		}
+		if (incrType == EnumIncrType.Rate) {
+			return incrRateSubmeterService;
 		}
 		throw new IllegalStateException("EnumIncrType = " + incrType + " doesn't support submeter!!!");
 	}

@@ -5,8 +5,14 @@
  */
 package com.elong.nb.repository;
 
+import java.io.File;
 import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
@@ -14,11 +20,11 @@ import org.springframework.stereotype.Repository;
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
+import com.elong.nb.common.model.NbapiHttpRequest;
 import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.common.util.CommonsUtil;
+import com.elong.nb.common.util.HttpClientUtil;
 import com.elong.nb.model.OrderFromResult;
-import com.elong.nb.util.HttpUtil;
-
 
 /**
  *
@@ -38,7 +44,49 @@ public class CommonRepository {
 
 	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
+
+	/** 
+	 * 本地缓存文件中过滤SHotelIds	
+	 *
+	 * Set<String> CommonRepository.java filteredSHotelIds
+	 */
+	private Set<String> filteredSHotelIds = Collections.synchronizedSet(new HashSet<String>());
+
+	/** 
+	 * 读取文件中SHotelId,过滤SHotelId
+	 *
+	 * @return
+	 */
+	public Set<String> fillFilteredSHotelsIds() {
+		if (this.filteredSHotelIds.size() > 0) {
+			return filteredSHotelIds;
+		}
+
+		String rootPath = Thread.currentThread().getContextClassLoader().getResource("/").getPath();
+		String filePath = rootPath + "conf/core/FilteCtripQunarHotelIds.txt";
+		File file = new File(filePath);
+		if (file.exists()) {
+			try {
+				List<String> contentList = FileUtils.readLines(file);
+				if (contentList != null && contentList.size() > 0) {
+					for (String content : contentList) {
+						if (StringUtils.isEmpty(content))
+							continue;
+						filteredSHotelIds.add(content.trim());
+					}
+				}
+				logger.info("FillFilteredSHotelsIds size = ," + filteredSHotelIds.size());
+			} catch (Exception ex) {
+				String title = "增量库存在读取携程去哪过滤酒店信息时抛出异常";
+				String content = "读取携程去哪过滤的酒店信息文件出现异常,异常原因:" + ex.getMessage();
+				logger.error("title =" + title + ",content = " + content, ex);
+			}
+		} else {
+			logger.info("FillFilteredSHotelsIds,File Not Exist!!!");
+		}
+		return filteredSHotelIds;
+	}
 
 	/** 
 	 * 获取代码编号ProxyId、CardNo会员卡号
@@ -62,10 +110,12 @@ public class CommonRepository {
 		orderFromNameUrl = StringUtils.isEmpty(orderFromNameUrl) ? "http://api.vip.elong.com/admin.php/Api/getprojectname?orderFromId={0}"
 				: orderFromNameUrl;
 		String url = MessageFormat.format(orderFromNameUrl, orderFromId + "");
+		NbapiHttpRequest nbapiHttpRequest = new NbapiHttpRequest();
+		nbapiHttpRequest.setUrl(orderFromNameUrl);
 
 		try {
 			logger.info("httpGet,url = " + url);
-			String result = HttpUtil.httpGetData(url);
+			String result = HttpClientUtil.httpGet(nbapiHttpRequest);
 			logger.info("httpGet,result = " + result);
 			result = StringUtils.replace(result, "\\", "");
 			orderFromResult = JSON.parseObject(result, OrderFromResult.class);

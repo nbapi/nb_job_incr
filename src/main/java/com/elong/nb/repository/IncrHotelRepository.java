@@ -6,9 +6,7 @@
 package com.elong.nb.repository;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -16,9 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
-import com.elong.nb.dao.IncrHotelDao;
-import com.elong.nb.dao.IncrInventoryDao;
-import com.elong.nb.dao.IncrRateDao;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
@@ -48,14 +43,8 @@ public class IncrHotelRepository {
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
-	@Resource
-	private IncrHotelDao incrHotelDao;
-
-	@Resource
-	private IncrInventoryDao incrInventoryDao;
-
-	@Resource
-	private IncrRateDao incrRateDao;
+	@Resource(name = "incrRateSubmeterService")
+	private ISubmeterService<IncrRate> incrRateSubmeterService;
 
 	/** 
 	 * 获取trigger的最后一条IncrHotel 
@@ -109,10 +98,7 @@ public class IncrHotelRepository {
 		if (changeTime == null || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrRates,the paramter ['changeTime' or 'maxRecordCount'] must not be null or 0.");
 		}
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("changeTime", changeTime);
-		params.put("maxRecordCount", maxRecordCount);
-		return incrRateDao.getIncrRates(params);
+		return incrRateSubmeterService.getIncrDataList(changeTime, maxRecordCount);
 	}
 
 	/** 
@@ -126,10 +112,7 @@ public class IncrHotelRepository {
 		if (incrID == 0l || maxRecordCount == 0) {
 			throw new IllegalArgumentException("GetIncrRates,the paramter ['incrID' or 'maxRecordCount'] must not be 0.");
 		}
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("incrID", incrID);
-		params.put("maxRecordCount", maxRecordCount);
-		return incrRateDao.getIncrRates(params);
+		return incrRateSubmeterService.getIncrDataList(incrID, maxRecordCount);
 	}
 
 	/** 

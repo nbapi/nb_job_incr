@@ -2,58 +2,40 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.elong.nb.dao.IncrRateDao">
 
-	<!-- 删除过期IncrRate -->
-	<delete id="deleteByIncrIdList">
-		delete from IncrRate
-		<where>
-			AND IncrID in
-			<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
-				#{item}
-			</foreach>
-		</where>
-	</delete>
-
-	<!-- 获取晚于指定changeTime的IncrID -->
-	<select id="getIncrIdList" resultType="java.math.BigInteger">
-		select IncrID from IncrRate
-		<where>
-			<![CDATA[ and ChangeTime <= #{changeTime} ]]>
-		</where>
-		order by IncrID limit 0,#{maxRecordCount}
-	</select>
-
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条IncrRate -->
 	<select id="getIncrRates" resultType="incrRate">
 		select
-		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
-		from IncrRate
+		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Channel,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
+		from ${subTableName}
 		<where>
-			<if test="changeTime != null and !changeTime.equals('')">
-				<![CDATA[ and ChangeTime > #{changeTime} ]]>
+			<if test="params.changeTime != null and !params.changeTime.equals('')">
+				<![CDATA[ and ChangeTime > #{params.changeTime} ]]>
 			</if>
-			<if test="incrID != null and !incrID.equals('')">
-				<![CDATA[ and IncrID > #{incrID}  ]]>
+			<if test="params.ID != null and !params.ID.equals('')">
+				<![CDATA[ and ID > #{params.ID}  ]]>
 			</if>
 		</where>
-		order by IncrID limit 0,#{maxRecordCount}
+		order by ID limit 0,#{params.maxRecordCount}
 	</select>
 
 	<!-- 批量插入IncrRate -->
-	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
-		insert into IncrRate
-		(IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID)
+	<insert id="bulkInsertSub">
+		insert into ${subTableName}
+		(IncrID,ID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Channel,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID)
 		values
 		<foreach collection="list" item="incrRate" index="index" separator=",">
 			(
 			#{incrRate.IncrID,jdbcType=BIGINT},
+			#{incrRate.ID,jdbcType=BIGINT},
 			#{incrRate.ChangeID,jdbcType=BIGINT},
 			#{incrRate.HotelID,jdbcType=VARCHAR},
-			#{incrRate.RoomTypeID,jdbcType=VARCHAR},
-			#{incrRate.RateplanID,jdbcType=INTEGER},
+			#{incrRate.RoomTypeId,jdbcType=VARCHAR},
+			#{incrRate.RateplanId,jdbcType=INTEGER},
 			#{incrRate.HotelCode,jdbcType=VARCHAR},
 			#{incrRate.StartDate},
 			#{incrRate.EndDate},
 			#{incrRate.Status,jdbcType=INTEGER},
+			#{incrRate.Channel,jdbcType=INTEGER},
 			#{incrRate.Member,jdbcType=DOUBLE},
 			#{incrRate.Weekend,jdbcType=DOUBLE},
 			#{incrRate.MemberCost,jdbcType=DOUBLE},
@@ -68,18 +50,58 @@
 		</foreach>
 	</insert>
 
-	<select id="getLastIncrFromWrite" resultType="java.util.Map">
-		select 
-		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID 
-		from IncrRate 
+	<!-- 创建分表 -->
+	<update id="createSubTable">
+		CREATE TABLE `${tableName}`(
+		`IncrID` BIGINT(20)NOT NULL AUTO_INCREMENT,
+		`ID` bigint(20) NOT NULL,
+		`ChangeID` BIGINT(20)NOT NULL,
+		`HotelID` VARCHAR(50)NOT NULL,
+		`RoomTypeID` VARCHAR(50)NOT NULL,
+		`RateplanID` INT(11)NOT NULL,
+		`HotelCode` VARCHAR(50)NOT NULL,
+		`StartDate` datetime NOT NULL,
+		`EndDate` datetime NOT NULL,
+		`Status` INT(11)NOT NULL,
+		`Channel` INT(1)NOT NULL DEFAULT 0,
+		`Member` DECIMAL(10, 2)NOT NULL,
+		`Weekend` DECIMAL(10, 2)NOT NULL,
+		`MemberCost` DECIMAL(10, 2)NOT NULL,
+		`WeekendCost` DECIMAL(10, 2)NOT NULL,
+		`AddBed` DECIMAL(10, 2)NOT NULL,
+		`ChangeTime` datetime NOT NULL,
+		`OperateTime` datetime NOT NULL,
+		`InsertTime` datetime NOT NULL,
+		`CurrencyCode` VARCHAR(50)NOT NULL DEFAULT '',
+		`PriceID` BIGINT(20)DEFAULT '-1',
+		PRIMARY KEY(`IncrID`),
+		KEY `IX_ID` (`ID`),
+		KEY `IX_ChangeTime`(`ChangeTime`)
+		)ENGINE = INNODB AUTO_INCREMENT = 8017729186 DEFAULT CHARSET = utf8
+	</update>
+
+	<select id="getLastIncrFromWrite" resultType="incrRate">
+		select
+		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
+		from ${subTableName}
 		order by IncrID desc limit 0,1
 	</select>
 
-	<select id="getLastIncrFromRead" resultType="java.util.Map">
-		select 
-		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID 
-		from IncrRate 
+	<select id="getLastIncrFromRead" resultType="incrRate">
+		select
+		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
+		from ${subTableName}
 		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
+		select count(*) from ${subTableName}
+		<where>
+			<![CDATA[ 
+				and InsertTime <= #{endTime} 
+				and InsertTime >= #{startTime} 
+			]]>
+		</where>
 	</select>
 
 </mapper>

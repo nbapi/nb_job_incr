@@ -33,7 +33,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 
 	private static final Logger logger = Logger.getLogger("ImpulseSenderLogger");
 
-	private static final String REDIS_CONFIG = "redis_impulseSender";
+	private static final String REDIS_SENTINEL_CONFIG = "redis_sentinel";
 
 	/** 
 	 * 获取id
@@ -48,7 +48,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
 		long startTime = System.currentTimeMillis();
-		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_SENTINEL_CONFIG);
 		long id = jedis.incr(key);
 		JedisPoolUtil.returnRes(jedis);
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",key = " + key + ",value = " + id);
@@ -67,7 +67,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
-		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_SENTINEL_CONFIG);
 		jedis.del(key);
 		JedisPoolUtil.returnRes(jedis);
 	}
@@ -89,7 +89,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (id == null) {
 			throw new IllegalArgumentException("ImpulseSender putId must not be null parameter['id']");
 		}
-		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_SENTINEL_CONFIG);
 		jedis.set(key, String.valueOf(id));
 		JedisPoolUtil.returnRes(jedis);
 		return id;
@@ -108,7 +108,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender curId must not be null parameter['key']");
 		}
-		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_SENTINEL_CONFIG);
 		String idStr = jedis.get(key);
 		JedisPoolUtil.returnRes(jedis);
 		return Long.valueOf(idStr);
@@ -120,7 +120,7 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
 		}
 		long startTime = System.currentTimeMillis();
-		Jedis jedis = JedisPoolUtil.getJedis(REDIS_CONFIG);
+		Jedis jedis = JedisPoolUtil.getJedis(REDIS_SENTINEL_CONFIG);
 		long id = jedis.incrBy(key, incrVal);
 		JedisPoolUtil.returnRes(jedis);
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",key = " + key + ",value = " + id + ",incrVal = " + incrVal);

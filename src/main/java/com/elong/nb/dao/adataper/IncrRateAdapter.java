@@ -1,10 +1,8 @@
 package com.elong.nb.dao.adataper;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.elong.hotel.goods.ds.thrift.BasePrice;
@@ -14,14 +12,15 @@ import com.elong.hotel.goods.ds.thrift.RatePlanBasePrice;
 import com.elong.hotel.goods.ds.thrift.SHotelBasePrice;
 import com.elong.hotel.goods.ds.thrift.SRoomBasePrice;
 import com.elong.nb.common.util.SafeConvertUtils;
+import com.elong.nb.model.bean.IncrRate;
 
 public class IncrRateAdapter {
 
-	public List<Map<String, Object>> toNBObject(GetBasePrice4NbResponse goodsObject, Set<String> roomTypeIDSet, Set<Integer> rateplanIDSet) {
+	public List<IncrRate> toNBObject(GetBasePrice4NbResponse goodsObject, Set<String> roomTypeIDSet, Set<Integer> rateplanIDSet) {
 		if (goodsObject.getMhotel_base_price() != null) {
 			int dataSize = goodsObject.getMhotel_base_price().size();
 			if (dataSize > 0) {
-				List<Map<String, Object>> rates = new LinkedList<Map<String, Object>>();
+				List<IncrRate> rates = new LinkedList<IncrRate>();
 				for (int i = 0; i < dataSize; i++) {
 					MHotelBasePrice mhotelBasePrice = goodsObject.mhotel_base_price.get(i);
 					if (mhotelBasePrice != null) {
@@ -49,24 +48,24 @@ public class IncrRateAdapter {
 													int baseSize = rpBasePrice.getBase_price().size();
 													for (int m = 0; m < baseSize; m++) {
 														BasePrice basePrice = rpBasePrice.getBase_price().get(m);
-														Map<String, Object> rate = new HashMap<String, Object>();
-														rate.put("AddBed", basePrice.allow_add_bed ? new Double(
+														IncrRate rate = new IncrRate();
+														rate.setAddBed(basePrice.allow_add_bed ? new Double(
 																basePrice.add_bed_price / 1000.0) : -1d);
-														rate.put("CurrencyCode", basePrice.getCurrency_code());
-														rate.put("EndDate", new Date(1000 * (long) basePrice.getEnd_date()));
-														rate.put("HotelCode", hotelCode);
-														rate.put("HotelID", hotelId);
-														rate.put("Member", new Double(basePrice.getGeneral_price_origin()) / 1000);
-														rate.put("MemberCost", new Double(basePrice.getGeneral_cost_origin()) / 1000);
-														rate.put("PriceID", basePrice.getPrice_id());
-														rate.put("RateplanID", ratePlanId);
-														rate.put("RoomTypeID", roomTypeId);
-														rate.put("StartDate", new Date(1000 * (long) basePrice.getStart_date()));
-														rate.put("Status", basePrice.getStatus() == 1);
-														rate.put("Weekend", new Double(basePrice.getWeekend_price_origin()) / 1000);
-														rate.put("WeekendCost", new Double(basePrice.getWeekend_cost_origin()) / 1000);
-														rate.put("InsertTime", new Date());
-														rate.put("OperateTime", new Date());
+														rate.setCurrencyCode(basePrice.getCurrency_code());
+														rate.setEndDate(new Date(1000 * (long) basePrice.getEnd_date()));
+														rate.setHotelCode(hotelCode);
+														rate.setHotelID(hotelId);
+														rate.setMember(new Double(basePrice.getGeneral_price_origin()) / 1000);
+														rate.setMemberCost(new Double(basePrice.getGeneral_cost_origin()) / 1000);
+														rate.setPriceID(basePrice.getPrice_id());
+														rate.setRateplanId(ratePlanId);
+														rate.setRoomTypeId(roomTypeId);
+														rate.setStartDate(new Date(1000 * (long) basePrice.getStart_date()));
+														rate.setStatus(basePrice.getStatus() == 1);
+														rate.setWeekend(new Double(basePrice.getWeekend_price_origin()) / 1000);
+														rate.setWeekendCost(new Double(basePrice.getWeekend_cost_origin()) / 1000);
+														rate.setInsertTime(new Date());
+														rate.setOperateTime(new Date());
 														rates.add(rate);
 													}
 												}

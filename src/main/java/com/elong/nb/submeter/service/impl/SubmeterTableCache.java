@@ -5,6 +5,7 @@
  */
 package com.elong.nb.submeter.service.impl;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -13,7 +14,6 @@ import javax.annotation.Resource;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.CollectionUtils;
 
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
@@ -39,17 +39,10 @@ public class SubmeterTableCache {
 
 	private static final Logger logger = Logger.getLogger("SubmeterLogger");
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_job", "redis_job");
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
 
 	@Resource
 	private SubmeterTableDao submeterTableDao;
-
-	/** 
-	 * redis分布式锁cachekey	
-	 *
-	 * ICacheKey SubmeterTableCache.java lockCacheKey
-	 */
-	private static final ICacheKey lockCacheKey = RedisManager.getCacheKey(SubmeterConst.SUMETER_REDIS_LOCK_KEY);
 
 	/** 
 	 * 上次缓存更新时间
@@ -66,46 +59,24 @@ public class SubmeterTableCache {
 	 * @return
 	 */
 	public List<String> queryNoEmptySubTableList(String tablePrefix, boolean isDesc) {
-		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
-		List<String> subTableNameList = redisManager.pull(cacheKey);
+		ICacheKey tablesCacheKey = RedisManager.getCacheKey(MessageFormat
+				.format(SubmeterConst.SUBMETER_NOEMPTY_TABLENAMES_KEY, tablePrefix));
+		List<String> subTableNameList = redisManager.pull(tablesCacheKey);
+
+		// 缓存中获取到list升序的，根据isDesc决定是否倒序，直接返回
 		long currentTime = System.currentTimeMillis();
-		// 缓存中获取到list默认降序的，根据isDesc决定是否倒序，直接返回
-		if (!CollectionUtils.isEmpty(subTableNameList) && (currentTime - lastChangeTime) <= 3 * 60 * 1000) {
-			if (!isDesc) {
+		if (subTableNameList != null && subTableNameList.size() > 0 && (currentTime - lastChangeTime) <= 10 * 60 * 1000) {
+			if (isDesc) {
 				Collections.reverse(subTableNameList);
 			}
 			return subTableNameList;
 		}
+
+		// 数据库获取到list降序的，根据isDesc决定是否倒序，直接返回
+		subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%");
+		// 刷新redis数据
+		refresh(tablePrefix, subTableNameList);
 		lastChangeTime = currentTime;
-		// 数据库获取到表名list
-		subTableNameList = submeterTableDao.queryNoEmptySubTableList(tablePrefix + "%", isDesc);
-		if (CollectionUtils.isEmpty(subTableNameList))
-			return Collections.emptyList();
-
-		// 由于存入redis是要符合先进后出，所以如果倒序list，需要反序
-		if (isDesc) {
-			Collections.reverse(subTableNameList);
-		}
-
-		String source = "UUID = " + UUID.randomUUID().toString() + ",put all noempty tablenames from db into redis";
-		long lockTime = lock(source);
-		try {
-			// 清除老数据
-			redisManager.del(cacheKey);
-			// 存入redis
-			for (String subTableName : subTableNameList) {
-				redisManager.lpush(cacheKey, subTableName.getBytes());
-				redisManager.ltrim(cacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
-			}
-		} finally {
-			unlock(source, lockTime);
-		}
-		// redis重新获取
-		subTableNameList = redisManager.pull(cacheKey);
-		if (CollectionUtils.isEmpty(subTableNameList))
-			return Collections.emptyList();
-
-		// 根据isDesc决定是否倒序，返回
 		if (!isDesc) {
 			Collections.reverse(subTableNameList);
 		}
@@ -116,26 +87,56 @@ public class SubmeterTableCache {
 	 * 指定tablePrefix的非空分表存入redis
 	 *
 	 * @param tablePrefix
-	 * @param newTableName
+	 * @param newTableNames
 	 */
-	public void lpushLimit(String tablePrefix, String newTableName) {
-		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
-		// 暂时下下策
-		List<String> subTableNameList = redisManager.pull(cacheKey);
-		if (subTableNameList != null && subTableNameList.contains(newTableName))
-			return;
-
-		String source = "UUID = " + UUID.randomUUID().toString() + ",push neweast tablename into redis when inserting data";
-		long lockTime = lock(source);
+	private void refresh(String tablePrefix, List<String> subTableNameList) {
+		ICacheKey lockCacheKey = RedisManager.getCacheKey(MessageFormat.format(SubmeterConst.SUBMETER_REDIS_LOCK_KEY, tablePrefix));
+		String source = "UUID = " + UUID.randomUUID().toString() + ",refresh noempty tablenames from db into redis";
+		long lockTime = lock(lockCacheKey, source);
 		try {
-			redisManager.lpush(cacheKey, newTableName.getBytes());
-			redisManager.ltrim(cacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
+			ICacheKey tablesCacheKey = RedisManager.getCacheKey(MessageFormat.format(SubmeterConst.SUBMETER_NOEMPTY_TABLENAMES_KEY,
+					tablePrefix));
+			redisManager.del(tablesCacheKey);
+			for (String subTableName : subTableNameList) {
+				redisManager.lpush(tablesCacheKey, subTableName.getBytes());
+				redisManager.ltrim(tablesCacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
+			}
 		} finally {
-			unlock(source, lockTime);
+			unlock(lockCacheKey, source, lockTime);
 		}
 	}
 
-	private long lock(String source) {
+	/** 
+	 * 指定tablePrefix的非空分表存入redis
+	 *
+	 * @param tablePrefix
+	 * @param newTableName
+	 */
+	public void lpushLimit(String tablePrefix, String newTableName) {
+		ICacheKey tablesCacheKey = RedisManager.getCacheKey(MessageFormat
+				.format(SubmeterConst.SUBMETER_NOEMPTY_TABLENAMES_KEY, tablePrefix));
+		List<String> subTableNameList = redisManager.pull(tablesCacheKey);
+		if (subTableNameList != null && subTableNameList.contains(newTableName))
+			return;
+
+		ICacheKey lockCacheKey = RedisManager.getCacheKey(MessageFormat.format(SubmeterConst.SUBMETER_REDIS_LOCK_KEY, tablePrefix));
+		String source = "UUID = " + UUID.randomUUID().toString() + ",push neweast tablename into redis when inserting data";
+		long lockTime = lock(lockCacheKey, source);
+		try {
+			redisManager.lpush(tablesCacheKey, newTableName.getBytes());
+			redisManager.ltrim(tablesCacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
+		} finally {
+			unlock(lockCacheKey, source, lockTime);
+		}
+	}
+
+	/** 
+	 * 不完善，后续改为调统一分布式锁服务 
+	 *
+	 * @param source
+	 * @return
+	 */
+	private long lock(ICacheKey lockCacheKey, String source) {
 		while (redisManager.setnx(lockCacheKey, "lock") == 0) {
 			try {
 				Thread.sleep(1000);
@@ -146,7 +147,7 @@ public class SubmeterTableCache {
 		return System.currentTimeMillis();
 	}
 
-	private void unlock(String source, long lockTime) {
+	private void unlock(ICacheKey lockCacheKey, String source, long lockTime) {
 		redisManager.del(lockCacheKey);
 		logger.info("lock time = " + (System.currentTimeMillis() - lockTime) + ",unlock successfully.invoke position = " + source);
 	}

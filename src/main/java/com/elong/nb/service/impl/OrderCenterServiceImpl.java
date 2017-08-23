@@ -14,9 +14,10 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
+import com.elong.nb.common.model.NbapiHttpRequest;
 import com.elong.nb.common.util.CommonsUtil;
+import com.elong.nb.common.util.HttpClientUtil;
 import com.elong.nb.service.OrderCenterService;
-import com.elong.nb.util.HttpClientUtils;
 
 /**
  * 订单中心主动拉取方式（兜底）
@@ -101,13 +102,16 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 	 */
 	private String getOrderData(Map<String, Object> reqParams, String reqUrl) {
 		// 构建请求参数
+		NbapiHttpRequest nbapiHttpRequest = new NbapiHttpRequest();
+		nbapiHttpRequest.setUrl(reqUrl);
 		String reqData = JSON.toJSONString(reqParams);
+		nbapiHttpRequest.setParamStr(reqData);
 		String result = null;
 		int reqCount = 0;
 		while (StringUtils.isEmpty(result) && ++reqCount <= 2) {
 			try {
 				// 从订单中心获取订单数据
-				result = HttpClientUtils.httpPost(reqUrl, reqData, "application/json;charset=utf8");
+				result = HttpClientUtil.httpJsonPost(nbapiHttpRequest);
 			} catch (Exception e) {
 				logger.error("getOrderData from orderCenter error = " + e.getMessage(), e);
 			}

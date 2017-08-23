@@ -5,6 +5,7 @@
  */
 package com.elong.nb.dao;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public interface IncrInventoryDao {
 	 */
 	@DataSource("dataSource_nbsubmeter_write")
 	public int createSubTable(@Param("tableName") String tableName);
-	
+
 	/** 
 	 * 获取最后一条记录 
 	 *
@@ -64,7 +65,7 @@ public interface IncrInventoryDao {
 	 */
 	@DataSource("dataSource_nbsubmeter_write")
 	public IncrInventory getLastIncrFromWrite(@Param("subTableName") String subTableName);
-	
+
 	/** 
 	 * 获取最后一条记录 
 	 *
@@ -73,5 +74,16 @@ public interface IncrInventoryDao {
 	 */
 	@DataSource("dataSource_nbsubmeter_read")
 	public IncrInventory getLastIncrFromRead(@Param("subTableName") String subTableName);
+
+	/** 
+	 * 获取指定时间的记录数
+	 *
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	@DataSource("dataSource_nbsubmeter_read")
+	public int getRecordCountFromRead(@Param("subTableName") String subTableName, @Param("startTime") Date startTime,
+			@Param("endTime") Date endTime);
 
 }

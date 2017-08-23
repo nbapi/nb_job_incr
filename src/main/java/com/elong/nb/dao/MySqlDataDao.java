@@ -8,8 +8,6 @@ package com.elong.nb.dao;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.annotations.Param;
-
 import com.elong.nb.db.DataSource;
 
 /**
@@ -45,14 +43,5 @@ public interface MySqlDataDao {
 	 */
 	@DataSource("dataSource_mysql_product")
 	public List<Map<String, Object>> getPriceOperationIncrement(Map<String, Object> params);
-
-	/** 
-	 * 根据id查询价格变化流水 
-	 *
-	 * @param id
-	 * @return
-	 */
-	@DataSource("dataSource_mysql_product")
-	public Map<String, Object> getPriceOperationIncrementByid(@Param("id") Long id);
 
 }

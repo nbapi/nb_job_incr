@@ -6,8 +6,11 @@
 package com.elong.nb.dao;
 
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
 
 import com.elong.nb.db.DataSource;
 
@@ -71,5 +74,15 @@ public interface IncrStateDao {
 	 */
 	@DataSource("dataSource_nbhotelincr_read")
 	public Map<String, Object> getLastIncrFromRead();
+	
+	/** 
+	 * 获取指定时间的记录数
+	 *
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	@DataSource("dataSource_nbhotelincr_read")
+	public int getRecordCountFromRead(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
 }

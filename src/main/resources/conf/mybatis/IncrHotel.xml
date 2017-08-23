@@ -14,7 +14,7 @@
 	<!-- 批量插入IncrHotel到指定分表subTableName -->
 	<insert id="bulkInsertSub" parameterType="java.util.List">
 		insert into ${subTableName}
-		(IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime)
+		(IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,Channel,ChangeTime,InsertTime)
 		values
 		<foreach collection="list" item="incrHotel" index="index" separator=",">
 			(
@@ -25,6 +25,7 @@
 			#{incrHotel.EndDate},
 			#{incrHotel.Trigger,jdbcType=VARCHAR},
 			#{incrHotel.TriggerID,jdbcType=INTEGER},
+			#{incrHotel.Channel,jdbcType=INTEGER},
 			#{incrHotel.ChangeTime},
 			#{incrHotel.InsertTime}
 			)
@@ -42,10 +43,12 @@
 		`EndDate` datetime NOT NULL,
 		`Trigger` varchar(50) NOT NULL,
 		`TriggerID` bigint(20) NOT NULL,
+		`Channel` INT(1)NOT NULL DEFAULT 0,
 		`ChangeTime` datetime NOT NULL,
 		`InsertTime` datetime NOT NULL,
 		PRIMARY KEY (`IncrID`),
-		KEY `IX_ChangeTime` (`ChangeTime`),
+		KEY `IX_ChangeTime`
+		(`ChangeTime`),
 		KEY `IX_ID`
 		(`ID`),
 		KEY `IX_IncrHotel_Trigger` (`Trigger`,`TriggerID`)
@@ -53,15 +56,25 @@
 	</update>
 
 	<select id="getLastIncrFromWrite" resultType="incrHotel">
-		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime 
-		from ${subTableName} 
+		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime
+		from ${subTableName}
 		order by IncrID desc limit 0,1
 	</select>
 
 	<select id="getLastIncrFromRead" resultType="incrHotel">
-		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime 
-		from ${subTableName} 
+		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime
+		from ${subTableName}
 		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
+		select count(*) from ${subTableName}
+		<where>
+			<![CDATA[ 
+				and InsertTime <= #{endTime} 
+				and InsertTime >= #{startTime} 
+			]]>
+		</where>
 	</select>
 
 </mapper>
