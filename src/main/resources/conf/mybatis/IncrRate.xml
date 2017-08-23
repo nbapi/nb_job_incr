@@ -63,7 +63,7 @@
 		`StartDate` datetime NOT NULL,
 		`EndDate` datetime NOT NULL,
 		`Status` INT(11)NOT NULL,
-		`Channel` INT(1)NOT NULL,
+		`Channel` INT(1)NOT NULL DEFAULT 0,
 		`Member` DECIMAL(10, 2)NOT NULL,
 		`Weekend` DECIMAL(10, 2)NOT NULL,
 		`MemberCost` DECIMAL(10, 2)NOT NULL,

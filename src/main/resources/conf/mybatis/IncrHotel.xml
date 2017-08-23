@@ -43,7 +43,7 @@
 		`EndDate` datetime NOT NULL,
 		`Trigger` varchar(50) NOT NULL,
 		`TriggerID` bigint(20) NOT NULL,
-		`Channel` INT(1)NOT NULL,
+		`Channel` INT(1)NOT NULL DEFAULT 0,
 		`ChangeTime` datetime NOT NULL,
 		`InsertTime` datetime NOT NULL,
 		PRIMARY KEY (`IncrID`),
