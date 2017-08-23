@@ -80,7 +80,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					incrHotel.setStartDate(item.getStartDate());
 					incrHotel.setEndDate(item.getEndDate());
 					incrHotel.setTrigger(triggerRate);
-					incrHotel.setTriggerID(Long.valueOf(item.getIncrID() + ""));
+					incrHotel.setTriggerID(Long.valueOf(item.getID() + ""));
 					incrHotel.setChannel(item.getChannel());
 					incrHotel.setInsertTime(new Date());
 					hotels.add(incrHotel);
