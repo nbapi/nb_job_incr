@@ -6,6 +6,7 @@
 package com.elong.nb.submeter.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -47,6 +48,11 @@ public class IncrRateSubmeterService extends AbstractSubmeterService<IncrRate> {
 	@Override
 	protected int bulkInsertSub(String subTableName, List<IncrRate> subRowList) {
 		return incrRateDao.bulkInsertSub(subTableName, subRowList);
+	}
+
+	@Override
+	protected List<IncrRate> getIncrDataList(String subTableName, Map<String, Object> params) {
+		return incrRateDao.getIncrRates(subTableName, params);
 	}
 
 }

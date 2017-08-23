@@ -44,6 +44,8 @@ public class SyncIncrToDBJob {
 		try {
 			NbapiHttpRequest nbapiHttpRequest = new NbapiHttpRequest();
 			nbapiHttpRequest.setUrl(param);
+			nbapiHttpRequest.setConnectTimeout(10*1000);
+			nbapiHttpRequest.setSocketTimeout(10*60*1000);
 			String result = HttpClientUtil.httpGet(nbapiHttpRequest);
 			ResponseResult response = JSON.parseObject(result, ResponseResult.class);
 			if (response != null) {
