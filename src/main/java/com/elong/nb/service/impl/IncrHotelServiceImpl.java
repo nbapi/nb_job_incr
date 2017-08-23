@@ -51,6 +51,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 
 	@Override
 	public void syncHotelToDBFromRate() {
+		long beginTime = System.currentTimeMillis();
 		final String triggerRate = "Rate";
 		try {
 			while (true) {
@@ -70,7 +71,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 				rates = incrHotelRepository.getIncrRates(incrRateTriggerID, MaxRecordCount);
 				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerRate + ",rates size = " + rates.size());
-				if (rates == null || rates.size() == 0)
+				if (rates == null || rates.size() == 0 || (endTime - beginTime) > 10 * 60 * 1000)
 					break;
 				List<IncrHotel> hotels = new ArrayList<IncrHotel>();
 				for (IncrRate item : rates) {
@@ -95,6 +96,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 
 	@Override
 	public void syncHotelToDBFromInventory() {
+		long beginTime = System.currentTimeMillis();
 		final String triggerInventory = "Inventory";
 		try {
 			while (true) {
@@ -115,7 +117,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerInventory + ",inventorys size = "
 						+ inventorys.size());
-				if (inventorys == null || inventorys.size() == 0)
+				if (inventorys == null || inventorys.size() == 0||(endTime - beginTime) > 10 * 60 * 1000)
 					break;
 				List<IncrHotel> hotels = new ArrayList<IncrHotel>();
 				for (IncrInventory item : inventorys) {
