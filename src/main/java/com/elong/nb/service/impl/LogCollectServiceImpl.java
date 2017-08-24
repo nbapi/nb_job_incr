@@ -194,7 +194,7 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrRate.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrRate.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(logTime, "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrRate.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrRate.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		int recordCount = incrRateDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
 		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
