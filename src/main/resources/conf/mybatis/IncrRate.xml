@@ -5,7 +5,7 @@
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条IncrRate -->
 	<select id="getIncrRates" resultType="incrRate">
 		select
-		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,SellChannel,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
+		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Channel,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
 		from ${subTableName}
 		<where>
 			<if test="params.changeTime != null and !params.changeTime.equals('')">
@@ -21,7 +21,7 @@
 	<!-- 批量插入IncrRate -->
 	<insert id="bulkInsertSub">
 		insert into ${subTableName}
-		(IncrID,ID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,SellChannel,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID)
+		(IncrID,ID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Channel,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID)
 		values
 		<foreach collection="list" item="incrRate" index="index" separator=",">
 			(
@@ -35,7 +35,7 @@
 			#{incrRate.StartDate},
 			#{incrRate.EndDate},
 			#{incrRate.Status,jdbcType=INTEGER},
-			#{incrRate.SellChannel,jdbcType=INTEGER},
+			#{incrRate.Channel,jdbcType=INTEGER},
 			#{incrRate.Member,jdbcType=DOUBLE},
 			#{incrRate.Weekend,jdbcType=DOUBLE},
 			#{incrRate.MemberCost,jdbcType=DOUBLE},
@@ -63,7 +63,7 @@
 		`StartDate` datetime NOT NULL,
 		`EndDate` datetime NOT NULL,
 		`Status` INT(11)NOT NULL,
-		`SellChannel` INT(11)NOT NULL DEFAULT 0,
+		`Channel` INT(1)NOT NULL DEFAULT 0,
 		`Member` DECIMAL(10, 2)NOT NULL,
 		`Weekend` DECIMAL(10, 2)NOT NULL,
 		`MemberCost` DECIMAL(10, 2)NOT NULL,
