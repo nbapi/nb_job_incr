@@ -24,6 +24,11 @@ import java.util.List;
  */
 public interface ISubmeterService<T> {
 	
+	/** 
+	 * 获取最后一张非空表名 
+	 *
+	 * @return
+	 */
 	public String getLastTableName();
 
 	/** 

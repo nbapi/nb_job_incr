@@ -22,8 +22,16 @@ package com.elong.nb.service;
  */
 public interface IIncrHotelService {
 	
+	/** 
+	 * 同步价格增量到酒店增量
+	 *
+	 */
 	public void syncHotelToDBFromRate();
 	
+	/** 
+	 * 同步库存增量到酒店增量 
+	 *
+	 */
 	public void syncHotelToDBFromInventory();
 
 }
