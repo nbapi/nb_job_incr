@@ -82,7 +82,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					incrHotel.setEndDate(item.getEndDate());
 					incrHotel.setTrigger(triggerRate);
 					incrHotel.setTriggerID(Long.valueOf(item.getID() + ""));
-					incrHotel.setChannel(item.getChannel());
+					incrHotel.setSellChannel(item.getSellChannel());
 					incrHotel.setInsertTime(new Date());
 					hotels.add(incrHotel);
 				}
@@ -128,7 +128,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					incrHotel.setEndDate(item.getAvailableDate());
 					incrHotel.setTrigger(triggerInventory);
 					incrHotel.setTriggerID(Long.valueOf(item.getID() + ""));
-					incrHotel.setChannel(item.getChannel());
+					incrHotel.setSellChannel(item.getSellChannel());
 					incrHotel.setInsertTime(new Date());
 					hotels.add(incrHotel);
 				}

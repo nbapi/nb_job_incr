@@ -373,9 +373,9 @@ public class IncrInventoryRepository {
 				continue;
 			String hotelCode = incrInventory.getHotelCode();
 			if (filteredSHotelIds.contains(hotelCode)) {
-				incrInventory.setChannel(1);
+				incrInventory.setSellChannel(1);
 			} else {
-				incrInventory.setChannel(0);
+				incrInventory.setSellChannel(0);
 			}
 
 		}
