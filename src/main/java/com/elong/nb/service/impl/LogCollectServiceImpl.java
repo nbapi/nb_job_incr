@@ -118,14 +118,21 @@ public class LogCollectServiceImpl implements LogCollectService {
 		Future<String> future5 = executorService.submit(new Callable<String>() {
 			@Override
 			public String call() throws Exception {
-				return writeIncrHotelLog(logTime);
+				return writeIncrHotelLog(logTime, "Rate");
+			}
+		});
+
+		Future<String> future6 = executorService.submit(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				return writeIncrHotelLog(logTime, "Inventory");
 			}
 		});
 
 		try {
 			logger.info("writeIncrInventoryLog = " + future1.get() + ",writeIncrOrderLog = " + future2.get());
 			logger.info("writeIncrRateLog = " + future3.get() + ",writeIncrStateLog = " + future4.get());
-			logger.info("writeIncrHotelLog = " + future5.get());
+			logger.info("writeIncrHotelLogFromRate = " + future5.get() + ",writeIncrHotelLogFromInventory = " + future6.get());
 			return "Success";
 		} catch (InterruptedException | ExecutionException e) {
 			logger.error(e.getMessage(), e);
@@ -133,18 +140,19 @@ public class LogCollectServiceImpl implements LogCollectService {
 		}
 	}
 
-	private String writeIncrHotelLog(Date logTime) {
+	private String writeIncrHotelLog(Date logTime, String triggerName) {
 		String subTableName = incrHotelSubmeterService.getLastTableName();
-		IncrHotel masterIncrHotel = incrHotelDao.getLastIncrFromWrite(subTableName);
-		IncrHotel slaveIncrHotel = incrHotelDao.getLastIncrFromRead(subTableName);
+		IncrHotel masterIncrHotel = incrHotelDao.getLastIncrFromWrite(subTableName, triggerName);
+		IncrHotel slaveIncrHotel = incrHotelDao.getLastIncrFromRead(subTableName, triggerName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
-		statisticModel.setIncrType(EnumIncrType.Data.name());
+		statisticModel.setIncrType(EnumIncrType.Data.name() + "_" + triggerName);
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrHotel.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrHotelDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
+		int recordCount = incrHotelDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime),
+				triggerName);
 		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";

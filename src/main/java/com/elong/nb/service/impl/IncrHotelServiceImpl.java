@@ -21,6 +21,7 @@ import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.repository.IncrHotelRepository;
 import com.elong.nb.service.IIncrHotelService;
 import com.elong.nb.service.IIncrSetInfoService;
+import com.elong.nb.util.ConfigUtils;
 
 /**
  * IncrHotel服务接口实现
@@ -63,7 +64,9 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 				List<IncrRate> rates = null;
 				startTime = System.currentTimeMillis();
 				long incrRateTriggerID = 0;
-				if (hotel == null) {
+				// 价格增量截止id是否走配置id，0表示走配置，1表示正常流程
+				int incrRateSetEnable = ConfigUtils.getIntConfigValue("IncrRate.last.TriggerID.SetEnable", 1);
+				if (hotel == null || incrRateSetEnable == 0) {
 					incrRateTriggerID = Long.valueOf(incrSetInfoService.get("IncrRate.last.TriggerID"));
 				} else {
 					incrRateTriggerID = hotel.TriggerID;
@@ -90,7 +93,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 				Thread.sleep(200);
 			}
 		} catch (Exception e) {
-			logger.error("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
+			throw new IllegalStateException("SyncHotelToDB,thread dohandler 'IncrRate' error" + e.getMessage(), e);
 		}
 	}
 
@@ -108,7 +111,9 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 				List<IncrInventory> inventorys = null;
 				startTime = System.currentTimeMillis();
 				long incrInventoryTriggerID = 0;
-				if (hotel == null) {
+				// 库存增量截止id是否走配置id，0表示走配置，1表示正常流程
+				int incrInventorySetEnable = ConfigUtils.getIntConfigValue("IncrInventory.last.TriggerID.SetEnable", 1);
+				if (hotel == null || incrInventorySetEnable == 0) {
 					incrInventoryTriggerID = Long.valueOf(incrSetInfoService.get("IncrInventory.last.TriggerID"));
 				} else {
 					incrInventoryTriggerID = hotel.TriggerID;
@@ -117,7 +122,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerInventory + ",inventorys size = "
 						+ inventorys.size());
-				if (inventorys == null || inventorys.size() == 0||(endTime - beginTime) > 10 * 60 * 1000)
+				if (inventorys == null || inventorys.size() == 0 || (endTime - beginTime) > 10 * 60 * 1000)
 					break;
 				List<IncrHotel> hotels = new ArrayList<IncrHotel>();
 				for (IncrInventory item : inventorys) {
@@ -136,7 +141,7 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 				Thread.sleep(200);
 			}
 		} catch (Exception e) {
-			logger.error("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
+			throw new IllegalStateException("SyncHotelToDB,thread dohandler 'IncrInventory' error" + e.getMessage(), e);
 		}
 	}
 

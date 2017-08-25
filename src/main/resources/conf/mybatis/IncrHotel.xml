@@ -58,12 +58,18 @@
 	<select id="getLastIncrFromWrite" resultType="incrHotel">
 		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime
 		from ${subTableName}
+		<where>
+			<if test="triggerName != null and !triggerName.equals('')"> and `Trigger` = #{triggerName} </if>
+		</where>
 		order by IncrID desc limit 0,1
 	</select>
 
 	<select id="getLastIncrFromRead" resultType="incrHotel">
 		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime
 		from ${subTableName}
+		<where>
+			<if test="triggerName != null and !triggerName.equals('')"> and `Trigger` = #{triggerName} </if>
+		</where>
 		order by IncrID desc limit 0,1
 	</select>
 
@@ -74,6 +80,7 @@
 				and InsertTime <= #{endTime} 
 				and InsertTime >= #{startTime} 
 			]]>
+			<if test="triggerName != null and !triggerName.equals('')"> and `Trigger` = #{triggerName} </if>
 		</where>
 	</select>
 
