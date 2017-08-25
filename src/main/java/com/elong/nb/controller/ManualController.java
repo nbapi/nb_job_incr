@@ -5,6 +5,8 @@
  */
 package com.elong.nb.controller;
 
+import java.text.MessageFormat;
+
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Controller;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
+import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.impl.SubmeterTableCache;
@@ -137,10 +140,11 @@ public class ManualController {
 	 */
 	@RequestMapping(value = "/test/delSubmeterTableCache/{tablePrefix}")
 	public @ResponseBody String delSubmeterTableCache(@PathVariable("tablePrefix") String tablePrefix) {
-		ICacheKey cacheKey = RedisManager.getCacheKey(tablePrefix + ".Submeter.TableNames");
+		ICacheKey tablesCacheKey = RedisManager.getCacheKey(MessageFormat
+				.format(SubmeterConst.SUBMETER_NOEMPTY_TABLENAMES_KEY, tablePrefix));
 		try {
 			// 清除老数据
-			redisManager.del(cacheKey);
+			redisManager.del(tablesCacheKey);
 		} catch (Exception e) {
 			return "delSubmeterTableCache error = " + e.getMessage() + ",tablePrefix = " + tablePrefix;
 		}
