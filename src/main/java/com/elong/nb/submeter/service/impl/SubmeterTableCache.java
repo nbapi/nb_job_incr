@@ -123,7 +123,7 @@ public class SubmeterTableCache {
 		String source = "UUID = " + UUID.randomUUID().toString() + ",push neweast tablename into redis when inserting data";
 		long lockTime = lock(lockCacheKey, source);
 		try {
-			redisManager.lpush(tablesCacheKey, newTableName.getBytes());
+			redisManager.push(tablesCacheKey, newTableName.getBytes());
 			redisManager.ltrim(tablesCacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
 		} finally {
 			unlock(lockCacheKey, source, lockTime);
