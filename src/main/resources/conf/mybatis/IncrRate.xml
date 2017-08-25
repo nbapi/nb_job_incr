@@ -5,7 +5,7 @@
 	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条IncrRate -->
 	<select id="getIncrRates" resultType="incrRate">
 		select
-		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Channel,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Channel,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
 		from ${subTableName}
 		<where>
 			<if test="params.changeTime != null and !params.changeTime.equals('')">
@@ -82,14 +82,14 @@
 
 	<select id="getLastIncrFromWrite" resultType="incrRate">
 		select
-		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
 		from ${subTableName}
 		order by IncrID desc limit 0,1
 	</select>
 
 	<select id="getLastIncrFromRead" resultType="incrRate">
 		select
-		IncrID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,RateplanID,HotelCode,StartDate,EndDate,Status,Member,Weekend,MemberCost,WeekendCost,AddBed,ChangeTime,OperateTime,InsertTime,CurrencyCode,PriceID
 		from ${subTableName}
 		order by IncrID desc limit 0,1
 	</select>
