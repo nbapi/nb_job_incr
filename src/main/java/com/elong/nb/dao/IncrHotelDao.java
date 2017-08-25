@@ -62,7 +62,7 @@ public interface IncrHotelDao {
 	 * @return
 	 */
 	@DataSource("dataSource_nbsubmeter_write")
-	public IncrHotel getLastIncrFromWrite(@Param("subTableName") String subTableName, @Param("subTableName") String triggerName);
+	public IncrHotel getLastIncrFromWrite(@Param("subTableName") String subTableName, @Param("triggerName") String triggerName);
 
 	/** 
 	 * 获取最后一条记录 
@@ -71,7 +71,7 @@ public interface IncrHotelDao {
 	 * @return
 	 */
 	@DataSource("dataSource_nbsubmeter_read")
-	public IncrHotel getLastIncrFromRead(@Param("subTableName") String subTableName, @Param("subTableName") String triggerName);
+	public IncrHotel getLastIncrFromRead(@Param("subTableName") String subTableName, @Param("triggerName") String triggerName);
 
 	/** 
 	 * 获取指定时间的记录数
@@ -82,6 +82,6 @@ public interface IncrHotelDao {
 	 */
 	@DataSource("dataSource_nbsubmeter_read")
 	public int getRecordCountFromRead(@Param("subTableName") String subTableName, @Param("startTime") Date startTime,
-			@Param("endTime") Date endTime, @Param("subTableName") String triggerName);
+			@Param("endTime") Date endTime, @Param("triggerName") String triggerName);
 
 }
