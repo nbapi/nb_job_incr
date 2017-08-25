@@ -180,7 +180,7 @@
 		<dependency>
 			<groupId>com.elong.hotel</groupId>
 			<artifactId>healthcheck</artifactId>
-			<version>1.21.4</version>
+			<version>1.21.8</version>
 		</dependency>
 		<!-- add dependencies -->
 		<dependency>
