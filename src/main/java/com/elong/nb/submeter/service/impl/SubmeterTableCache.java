@@ -100,6 +100,7 @@ public class SubmeterTableCache {
 			for (String subTableName : subTableNameList) {
 				redisManager.lpush(tablesCacheKey, subTableName.getBytes());
 				redisManager.ltrim(tablesCacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
+				logger.info("refresh,lpush newest table = " + subTableName);
 			}
 		} finally {
 			unlock(lockCacheKey, source, lockTime);
@@ -125,6 +126,7 @@ public class SubmeterTableCache {
 		try {
 			redisManager.push(tablesCacheKey, newTableName.getBytes());
 			redisManager.ltrim(tablesCacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
+			logger.info("lpushLimit,push newest table = " + newTableName);
 		} finally {
 			unlock(lockCacheKey, source, lockTime);
 		}
