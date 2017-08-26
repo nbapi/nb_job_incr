@@ -42,9 +42,9 @@ import com.elong.nb.submeter.service.ISubmeterService;
 public abstract class AbstractSubmeterService<T extends Idable> implements ISubmeterService<T> {
 
 	protected static final Logger logger = Logger.getLogger("SubmeterLogger");
-	
+
 	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
-	
+
 	@Resource
 	private IImpulseSenderService impulseSenderService;
 
@@ -233,7 +233,12 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	 * @return
 	 */
 	private String getSelectedSubTableName(long lastId) {
-		long tableNumber = (int) Math.ceil(lastId * 1.0 / SubmeterConst.PER_SUBMETER_ROW_COUNT);
+		int submeterRowCount = SubmeterConst.PER_SUBMETER_ROW_COUNT;
+		String configValue = CommonsUtil.CONFIG_PROVIDAR.getProperty("ImpulseSenderFromRedisTest");
+		if (StringUtils.isNotEmpty(configValue)) {
+			submeterRowCount = 100;
+		}
+		long tableNumber = (int) Math.ceil(lastId * 1.0 / submeterRowCount);
 		return getTablePrefix() + "_" + tableNumber;
 	}
 
