@@ -118,16 +118,16 @@ public class SubmeterTableCache {
 	 * @param newTableName
 	 */
 	public void lpushLimit(String tablePrefix, String newTableName) {
-		ICacheKey tablesCacheKey = RedisManager.getCacheKey(MessageFormat
-				.format(SubmeterConst.SUBMETER_NOEMPTY_TABLENAMES_KEY, tablePrefix));
-		List<String> subTableNameList = redisManager.pull(tablesCacheKey);
-		if (subTableNameList != null && subTableNameList.contains(newTableName))
-			return;
-
 		ICacheKey lockCacheKey = RedisManager.getCacheKey(MessageFormat.format(SubmeterConst.SUBMETER_REDIS_LOCK_KEY, tablePrefix));
 		String source = "UUID = " + UUID.randomUUID().toString() + ",push neweast tablename into redis when inserting data";
 		long lockTime = lock(lockCacheKey, source);
 		try {
+			ICacheKey tablesCacheKey = RedisManager.getCacheKey(MessageFormat.format(SubmeterConst.SUBMETER_NOEMPTY_TABLENAMES_KEY,
+					tablePrefix));
+			List<String> subTableNameList = redisManager.pull(tablesCacheKey);
+			if (subTableNameList != null && subTableNameList.contains(newTableName))
+				return;
+
 			redisManager.push(tablesCacheKey, newTableName.getBytes());
 			redisManager.ltrim(tablesCacheKey, 0, SubmeterConst.NOEMPTY_SUMETER_COUNT_IN_REDIS);
 			logger.info("lpushLimit,push newest table = " + newTableName);
