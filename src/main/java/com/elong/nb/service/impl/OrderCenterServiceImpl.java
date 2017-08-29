@@ -106,6 +106,7 @@ public class OrderCenterServiceImpl implements OrderCenterService {
 		nbapiHttpRequest.setUrl(reqUrl);
 		String reqData = JSON.toJSONString(reqParams);
 		nbapiHttpRequest.setParamStr(reqData);
+		nbapiHttpRequest.setContentType("application/json;charset=utf8");
 		String result = null;
 		int reqCount = 0;
 		while (StringUtils.isEmpty(result) && ++reqCount <= 2) {
