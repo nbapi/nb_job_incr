@@ -5,7 +5,6 @@
  */
 package com.elong.nb.repository;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -60,20 +59,6 @@ public class IncrHotelRepository {
 	}
 
 	/** 
-	 * 获取大于指定ChangeTime的maxRecordCount条库存增量
-	 *
-	 * @param changeTime
-	 * @param maxRecordCount
-	 * @return
-	 */
-	public List<IncrInventory> getIncrInventories(Date changeTime, int maxRecordCount) {
-		if (changeTime == null || maxRecordCount == 0) {
-			throw new IllegalArgumentException("GetIncrInventories,the paramter ['changeTime' or 'maxRecordCount'] must not be null or 0.");
-		}
-		return incrInventorySubmeterService.getIncrDataList(changeTime, maxRecordCount);
-	}
-
-	/** 
 	 * 获取大于指定IncrID的maxRecordCount条库存增量
 	 *
 	 * @param incrID
@@ -85,20 +70,6 @@ public class IncrHotelRepository {
 			throw new IllegalArgumentException("GetIncrInventories,the paramter ['incrID' or 'maxRecordCount'] must not be null or 0.");
 		}
 		return incrInventorySubmeterService.getIncrDataList(incrID, maxRecordCount);
-	}
-
-	/** 
-	 * 获取大于指定ChangeTime的maxRecordCount条IncrRate
-	 *
-	 * @param changeTime
-	 * @param maxRecordCount
-	 * @return
-	 */
-	public List<IncrRate> getIncrRates(Date changeTime, int maxRecordCount) {
-		if (changeTime == null || maxRecordCount == 0) {
-			throw new IllegalArgumentException("GetIncrRates,the paramter ['changeTime' or 'maxRecordCount'] must not be null or 0.");
-		}
-		return incrRateSubmeterService.getIncrDataList(changeTime, maxRecordCount);
 	}
 
 	/** 

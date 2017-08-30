@@ -5,7 +5,6 @@
  */
 package com.elong.nb.submeter.service;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -51,15 +50,6 @@ public interface ISubmeterService<T> {
 	 * @return
 	 */
 	public int builkInsert(List<T> rowList);
-
-	/** 
-	 * 获取大于指定lastTime的最早发生变化的增量
-	 *
-	 * @param lastTime
-	 * @param maxRecordCount
-	 * @return
-	 */
-	public List<T> getIncrDataList(Date lastTime, int maxRecordCount);
 
 	/** 
 	 * 获取大于指定lastId的maxRecordCount条增量

@@ -7,7 +7,6 @@ package com.elong.nb.submeter.service.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,43 +146,6 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			successCount += subSuccessCount;
 		}
 		return successCount;
-	}
-
-	/** 
-	 * 获取大于指定lastTime的最早发生变化的增量
-	 *
-	 * @param lastTime
-	 * @param maxRecordCount
-	 * @return 
-	 *
-	 * @see com.elong.nb.service.ISubmeterService#getIncrDataList(java.util.Date, int)    
-	 */
-	@Override
-	public List<T> getIncrDataList(Date lastTime, int maxRecordCount) {
-		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableCache.queryNoEmptySubTableList(tablePrefix, false);
-		if (subTableNameList == null || subTableNameList.size() == 0)
-			return Collections.emptyList();
-
-		List<T> resultList = new ArrayList<T>();
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("changeTime", lastTime);
-
-		subTableNameList.remove(tablePrefix);
-		for (String subTableName : subTableNameList) {
-			if (StringUtils.isEmpty(subTableName))
-				continue;
-			params.put("maxRecordCount", maxRecordCount);
-			List<T> subList = getIncrDataList(subTableName, params);
-			if (subList == null || subList.size() == 0)
-				continue;
-			resultList.addAll(subList);
-			logger.info("subTableName = " + subTableName + ",getIncrDataList params = " + params + ",result size = " + subList.size());
-			if (subList.size() >= maxRecordCount)
-				break;
-			maxRecordCount = maxRecordCount - subList.size();
-		}
-		return resultList;
 	}
 
 	/** 
