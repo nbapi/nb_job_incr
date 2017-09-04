@@ -76,7 +76,6 @@
 		`PriceID` BIGINT(20)DEFAULT '-1',
 		PRIMARY KEY(`IncrID`),
 		KEY `IX_ID` (`ID`),
-		KEY `IX_Channel` (`Channel`),
 		KEY `IX_ChangeTime`(`ChangeTime`)
 		)ENGINE = INNODB AUTO_INCREMENT = 8017729186 DEFAULT CHARSET = utf8
 	</update>
