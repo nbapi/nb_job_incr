@@ -6,6 +6,7 @@
 package com.elong.nb.controller;
 
 import java.text.MessageFormat;
+import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -20,7 +21,7 @@ import com.elong.nb.cache.RedisManager;
 import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.IImpulseSenderService;
-import com.elong.nb.submeter.service.impl.SubmeterTableCache;
+import com.elong.nb.submeter.service.impl.SubmeterTableCalculate;
 
 /**
  * 手动修改某些值
@@ -48,7 +49,7 @@ public class ManualController {
 	private IIncrSetInfoService incrSetInfoService;
 
 	@Resource
-	private SubmeterTableCache submeterTableCache;
+	private SubmeterTableCalculate submeterTableCache;
 
 	/** 
 	 * 获取当前使用非空表名集合
@@ -58,7 +59,9 @@ public class ManualController {
 	 */
 	@RequestMapping(value = "/test/submeterTableCache/{tablePrefix}")
 	public @ResponseBody String getSubmeterTableNames(@PathVariable("tablePrefix") String tablePrefix) {
-		return JSON.toJSONString(submeterTableCache.queryNoEmptySubTableList(tablePrefix, false));
+		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
+		List<String> subTableNameList = submeterTableCache.querySubTableNameList(0, maxId, tablePrefix, true);
+		return JSON.toJSONString(subTableNameList);
 	}
 
 	/** 

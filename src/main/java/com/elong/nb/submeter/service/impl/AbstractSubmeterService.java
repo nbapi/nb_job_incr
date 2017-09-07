@@ -19,7 +19,6 @@ import org.apache.log4j.Logger;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.model.bean.Idable;
-import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.ISubmeterService;
 
@@ -48,7 +47,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	private IImpulseSenderService impulseSenderService;
 
 	@Resource
-	private SubmeterTableCache submeterTableCache;
+	private SubmeterTableCalculate submeterTableCache;
 
 	/** 
 	 * 获取最后一张非空表名 
@@ -60,17 +59,9 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public String getLastTableName() {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableCache.queryNoEmptySubTableList(tablePrefix, true);
-		if (subTableNameList == null || subTableNameList.size() == 0)
-			return null;
-
-		subTableNameList.remove(tablePrefix);
-		for (String subTableName : subTableNameList) {
-			if (StringUtils.isEmpty(subTableName))
-				continue;
-			return subTableName;
-		}
-		return null;
+		long curId = impulseSenderService.curId(tablePrefix + "_ID");
+		long tableNumber = submeterTableCache.getSelectedSubTableNumber(curId);
+		return tablePrefix + "_" + tableNumber;
 	}
 
 	/** 
@@ -105,7 +96,9 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			long ID = beginID++;
 			row.setID(ID);
 
-			String subTableName = getSelectedSubTableName(ID);
+			long tableNumber = submeterTableCache.getSelectedSubTableNumber(ID);
+			String subTableName = tablePrefix + "_" + tableNumber;
+
 			List<T> subRowList = subTableDataMap.get(subTableName);
 			if (subRowList == null) {
 				subRowList = new ArrayList<T>();
@@ -137,12 +130,6 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			}
 			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName = " + subTableName
 					+ ",bulkInsert successCount = " + subSuccessCount);
-			if (subSuccessCount > 0) {
-				startTime = System.currentTimeMillis();
-				submeterTableCache.lpushLimit(tablePrefix, subTableName);
-				logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",submeterTableCache.lpushLimit subTableName = "
-						+ subTableName);
-			}
 			successCount += subSuccessCount;
 		}
 		return successCount;
@@ -160,19 +147,15 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public List<T> getIncrDataList(long lastId, int maxRecordCount) {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableCache.queryNoEmptySubTableList(tablePrefix, false);
+		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
+		List<String> subTableNameList = submeterTableCache.querySubTableNameList(lastId, maxId, tablePrefix, false);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return Collections.emptyList();
-
-		String selectTableName = getSelectedSubTableName(lastId);
-		int fromIndex = subTableNameList.indexOf(selectTableName);
-		fromIndex = (fromIndex == -1) ? 0 : fromIndex;
-		List<String> selectSubTableList = subTableNameList.subList(fromIndex, subTableNameList.size());
 
 		List<T> resultList = new ArrayList<T>();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("ID", lastId);
-		for (String subTableName : selectSubTableList) {
+		for (String subTableName : subTableNameList) {
 			if (StringUtils.isEmpty(subTableName))
 				continue;
 			params.put("maxRecordCount", maxRecordCount);
@@ -189,22 +172,6 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	}
 
 	/** 
-	 * 获取id对应分表名 
-	 *
-	 * @param lastId
-	 * @return
-	 */
-	private String getSelectedSubTableName(long lastId) {
-		int submeterRowCount = SubmeterConst.PER_SUBMETER_ROW_COUNT;
-		String configValue = CommonsUtil.CONFIG_PROVIDAR.getProperty("ImpulseSenderFromRedisTest");
-		if (StringUtils.isNotEmpty(configValue)) {
-			submeterRowCount = 100;
-		}
-		long tableNumber = (int) Math.ceil(lastId * 1.0 / submeterRowCount);
-		return getTablePrefix() + "_" + tableNumber;
-	}
-
-	/** 
 	 * 获取等于指定trigger的最后一条增量（根据需要子类选择覆盖）
 	 *
 	 * @param trigger
@@ -215,7 +182,8 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	@Override
 	public T getLastIncrData(String trigger) {
 		String tablePrefix = getTablePrefix();
-		List<String> subTableNameList = submeterTableCache.queryNoEmptySubTableList(tablePrefix, true);
+		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
+		List<String> subTableNameList = submeterTableCache.querySubTableNameList(0, maxId, tablePrefix, true);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return null;
 
