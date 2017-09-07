@@ -30,14 +30,6 @@ import com.elong.nb.db.DataSource;
 public interface SubmeterTableDao {
 
 	/** 
-	 * 查询指定前缀的末尾10张非空分表
-	 *
-	 * @param tablePrefix
-	 * @return
-	 */
-	public List<String> queryNoEmptySubTableList(@Param("tablePrefix") String tablePrefix);
-
-	/** 
 	 * 查询指定前缀的分表
 	 *
 	 * @param tablePrefix
