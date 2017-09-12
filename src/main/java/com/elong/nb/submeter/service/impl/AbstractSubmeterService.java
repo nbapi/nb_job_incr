@@ -148,7 +148,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	public List<T> getIncrDataList(long lastId, int maxRecordCount) {
 		String tablePrefix = getTablePrefix();
 		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
-		List<String> subTableNameList = submeterTableCache.querySubTableNameList(lastId, maxId, tablePrefix, false);
+		List<String> subTableNameList = submeterTableCache.querySubTableNameList(lastId, maxId, tablePrefix, true);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return Collections.emptyList();
 
@@ -183,7 +183,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	public T getLastIncrData(String trigger) {
 		String tablePrefix = getTablePrefix();
 		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
-		List<String> subTableNameList = submeterTableCache.querySubTableNameList(0, maxId, tablePrefix, true);
+		List<String> subTableNameList = submeterTableCache.querySubTableNameList(0, maxId, tablePrefix, false);
 		if (subTableNameList == null || subTableNameList.size() == 0)
 			return null;
 
