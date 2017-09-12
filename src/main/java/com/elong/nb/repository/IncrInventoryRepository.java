@@ -32,6 +32,7 @@ import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmRequest;
 import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmResponse;
 import com.elong.hotel.searchagent.thrift.dss.MhotelAttr;
 import com.elong.hotel.searchagent.thrift.dss.ShotelAttr;
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.adataper.IncrInventoryAdapter;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.submeter.service.ISubmeterService;
@@ -151,8 +152,31 @@ public class IncrInventoryRepository {
 		if (recordCount == 0)
 			return;
 		logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
+		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryInsertSizePerTask");
+		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 5000 : Integer.valueOf(builkInsertSize);
+		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+		List<MysqlInventoryThread> callableList = new ArrayList<MysqlInventoryThread>();
+		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+			int startNum = (pageIndex - 1) * pageSize;
+			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			MysqlInventoryThread mysqlInventoryThread = new MysqlInventoryThread(incrInventorys.subList(startNum, endNum));
+			callableList.add(mysqlInventoryThread);
+		}
+
+		// 多线程插数据
+		int mysqlInventoryThreadCount = ConfigUtils.getIntConfigValue("MysqlInventoryThreadCount", 10);
+		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(mysqlInventoryThreadCount, 300);
 		long startTime = System.currentTimeMillis();
-		int successCount = incrInventorySubmeterService.builkInsert(incrInventorys);
+		int successCount = 0;
+		try {
+			List<Future<Integer>> futureList = executorService.invokeAll(callableList);
+			for (Future<Integer> future : futureList) {
+				int perThreadSuccessCount = future.get();
+				successCount += perThreadSuccessCount;
+			}
+		} catch (InterruptedException | ExecutionException e) {
+			throw new IllegalStateException(e.getMessage(), e);
+		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert successfully,successCount = "
 				+ successCount);
 	}
@@ -401,6 +425,35 @@ public class IncrInventoryRepository {
 		@Override
 		public List<IncrInventory> call() throws Exception {
 			return getIncrInventoryList(productInventoryIncrementList);
+		}
+
+	}
+
+	/**
+	 * 数据库插入数据任务
+	 *
+	 * <p>
+	 * 修改历史:											<br>  
+	 * 修改日期    		修改人员   	版本	 		修改内容<br>  
+	 * -------------------------------------------------<br>  
+	 * 2017年9月12日 上午11:32:51   suht     1.0    	初始化创建<br>
+	 * </p> 
+	 *
+	 * @author		suht  
+	 * @version		1.0  
+	 * @since		JDK1.7
+	 */
+	private class MysqlInventoryThread implements Callable<Integer> {
+
+		private List<IncrInventory> incrInventoryList;
+
+		public MysqlInventoryThread(List<IncrInventory> incrInventoryList) {
+			this.incrInventoryList = incrInventoryList;
+		}
+
+		@Override
+		public Integer call() throws Exception {
+			return incrInventorySubmeterService.builkInsert(incrInventoryList);
 		}
 
 	}
