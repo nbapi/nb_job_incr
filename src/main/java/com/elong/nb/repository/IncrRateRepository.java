@@ -126,6 +126,7 @@ public class IncrRateRepository {
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsRateThreadCount, 300);
 		try {
 			List<Future<List<IncrRate>>> futureList = executorService.invokeAll(callableList);
+			executorService.shutdown();
 			for (Future<List<IncrRate>> future : futureList) {
 				List<IncrRate> threadIncrRates = future.get();
 				incrRates.addAll(threadIncrRates);

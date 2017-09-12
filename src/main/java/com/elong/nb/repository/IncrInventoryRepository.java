@@ -103,6 +103,7 @@ public class IncrInventoryRepository {
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsInventoryThreadCount, 300);
 		try {
 			List<Future<List<IncrInventory>>> futureList = executorService.invokeAll(callableList);
+			executorService.shutdown();
 			for (Future<List<IncrInventory>> future : futureList) {
 				List<IncrInventory> threadIncrInventorys = future.get();
 				incrInventorys.addAll(threadIncrInventorys);
@@ -162,14 +163,17 @@ public class IncrInventoryRepository {
 			MysqlInventoryThread mysqlInventoryThread = new MysqlInventoryThread(incrInventorys.subList(startNum, endNum));
 			callableList.add(mysqlInventoryThread);
 		}
+		int callableListSize = callableList.size();
 
 		// 多线程插数据
 		int mysqlInventoryThreadCount = ConfigUtils.getIntConfigValue("MysqlInventoryThreadCount", 10);
+		mysqlInventoryThreadCount = callableListSize < mysqlInventoryThreadCount ? callableListSize : mysqlInventoryThreadCount;
 		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(mysqlInventoryThreadCount, 300);
 		long startTime = System.currentTimeMillis();
 		int successCount = 0;
 		try {
 			List<Future<Integer>> futureList = executorService.invokeAll(callableList);
+			executorService.shutdown();
 			for (Future<Integer> future : futureList) {
 				int perThreadSuccessCount = future.get();
 				successCount += perThreadSuccessCount;
