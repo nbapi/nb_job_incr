@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
@@ -168,7 +169,7 @@ public class IncrInventoryRepository {
 		// 多线程插数据
 		int mysqlInventoryThreadCount = ConfigUtils.getIntConfigValue("MysqlInventoryThreadCount", 10);
 		mysqlInventoryThreadCount = callableListSize < mysqlInventoryThreadCount ? callableListSize : mysqlInventoryThreadCount;
-		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(mysqlInventoryThreadCount, 300);
+		ExecutorService executorService = Executors.newFixedThreadPool(mysqlInventoryThreadCount);
 		long startTime = System.currentTimeMillis();
 		int successCount = 0;
 		try {
@@ -182,7 +183,7 @@ public class IncrInventoryRepository {
 			throw new IllegalStateException(e.getMessage(), e);
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert successfully,successCount = "
-				+ successCount);
+				+ successCount + ",threadCount = " + mysqlInventoryThreadCount);
 	}
 
 	/** 
