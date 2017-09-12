@@ -118,7 +118,8 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 				} else {
 					incrInventoryTriggerID = hotel.TriggerID;
 				}
-				inventorys = incrHotelRepository.getIncrInventories(incrInventoryTriggerID, MaxRecordCount);
+				int recordCount = ConfigUtils.getIntConfigValue("SyncDataFromInventoryRecordCountPer", MaxRecordCount);
+				inventorys = incrHotelRepository.getIncrInventories(incrInventoryTriggerID, recordCount);
 				endTime = System.currentTimeMillis();
 				logger.info("use time = " + (endTime - startTime) + ",Trigger = " + triggerInventory + ",inventorys size = "
 						+ inventorys.size());
