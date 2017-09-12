@@ -154,8 +154,8 @@ public class IncrInventoryRepository {
 		if (recordCount == 0)
 			return;
 		logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
-		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInsertSizePerTask");
-		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 2000 : Integer.valueOf(builkInsertSize);
+		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryInsertSizePerTask");
+		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 5000 : Integer.valueOf(builkInsertSize);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		List<MysqlInventoryThread> callableList = new ArrayList<MysqlInventoryThread>();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
@@ -167,9 +167,9 @@ public class IncrInventoryRepository {
 		int callableListSize = callableList.size();
 
 		// 多线程插数据
-		int mysqlInsertThreadCount = ConfigUtils.getIntConfigValue("MysqlInsertThreadCount", 32);
-		mysqlInsertThreadCount = callableListSize < mysqlInsertThreadCount ? callableListSize : mysqlInsertThreadCount;
-		ExecutorService executorService = Executors.newFixedThreadPool(mysqlInsertThreadCount);
+		int mysqlInventoryThreadCount = ConfigUtils.getIntConfigValue("MysqlInventoryThreadCount", 10);
+		mysqlInventoryThreadCount = callableListSize < mysqlInventoryThreadCount ? callableListSize : mysqlInventoryThreadCount;
+		ExecutorService executorService = Executors.newFixedThreadPool(mysqlInventoryThreadCount);
 		long startTime = System.currentTimeMillis();
 		int successCount = 0;
 		try {
@@ -183,7 +183,7 @@ public class IncrInventoryRepository {
 			throw new IllegalStateException(e.getMessage(), e);
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrInventory BulkInsert successfully,successCount = "
-				+ successCount + ",threadCount = " + mysqlInsertThreadCount);
+				+ successCount + ",threadCount = " + mysqlInventoryThreadCount);
 	}
 
 	/** 
