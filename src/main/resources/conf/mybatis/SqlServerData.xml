@@ -3,8 +3,7 @@
 <mapper namespace="com.elong.nb.dao.SqlServerDataDao">
 	
 	<select id="getHotelIdCount" resultType="java.lang.Integer">
-		usp_execute_sql_prod 
-         'select count(1) from (
+		select count(1) from (
                  select  ROW_NUMBER() OVER(ORDER BY op_date) RowNumber,
                          1 StateType
                          ,hotel_id HotelId
@@ -19,18 +18,17 @@
                    from  MHotelBase
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and op_date >= ''${startTime}'' ]]>
+						<![CDATA[ and op_date >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and op_date <= ''${endTime}'' ]]>
+						<![CDATA[ and op_date <= ${endTime} ]]>
 					</if>
 				</where>    
-                  ) t'
+                  ) t
 	</select>
 	
 	<select id="getHotelCodeCount" resultType="java.lang.Integer">
-		usp_execute_sql_prod 
-         'select count(1) from (
+		select count(1) from (
                  select ROW_NUMBER() OVER(ORDER BY s.op_date) RowNumber,
                         2 StateType
                         ,ms.MHotelID HotelId
@@ -45,18 +43,17 @@
                 inner join mhotelshotelrelation ms on s.hotel_id=ms.SHotelID
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and s.op_date >= ''${startTime}'' ]]>
+						<![CDATA[ and s.op_date >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and s.op_date <= ''${endTime}'' ]]>
+						<![CDATA[ and s.op_date <= ${endTime} ]]>
 					</if>
 				</where>    
-                  ) t'
+                  ) t
 	</select>
 	
 	<select id="getRoomIdCount" resultType="java.lang.Integer">
-		usp_execute_sql_prod 
-         'select count(1) from (
+		select count(1) from (
                  select	ROW_NUMBER() OVER(ORDER BY op_date) RowNumber,
                         3 StateType
                         ,notes HotelId
@@ -71,18 +68,17 @@
                    from MRoom_type_num
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and op_date >= ''${startTime}'' ]]>
+						<![CDATA[ and op_date >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and op_date <= ''${endTime}'' ]]>
+						<![CDATA[ and op_date <= ${endTime} ]]>
 					</if>
 				</where>    
-                  ) t'
+                  ) t
 	</select>
 	
 	<select id="getRoomTypeIdCount" resultType="java.lang.Integer">
-		usp_execute_sql_prod 
-         'select count(1) from (
+		select count(1) from (
                  select ROW_NUMBER() OVER(ORDER BY s.op_date) RowNumber,
                         4 StateType
                         ,ms.MHotelID HotelId
@@ -97,18 +93,17 @@
                  inner join mhotelshotelrelation ms on s.notes=ms.SHotelID
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and op_date >= ''${startTime}'' ]]>
+						<![CDATA[ and op_date >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and op_date <= ''${endTime}'' ]]>
+						<![CDATA[ and op_date <= ${endTime} ]]>
 					</if>
 				</where>    
-                  ) t'
+                  ) t
 	</select>
 	
 	<select id="getRatePlanIdCount" resultType="java.lang.Integer">
-		usp_execute_sql_prod 
-         'select count(1) from (
+		select count(1) from (
                  select ROW_NUMBER() OVER(ORDER BY s.operateTime) RowNumber,
                         5 StateType
                         ,ms.MHotelID HotelId 
@@ -124,18 +119,17 @@
                  inner join mhotelshotelrelation ms on s.hotelId=ms.SHotelID
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and s.operateTime >= ''${startTime}'' ]]>
+						<![CDATA[ and s.operateTime >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and s.operateTime <= ''${endTime}'' ]]>
+						<![CDATA[ and s.operateTime <= ${endTime} ]]>
 					</if>
 				</where>    
-                  ) t'
+                  ) t
 	</select>
 	
 	<select id="getRatePlanPolicyCount" resultType="java.lang.Integer">
-		usp_execute_sql_prod 
-         'select count(1) from (
+		select count(1) from (
                  select ROW_NUMBER() OVER(ORDER BY s.operateTime) RowNumber,
                         6 StateType
                         ,ms.MHotelID HotelId 
@@ -150,18 +144,17 @@
                  inner join mhotelshotelrelation ms on s.hotelId=ms.SHotelID
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and s.operateTime >= ''${startTime}'' ]]>
+						<![CDATA[ and s.operateTime >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and s.operateTime <= ''${endTime}'' ]]>
+						<![CDATA[ and s.operateTime <= ${endTime} ]]>
 					</if>
 				</where>    
-                  ) t'
+                  ) t
 	</select>
 	
 	<select id="getHotelIdData" resultType="java.util.HashMap">
-		usp_execute_sql_prod 
-         'select * from (
+		select * from (
                  select  ROW_NUMBER() OVER(ORDER BY op_date) RowNumber,
                          1 StateType
                          ,hotel_id HotelId
@@ -176,10 +169,10 @@
                    from  MHotelBase
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and op_date >= ''${startTime}'' ]]>
+						<![CDATA[ and op_date >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and op_date <= ''${endTime}'' ]]>
+						<![CDATA[ and op_date <= ${endTime} ]]>
 					</if>
 				</where>    
                   ) t
@@ -190,12 +183,11 @@
 				<if test="endNum != null and !endNum.equals('')">
 					<![CDATA[ and RowNumber <= ${endNum} ]]>
 				</if>
-			</where>' 
+			</where>
 	</select>
 	
 	<select id="getHotelCodeData" resultType="java.util.HashMap">
-		usp_execute_sql_prod 
-         'select * from (
+		select * from (
                  select ROW_NUMBER() OVER(ORDER BY s.op_date) RowNumber,
                         2 StateType
                         ,ms.MHotelID HotelId
@@ -210,10 +202,10 @@
                 inner join mhotelshotelrelation ms on s.hotel_id=ms.SHotelID
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and s.op_date >= ''${startTime}'' ]]>
+						<![CDATA[ and s.op_date >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and s.op_date <= ''${endTime}'' ]]>
+						<![CDATA[ and s.op_date <= ${endTime} ]]>
 					</if>
 				</where>    
                   ) t
@@ -224,12 +216,11 @@
 				<if test="endNum != null and !endNum.equals('')">
 					<![CDATA[ and RowNumber <= ${endNum} ]]>
 				</if>
-			</where>  '  
+			</where> 
 	</select>
 	
 	<select id="getRoomIdData" resultType="java.util.HashMap">
-		usp_execute_sql_prod 
-         'select * from (
+		select * from (
                  select	ROW_NUMBER() OVER(ORDER BY op_date) RowNumber,
                         3 StateType
                         ,notes HotelId
@@ -244,10 +235,10 @@
                    from MRoom_type_num
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and op_date >= ''${startTime}'' ]]>
+						<![CDATA[ and op_date >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and op_date <= ''${endTime}'' ]]>
+						<![CDATA[ and op_date <= ${endTime} ]]>
 					</if>
 				</where>    
                   ) t
@@ -258,12 +249,11 @@
 				<if test="endNum != null and !endNum.equals('')">
 					<![CDATA[ and RowNumber <= ${endNum} ]]>
 				</if>
-			</where>   ' 
+			</where>  
 	</select>
 	
 	<select id="getRoomTypeIdData" resultType="java.util.HashMap">
-		usp_execute_sql_prod 
-         'select * from (
+		select * from (
                  select ROW_NUMBER() OVER(ORDER BY s.op_date) RowNumber,
                         4 StateType
                         ,ms.MHotelID HotelId
@@ -278,10 +268,10 @@
                  inner join mhotelshotelrelation ms on s.notes=ms.SHotelID
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and op_date >= ''${startTime}'' ]]>
+						<![CDATA[ and op_date >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and op_date <= ''${endTime}'' ]]>
+						<![CDATA[ and op_date <= ${endTime} ]]>
 					</if>
 				</where>    
                   ) t
@@ -292,12 +282,11 @@
 				<if test="endNum != null and !endNum.equals('')">
 					<![CDATA[ and RowNumber <= ${endNum} ]]>
 				</if>
-			</where>'    
+			</where>   
 	</select>
 	
 	<select id="getRatePlanIdData" resultType="java.util.HashMap">
-		usp_execute_sql_prod 
-         'select * from (
+		select * from (
                  select ROW_NUMBER() OVER(ORDER BY s.operateTime) RowNumber,
                         5 StateType
                         ,ms.MHotelID HotelId 
@@ -313,10 +302,10 @@
                  inner join mhotelshotelrelation ms on s.hotelId=ms.SHotelID
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and s.operateTime >= ''${startTime}'' ]]>
+						<![CDATA[ and s.operateTime >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and s.operateTime <= ''${endTime}'' ]]>
+						<![CDATA[ and s.operateTime <= ${endTime} ]]>
 					</if>
 				</where>    
                   ) t
@@ -327,12 +316,11 @@
 				<if test="endNum != null and !endNum.equals('')">
 					<![CDATA[ and RowNumber <= ${endNum} ]]>
 				</if>
-			</where>'    
+			</where>  
 	</select>
 	
 	<select id="getRatePlanPolicyData" resultType="java.util.HashMap">
-		usp_execute_sql_prod 
-         'select * from (
+		select * from (
                  select ROW_NUMBER() OVER(ORDER BY s.operateTime) RowNumber,
                         6 StateType
                         ,ms.MHotelID HotelId 
@@ -347,10 +335,10 @@
                  inner join mhotelshotelrelation ms on s.hotelId=ms.SHotelID
                	<where>
 					<if test="startTime != null and !startTime.equals('')">
-						<![CDATA[ and s.operateTime >= ''${startTime}'' ]]>
+						<![CDATA[ and s.operateTime >= ${startTime} ]]>
 					</if>
 					<if test="endTime != null and !endTime.equals('')">
-						<![CDATA[ and s.operateTime <= ''${endTime}'' ]]>
+						<![CDATA[ and s.operateTime <= ${endTime} ]]>
 					</if>
 				</where>    
                   ) t
@@ -361,7 +349,7 @@
 				<if test="endNum != null and !endNum.equals('')">
 					<![CDATA[ and RowNumber <= ${endNum} ]]>
 				</if>
-			</where> '   
+			</where>    
 	</select>
 
 </mapper>
