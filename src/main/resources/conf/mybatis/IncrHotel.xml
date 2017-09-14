@@ -49,6 +49,7 @@
 		PRIMARY KEY (`IncrID`),
 		KEY `IX_ChangeTime` (`ChangeTime`),
 		KEY `IX_ID` (`ID`),
+		KEY `IX_InsertTime` (`InsertTime`),
 		KEY `IX_IncrHotel_Trigger` (`Trigger`,`TriggerID`)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
 	</update>
