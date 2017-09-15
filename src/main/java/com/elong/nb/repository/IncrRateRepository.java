@@ -187,11 +187,14 @@ public class IncrRateRepository {
 		GetBasePrice4NbResponse response = null;
 		Exception exception = null;
 		int reqCount = 0;
-		while (response == null && ++reqCount <= 2) {
+		boolean callGoodsMeta = true;
+		while (callGoodsMeta && ++reqCount <= 3) {
 			exception = null;
 			try {
 				response = goodsMetaRepository.getMetaPrice4Nb(request);
+				callGoodsMeta = false;
 			} catch (Exception ex) {
+				callGoodsMeta = true;
 				logger.error("ThriftUtils.getMetaPrice4Nb,reqCount = " + reqCount + "," + ex.getMessage());
 				exception = ex;
 			}
@@ -213,7 +216,7 @@ public class IncrRateRepository {
 				logger.info("ThriftUtils.getMetaPrice4Nb, response.return_code > 0,request = " + JSON.toJSONString(request)
 						+ ",response = " + JSON.toJSONString(response));
 			} else {
-				throw new RuntimeException(response.getReturn_msg());
+				throw new RuntimeException("ThriftUtils.getMetaPrice4Nb, response.return_msg = " + response.getReturn_msg());
 			}
 		} catch (Exception ex) {
 			throw new RuntimeException("getRatesFromGoods:" + ex.getMessage(), ex);

@@ -306,11 +306,14 @@ public class IncrInventoryRepository {
 		GetInvAndInstantConfirmResponse response = null;
 		Exception exception = null;
 		int reqCount = 0;
-		while (response == null && ++reqCount <= 2) {
+		boolean callGoodsMeta = true;
+		while (callGoodsMeta && ++reqCount <= 3) {
 			exception = null;
 			try {
 				response = goodsMetaRepository.getInventory(request);
+				callGoodsMeta = false;
 			} catch (Exception ex) {
+				callGoodsMeta = true;
 				logger.error("ThriftUtils.getInventory,reqCount = " + reqCount + "," + ex.getMessage());
 				exception = ex;
 			}
@@ -332,7 +335,7 @@ public class IncrInventoryRepository {
 				logger.info("ThriftUtils.getInventory, response.return_code > 0,request = " + JSON.toJSONString(request) + ",response = "
 						+ JSON.toJSONString(response));
 			} else {
-				throw new RuntimeException(response.getReturn_msg());
+				throw new RuntimeException("ThriftUtils.getInventory,response.return_msg = " + response.getReturn_msg());
 			}
 		} catch (Exception ex) {
 			throw new RuntimeException("getInventorysFromGoods:" + ex.getMessage(), ex);
