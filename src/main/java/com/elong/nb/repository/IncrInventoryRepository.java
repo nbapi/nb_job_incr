@@ -306,14 +306,12 @@ public class IncrInventoryRepository {
 		GetInvAndInstantConfirmResponse response = null;
 		Exception exception = null;
 		int reqCount = 0;
-		boolean callGoodsMeta = true;
-		while (callGoodsMeta && ++reqCount <= 3) {
+		while (++reqCount <= 3) {
 			exception = null;
 			try {
 				response = goodsMetaRepository.getInventory(request);
-				callGoodsMeta = false;
+				break;
 			} catch (Exception ex) {
-				callGoodsMeta = true;
 				logger.error("ThriftUtils.getInventory,reqCount = " + reqCount + "," + ex.getMessage());
 				exception = ex;
 			}

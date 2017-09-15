@@ -187,14 +187,12 @@ public class IncrRateRepository {
 		GetBasePrice4NbResponse response = null;
 		Exception exception = null;
 		int reqCount = 0;
-		boolean callGoodsMeta = true;
-		while (callGoodsMeta && ++reqCount <= 3) {
+		while (++reqCount <= 3) {
 			exception = null;
 			try {
 				response = goodsMetaRepository.getMetaPrice4Nb(request);
-				callGoodsMeta = false;
+				break;
 			} catch (Exception ex) {
-				callGoodsMeta = true;
 				logger.error("ThriftUtils.getMetaPrice4Nb,reqCount = " + reqCount + "," + ex.getMessage());
 				exception = ex;
 			}
