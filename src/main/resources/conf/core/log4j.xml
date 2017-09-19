@@ -75,7 +75,7 @@
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrInventory.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+			<param name="ConversionPattern" value="%d %p [%c] %t- %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />
@@ -99,7 +99,7 @@
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrHotel.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+			<param name="ConversionPattern" value="%d %p [%c] %t- %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />
@@ -156,7 +156,7 @@
 		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrRate.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+			<param name="ConversionPattern" value="%d %p [%c] %t- %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />

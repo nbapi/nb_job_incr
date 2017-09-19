@@ -310,6 +310,7 @@ public class IncrInventoryRepository {
 			exception = null;
 			try {
 				response = goodsMetaRepository.getInventory(request);
+				logger.info("ThriftUtils.getInventory,reqCount = " + reqCount + ",successfully");
 				break;
 			} catch (Exception ex) {
 				logger.error("ThriftUtils.getInventory,reqCount = " + reqCount + "," + ex.getMessage());
