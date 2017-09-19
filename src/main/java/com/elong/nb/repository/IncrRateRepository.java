@@ -191,7 +191,6 @@ public class IncrRateRepository {
 			exception = null;
 			try {
 				response = goodsMetaRepository.getMetaPrice4Nb(request);
-				logger.info("ThriftUtils.getMetaPrice4Nb,reqCount = " + reqCount + ",successfully");
 				break;
 			} catch (Exception ex) {
 				logger.error("ThriftUtils.getMetaPrice4Nb,reqCount = " + reqCount + "," + ex.getMessage());
