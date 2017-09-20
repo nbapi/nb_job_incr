@@ -22,10 +22,12 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
@@ -34,6 +36,7 @@ import com.alibaba.fastjson.JSON;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbRequest;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbResponse;
 import com.elong.hotel.goods.ds.thrift.HotelBasePriceRequest;
+import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.MySqlDataDao;
 import com.elong.nb.dao.adataper.IncrRateAdapter;
 import com.elong.nb.model.bean.IncrRate;
@@ -386,10 +389,36 @@ public class IncrRateRepository {
 		if (recordCount == 0)
 			return;
 		logger.info("IncrRate BulkInsert start,recordCount = " + recordCount);
+		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInsertSizePerTask");
+		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 5000 : Integer.valueOf(builkInsertSize);
+		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+		List<MysqlRateThread> callableList = new ArrayList<MysqlRateThread>();
+		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+			int startNum = (pageIndex - 1) * pageSize;
+			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			MysqlRateThread mysqlRateThread = new MysqlRateThread(incrRates.subList(startNum, endNum));
+			callableList.add(mysqlRateThread);
+		}
+		int callableListSize = callableList.size();
+
+		// 多线程插数据
+		int mysqlInsertThreadCount = ConfigUtils.getIntConfigValue("MysqlInsertThreadCount", 10);
+		mysqlInsertThreadCount = callableListSize < mysqlInsertThreadCount ? callableListSize : mysqlInsertThreadCount;
+		ExecutorService executorService = Executors.newFixedThreadPool(mysqlInsertThreadCount);
 		long startTime = System.currentTimeMillis();
-		int successCount = incrRateSubmeterService.builkInsert(incrRates);
+		int successCount = 0;
+		try {
+			List<Future<Integer>> futureList = executorService.invokeAll(callableList);
+			executorService.shutdown();
+			for (Future<Integer> future : futureList) {
+				int perThreadSuccessCount = future.get();
+				successCount += perThreadSuccessCount;
+			}
+		} catch (InterruptedException | ExecutionException e) {
+			throw new IllegalStateException(e.getMessage(), e);
+		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",IncrRate BulkInsert successfully,successCount = "
-				+ successCount);
+				+ successCount + ",threadCount = " + mysqlInsertThreadCount);
 	}
 
 	/**
@@ -417,6 +446,35 @@ public class IncrRateRepository {
 		@Override
 		public List<IncrRate> call() throws Exception {
 			return getIncrRateList(priceOperationIncrementList);
+		}
+
+	}
+
+	/**
+	 * 数据库插入数据任务
+	 *
+	 * <p>
+	 * 修改历史:											<br>  
+	 * 修改日期    		修改人员   	版本	 		修改内容<br>  
+	 * -------------------------------------------------<br>  
+	 * 2017年9月12日 上午11:32:51   suht     1.0    	初始化创建<br>
+	 * </p> 
+	 *
+	 * @author		suht  
+	 * @version		1.0  
+	 * @since		JDK1.7
+	 */
+	private class MysqlRateThread implements Callable<Integer> {
+
+		private List<IncrRate> incrRateList;
+
+		public MysqlRateThread(List<IncrRate> incrRateList) {
+			this.incrRateList = incrRateList;
+		}
+
+		@Override
+		public Integer call() throws Exception {
+			return incrRateSubmeterService.builkInsert(incrRateList);
 		}
 
 	}
