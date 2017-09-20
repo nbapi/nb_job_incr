@@ -137,7 +137,7 @@ public class IncrRateRepository {
 		} catch (InterruptedException | ExecutionException e) {
 			throw new IllegalStateException(e.getMessage(), e);
 		}
-		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrRateList from Goods and doHandler");
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrRateList from Goods and doHandler,incrRates size = " + incrRates.size());
 
 		// shotelid过滤及enddate处理
 		filterAndHandler(incrRates);
