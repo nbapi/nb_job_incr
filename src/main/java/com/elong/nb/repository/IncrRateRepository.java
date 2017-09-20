@@ -389,7 +389,7 @@ public class IncrRateRepository {
 		if (recordCount == 0)
 			return;
 		logger.info("IncrRate BulkInsert start,recordCount = " + recordCount);
-		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInsertSizePerTask");
+		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrRateInsertSizePerTask");
 		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 5000 : Integer.valueOf(builkInsertSize);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		List<MysqlRateThread> callableList = new ArrayList<MysqlRateThread>();
