@@ -27,11 +27,5 @@ public interface IIncrInventoryService {
 	 *
 	 */
 	public void syncInventoryToDB();
-	
-	/** 
-	 * 同步库存黑名单引起库存增量
-	 *
-	 */
-	public void syncInventoryDueToBlack();
 
 }

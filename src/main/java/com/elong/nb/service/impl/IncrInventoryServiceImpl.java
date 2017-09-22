@@ -5,34 +5,19 @@
  */
 package com.elong.nb.service.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.elong.nb.common.model.NbapiHttpRequest;
 import com.elong.nb.common.model.RedisKeyConst;
-import com.elong.nb.common.util.HttpClientUtil;
 import com.elong.nb.dao.MySqlDataDao;
-import com.elong.nb.model.GetInvLimitDataRequest;
-import com.elong.nb.model.GetInvLimitResponse;
-import com.elong.nb.model.RequestBase;
-import com.elong.nb.model.ResponseBase;
-import com.elong.nb.model.domain.InvLimitBlackListVo;
 import com.elong.nb.repository.IncrInventoryRepository;
 import com.elong.nb.service.IIncrInventoryService;
 import com.elong.nb.service.IIncrSetInfoService;
@@ -114,116 +99,6 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 				syncInventoryToDB(newLastChgID, beginTime);
 			}
 		}
-	}
-
-	/** 
-	 * 库存关房增量同步
-	 * 
-	 *
-	 * @see com.elong.nb.service.IIncrInventoryService#syncInventoryDueToBlack()    
-	 */
-	@Override
-	public void syncInventoryDueToBlack() {
-		// 获取上次同步时间，作为此次开始时间
-		String rediskey = "Submeter.Incr.Inventory.Time";
-		String jsonStr = incrSetInfoService.get(rediskey);
-		Date blackStartTime = null;
-		try {
-			blackStartTime = JSON.parseObject(jsonStr, Date.class);
-		} catch (Exception e) {
-		}
-		if (blackStartTime == null) {
-			blackStartTime = DateUtils.addDays(new Date(), -30);
-		}
-		logger.info("syncInventoryDueToBlack,get startTime = " + blackStartTime + ",from redis key = " + rediskey);
-
-		long startTime = System.currentTimeMillis();
-		RequestBase<GetInvLimitDataRequest> requestBase = new RequestBase<GetInvLimitDataRequest>();
-		requestBase.setFrom("nb_job_incr");
-		requestBase.setLogId(UUID.randomUUID().toString());
-		GetInvLimitDataRequest realRequest = new GetInvLimitDataRequest();
-		realRequest.setPageSize(1000);
-		realRequest.setTimestamp(blackStartTime);
-		// 分页获取InvLimitBlackList数据
-		int i = 0;
-		List<InvLimitBlackListVo> allInvLimitList = new ArrayList<InvLimitBlackListVo>();
-		List<InvLimitBlackListVo> invLimitList = null;
-		while (i == 0 || !CollectionUtils.isEmpty(invLimitList)) {
-			realRequest.setStartIndex(1000 * (i++));
-			requestBase.setRealRequest(realRequest);
-			invLimitList = getInvLimitBlackList(requestBase);
-			if (invLimitList == null || invLimitList.size() == 0)
-				continue;
-			allInvLimitList.addAll(invLimitList);
-		}
-		logger.info("syncInventoryDueToBlack,use time = " + (System.currentTimeMillis() - startTime)
-				+ ",get allInvLimitList from nb_web_rule,size = " + allInvLimitList.size());
-		blackStartTime = new Date();
-		// 同步库存增量
-		List<Map<String, Object>> productInventoryIncrementList = getProductInventoryIncrement(allInvLimitList);
-		startTime = System.currentTimeMillis();
-		incrInventoryRepository.syncInventoryToDB(productInventoryIncrementList);
-		logger.info("syncInventoryDueToBlack,use time = " + (System.currentTimeMillis() - startTime)
-				+ ",incrInventoryRepository.syncInventoryToDB");
-		// 同步时间存入redis
-		incrSetInfoService.put(rediskey, blackStartTime);
-		logger.info("syncInventoryDueToBlack,put to redis successfully.key = " + rediskey + ",value = " + blackStartTime);
-	}
-
-	/** 
-	 * 构建库存变化数据参数
-	 *
-	 * @param invLimitList
-	 * @return
-	 */
-	private List<Map<String, Object>> getProductInventoryIncrement(List<InvLimitBlackListVo> invLimitList) {
-		if (invLimitList == null || invLimitList.size() == 0)
-			return Collections.emptyList();
-		List<Map<String, Object>> productInventoryIncrementList = new ArrayList<Map<String, Object>>();
-		for (InvLimitBlackListVo invLimitBlackListVo : invLimitList) {
-			if (invLimitBlackListVo == null)
-				continue;
-			Map<String, Object> productInventoryIncrement = new HashMap<String, Object>();
-			productInventoryIncrement.put("id", invLimitBlackListVo.getId());
-			productInventoryIncrement.put("mhotel_id", invLimitBlackListVo.getmHotelId());
-			productInventoryIncrement.put("hotel_id", invLimitBlackListVo.getHotelId());
-			productInventoryIncrement.put("room_type_id", invLimitBlackListVo.getmRoomTypeId());
-			productInventoryIncrement.put("begin_date", invLimitBlackListVo.getStayBeginDate());
-			productInventoryIncrement.put("end_date", invLimitBlackListVo.getStayEndDate());
-			productInventoryIncrement.put("op_date", invLimitBlackListVo.getOperateTime());
-			productInventoryIncrementList.add(productInventoryIncrement);
-		}
-		logger.info("syncInventoryDueToBlack,getProductInventoryIncrement,productInventoryIncrementList size = "
-				+ productInventoryIncrementList.size());
-		return productInventoryIncrementList;
-	}
-
-	/** 
-	 * 获取InvLimitBlackList数据from nb_web_rule
-	 *
-	 * @param requestBase
-	 * @return
-	 */
-	private List<InvLimitBlackListVo> getInvLimitBlackList(RequestBase<GetInvLimitDataRequest> requestBase) {
-		NbapiHttpRequest nbapiHttpRequest = new NbapiHttpRequest();
-		String ruleUrl = ConfigUtils.getStringConfigValue("GetInvLimitDataUrl", "http://192.168.233.40:9014/api/Hotel/GetInvLimitData");
-		nbapiHttpRequest.setUrl(ruleUrl);
-		String result = null;
-		try {
-			nbapiHttpRequest.setParamStr(JSON.toJSONString(requestBase));
-			result = HttpClientUtil.httpJsonPost(nbapiHttpRequest);
-		} catch (Exception e) {
-			logger.error("syncInventoryDueToBlack,GetInvLimitData,httpPost error = " + e.getMessage(), e);
-			throw new IllegalStateException("GetInvLimitData,httpPost error = " + e.getMessage());
-		}
-		if (StringUtils.isEmpty(result))
-			return Collections.emptyList();
-		ResponseBase<?> responseBase = JSON.parseObject(result, ResponseBase.class);
-		if (!StringUtils.equals("0", responseBase.getResponseCode()))
-			return Collections.emptyList();
-		JSONObject jsonObj = (JSONObject) responseBase.getRealResponse();
-		GetInvLimitResponse realResponse = JSONObject.parseObject(jsonObj.toJSONString(), GetInvLimitResponse.class);
-		return realResponse.getInvLimitList();
 	}
 
 	/** 
