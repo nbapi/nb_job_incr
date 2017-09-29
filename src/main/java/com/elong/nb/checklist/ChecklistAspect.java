@@ -2,15 +2,19 @@ package com.elong.nb.checklist;
 
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.ClassUtils;
 import org.aspectj.lang.JoinPoint;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.alibaba.fastjson.JSON;
 import com.elong.nb.common.checklist.Constants;
+import com.elong.nb.common.checklist.EnumNBLogType;
+import com.elong.nb.common.checklist.NBActionLogHelper;
 import com.elong.nb.util.ThreadLocalUtil;
-import com.elong.springmvc_enhance.utilities.ActionLogHelper;
 
 public class ChecklistAspect {
 
@@ -26,17 +30,27 @@ public class ChecklistAspect {
 		try {
 			ThreadLocalUtil.set(point.toString() + "_" + ELONG_REQUEST_STARTTIME, System.currentTimeMillis());
 			RequestAttributes request = RequestContextHolder.getRequestAttributes();
+
 			// 调用链新起的线程，拦截方法会在此返回
 			if (request == null)
 				return;
 
 			// 1、Controller 2、调用链只有一个线程的所有拦截方法
 			Object guid = request.getAttribute(Constants.ELONG_REQUEST_REQUESTGUID, ServletRequestAttributes.SCOPE_REQUEST);
-			//
 			if (guid == null) {// Controller请求回到此处
 				guid = UUID.randomUUID().toString();
 				request.setAttribute(Constants.ELONG_REQUEST_REQUESTGUID, guid, ServletRequestAttributes.SCOPE_REQUEST);
 				ThreadLocalUtil.set(Constants.ELONG_REQUEST_REQUESTGUID, guid);
+				
+				Object[] args = point.getArgs();
+				for (Object arg : args) {
+					if (arg == null)
+						continue;
+					if (arg instanceof HttpServletRequest) {
+						ThreadLocalUtil.set(Constants.ELONG_REQUEST_USERNAME, ((HttpServletRequest) arg).getHeader("userName"));
+						break;
+					}
+				}
 			}
 		} catch (Exception e) {
 		}
@@ -58,8 +72,10 @@ public class ChecklistAspect {
 			if (guid == null)
 				guid = UUID.randomUUID().toString();
 
-			ActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null, returnValue,
-					point.getArgs());
+			Object userName = ThreadLocalUtil.get(Constants.ELONG_REQUEST_USERNAME);
+			String userNameStr = userName == null?null:(String)userName;
+			NBActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null,
+					JSON.toJSONString(returnValue), JSON.toJSONString(point.getArgs()), userNameStr, EnumNBLogType.JOB_CONTROLLER);
 		} catch (Exception e) {
 		}
 	}
@@ -74,10 +90,12 @@ public class ChecklistAspect {
 			if (guid == null)
 				guid = UUID.randomUUID().toString();
 
+			Object userName = ThreadLocalUtil.get(Constants.ELONG_REQUEST_USERNAME);
+			String userNameStr = userName == null?null:(String)userName;
 			if (throwing instanceof Exception) {
 				Exception e = (Exception) throwing;
-				ActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), null,
-						point.getArgs());
+				NBActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), null,
+						JSON.toJSONString(point.getArgs()), userNameStr, EnumNBLogType.JOB_CONTROLLER);
 			}
 		} catch (Exception e) {
 		}
