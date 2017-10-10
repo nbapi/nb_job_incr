@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -33,6 +34,8 @@ import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmRequest;
 import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmResponse;
 import com.elong.hotel.searchagent.thrift.dss.MhotelAttr;
 import com.elong.hotel.searchagent.thrift.dss.ShotelAttr;
+import com.elong.nb.cache.ICacheKey;
+import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.adataper.IncrInventoryAdapter;
 import com.elong.nb.model.bean.IncrInventory;
@@ -59,6 +62,8 @@ public class IncrInventoryRepository {
 	private static final Logger logger = Logger.getLogger("IncrInventoryLogger");
 
 	private static final int MAXDAYS = 90;
+
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
 
 	@Resource
 	private MSRelationRepository msRelationRepository;
@@ -117,12 +122,46 @@ public class IncrInventoryRepository {
 
 		// 过滤掉携程去哪儿酒店
 		filterShotelsIds(incrInventorys);
+		// 库存增量数据压缩
+		compressIncrInventory(incrInventorys);
 		// 按照ChangeID排序
 		sortIncrInventorysByChangeID(incrInventorys);
 		// 插入数据库
 		builkInsert(incrInventorys);
 		Number lastChangeId = (Number) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
 		return lastChangeId.longValue();
+	}
+
+	/** 
+	 * 库存增量数据压缩 
+	 *
+	 * @param incrInventorys
+	 */
+	private void compressIncrInventory(List<IncrInventory> incrInventorys) {
+		if (incrInventorys == null || incrInventorys.size() == 0)
+			return;
+		long startTime = System.currentTimeMillis();
+		int beforeSize = incrInventorys.size();
+		Iterator<IncrInventory> iter = incrInventorys.iterator();
+		while (iter.hasNext()) {
+			IncrInventory incrInventory = iter.next();
+			if (incrInventory == null)
+				continue;
+			String key = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
+			String md5key = DigestUtils.md5Hex(key);
+			String currentValue = (incrInventory.isStatus() ? "Y" : "N") + incrInventory.getOverBooking() + incrInventory.getStartDate()
+					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount();
+			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
+			ICacheKey cacheKey = RedisManager.getCacheKey(md5key, 24*60*60*1000);
+			String md5ExistValue = redisManager.get(cacheKey);
+			if (StringUtils.isEmpty(md5ExistValue) || !md5ExistValue.equals(md5CurrentValue)) {
+				redisManager.put(cacheKey, md5CurrentValue);
+			} else {
+				iter.remove();
+			}
+		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",compressIncrInventory and filter size = "
+				+ (beforeSize - incrInventorys.size()));
 	}
 
 	/** 
