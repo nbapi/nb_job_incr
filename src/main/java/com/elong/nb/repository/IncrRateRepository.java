@@ -36,6 +36,7 @@ import com.alibaba.fastjson.JSON;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbRequest;
 import com.elong.hotel.goods.ds.thrift.GetBasePrice4NbResponse;
 import com.elong.hotel.goods.ds.thrift.HotelBasePriceRequest;
+import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.MySqlDataDao;
 import com.elong.nb.dao.adataper.IncrRateAdapter;
@@ -62,6 +63,8 @@ import com.elong.nb.util.ExecutorUtils;
 public class IncrRateRepository {
 
 	private static final Logger logger = Logger.getLogger("IncrRateLogger");
+	
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
 
 	@Resource
 	private GoodsMetaRepository goodsMetaRepository;
@@ -374,6 +377,18 @@ public class IncrRateRepository {
 			Date endDate = incrRate.getEndDate();
 			endDate = (endDate.compareTo(validDate) > 0) ? validDate : endDate;
 			incrRate.setEndDate(endDate);
+			
+			String hotelCode = incrRate.getHotelCode();
+			String roomTypeId = incrRate.getRoomTypeId();
+			String rateplanId = incrRate.getRoomTypeId();
+			String isStraintKey = "filter_" + hotelCode;
+			String sellChannelKey = isStraintKey + roomTypeId + rateplanId;
+			String isStraint = redisManager.get(RedisManager.getCacheKey(isStraintKey));
+			String sellChannel = redisManager.get(RedisManager.getCacheKey(sellChannelKey));
+			isStraint = StringUtils.isEmpty(isStraint) ? "0" : isStraint;
+			sellChannel = StringUtils.isEmpty(sellChannel) ? "65534" : sellChannel;
+			incrRate.setIsStraint(Integer.parseInt(isStraint));
+			incrRate.setSellChannel(Integer.parseInt(sellChannel));
 		}
 		long endTime = System.currentTimeMillis();
 		logger.info("use time = " + (endTime - startTime) + ",after fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());

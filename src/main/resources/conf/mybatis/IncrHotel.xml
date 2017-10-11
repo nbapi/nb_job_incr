@@ -14,7 +14,7 @@
 	<!-- 批量插入IncrHotel到指定分表subTableName -->
 	<insert id="bulkInsertSub" parameterType="java.util.List">
 		insert into ${subTableName}
-		(IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,Channel,ChangeTime,InsertTime)
+		(IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,Channel,ChangeTime,InsertTime,SellChannel,IsStraint)
 		values
 		<foreach collection="list" item="incrHotel" index="index" separator=",">
 			(
@@ -27,7 +27,9 @@
 			#{incrHotel.TriggerID,jdbcType=INTEGER},
 			#{incrHotel.Channel,jdbcType=INTEGER},
 			#{incrHotel.ChangeTime},
-			#{incrHotel.InsertTime}
+			#{incrHotel.InsertTime},
+			#{incrHotel.SellChannel,jdbcType=INTEGER},
+			#{incrHotel.IsStraint,jdbcType=INTEGER}
 			)
 		</foreach>
 	</insert>
@@ -37,8 +39,7 @@
 		CREATE TABLE `${tableName}` (
 		`IncrID` bigint(20) NOT NULL auto_increment,
 		`ID` bigint(20) NOT NULL,
-		`HotelID` varchar(50)
-		NOT NULL,
+		`HotelID` varchar(50) NOT NULL,
 		`StartDate` datetime NOT NULL,
 		`EndDate` datetime NOT NULL,
 		`Trigger` varchar(50) NOT NULL,
@@ -46,6 +47,8 @@
 		`Channel` INT(1)NOT NULL DEFAULT 0,
 		`ChangeTime` datetime NOT NULL,
 		`InsertTime` datetime NOT NULL,
+		`SellChannel` INT(5) NOT NULL DEFAULT 65534,
+		`IsStraint` INT(1) NOT NULL DEFAULT 0,
 		PRIMARY KEY (`IncrID`),
 		KEY `IX_ChangeTime` (`ChangeTime`),
 		KEY `IX_ID` (`ID`),

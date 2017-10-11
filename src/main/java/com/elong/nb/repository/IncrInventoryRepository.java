@@ -152,7 +152,7 @@ public class IncrInventoryRepository {
 			String currentValue = (incrInventory.isStatus() ? "Y" : "N") + incrInventory.getOverBooking() + incrInventory.getStartDate()
 					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount();
 			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
-			ICacheKey cacheKey = RedisManager.getCacheKey(md5key, 24*60*60*1000);
+			ICacheKey cacheKey = RedisManager.getCacheKey(md5key, 24 * 60 * 60 * 1000);
 			String md5ExistValue = redisManager.get(cacheKey);
 			if (StringUtils.isEmpty(md5ExistValue) || !md5ExistValue.equals(md5CurrentValue)) {
 				redisManager.put(cacheKey, md5CurrentValue);
@@ -439,7 +439,15 @@ public class IncrInventoryRepository {
 			} else {
 				incrInventory.setChannel(0);
 			}
-
+			String roomTypeId = incrInventory.getRoomTypeID();
+			String isStraintKey = "filter_" + hotelCode;
+			String sellChannelKey = isStraintKey + roomTypeId;
+			String isStraint = redisManager.get(RedisManager.getCacheKey(isStraintKey));
+			String sellChannel = redisManager.get(RedisManager.getCacheKey(sellChannelKey));
+			isStraint = StringUtils.isEmpty(isStraint) ? "0" : isStraint;
+			sellChannel = StringUtils.isEmpty(sellChannel) ? "65534" : sellChannel;
+			incrInventory.setIsStraint(Integer.parseInt(isStraint));
+			incrInventory.setSellChannel(Integer.parseInt(sellChannel));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",after fillFilteredSHotelsIds,incrInventorys size = "
 				+ incrInventorys.size());

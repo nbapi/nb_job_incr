@@ -87,6 +87,8 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					incrHotel.setTriggerID(Long.valueOf(item.getID() + ""));
 					incrHotel.setChannel(item.getChannel());
 					incrHotel.setInsertTime(new Date());
+					incrHotel.setSellChannel(item.getSellChannel());
+					incrHotel.setIsStraint(item.getIsStraint());
 					hotels.add(incrHotel);
 				}
 				incrHotelRepository.syncIncrHotelToDB(hotels);
@@ -135,6 +137,8 @@ public class IncrHotelServiceImpl implements IIncrHotelService {
 					incrHotel.setTriggerID(Long.valueOf(item.getID() + ""));
 					incrHotel.setChannel(item.getChannel());
 					incrHotel.setInsertTime(new Date());
+					incrHotel.setSellChannel(item.getSellChannel());
+					incrHotel.setIsStraint(item.getIsStraint());
 					hotels.add(incrHotel);
 				}
 				incrHotelRepository.syncIncrHotelToDB(hotels);
