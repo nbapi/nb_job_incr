@@ -132,6 +132,16 @@ public class IncrInventoryRepository {
 	}
 
 	/** 
+	 * 将hotelcode分配到20个组,这样存redis时最多连接20次 
+	 *
+	 * @param hotelCode
+	 * @return
+	 */
+	private String getCompressHashKey(String hotelCode) {
+		return "incrinv_" + Integer.parseInt(hotelCode) / 20;
+	}
+
+	/** 
 	 * 库存增量数据压缩 
 	 *
 	 * @param incrInventorys
@@ -142,7 +152,7 @@ public class IncrInventoryRepository {
 		long startTime = System.currentTimeMillis();
 		Map<String, List<String>> keyMap = new HashMap<String, List<String>>();
 		for (IncrInventory incrInventory : incrInventorys) {
-			String hashKey = "incrinv_" + incrInventory.getHotelCode();
+			String hashKey = getCompressHashKey(incrInventory.getHotelCode());
 			List<String> md5keyList = keyMap.get(hashKey);
 			if (md5keyList == null) {
 				md5keyList = new ArrayList<String>();
@@ -165,7 +175,7 @@ public class IncrInventoryRepository {
 			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
 			String md5ExistValue = cacheMap.get(md5key);
 			if (StringUtils.isEmpty(md5ExistValue) || !md5ExistValue.equals(md5CurrentValue)) {
-				String hashKey = "incrinv_" + incrInventory.getHotelCode();
+				String hashKey = getCompressHashKey(incrInventory.getHotelCode());
 				Map<String, String> valMap = waitSaveMap.get(hashKey);
 				if (valMap == null) {
 					valMap = new HashMap<String, String>();
@@ -177,8 +187,9 @@ public class IncrInventoryRepository {
 			}
 		}
 
+		int expireSeconds = 24 * 60 * 60;
 		for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
-			redisManager.hmset(entry.getKey(), entry.getValue(), 24 * 60 * 60);
+			redisManager.hmset(entry.getKey(), entry.getValue(), expireSeconds);
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",compressIncrInventory and filter size = "
 				+ (beforeSize - incrInventorys.size()));
