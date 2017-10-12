@@ -138,7 +138,7 @@ public class CommonRepository {
 		long startTime = System.currentTimeMillis();
 		if (keyList == null || keyList.size() == 0)
 			return Collections.emptyMap();
-		Map<String, String> sellChannelMap = new HashMap<String, String>();
+		Map<String, String> resultMap = new HashMap<String, String>();
 		int recordCount = keyList.size();
 		String batchSizeGetFromRedis = CommonsUtil.CONFIG_PROVIDAR.getProperty("BatchSizeGetFromRedis");
 		int pageSize = StringUtils.isEmpty(batchSizeGetFromRedis) ? 2000 : Integer.valueOf(batchSizeGetFromRedis);
@@ -147,13 +147,40 @@ public class CommonRepository {
 			int startNum = (pageIndex - 1) * pageSize;
 			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
 			List<String> subKeyList = keyList.subList(startNum, endNum);
-			List<String> sellChannelList = redisManager.mget(subKeyList.toArray(new String[0]));
+			List<String> subValList = redisManager.mget(subKeyList.toArray(new String[0]));
 			for (int i = 0; i < subKeyList.size(); i++) {
-				sellChannelMap.put(subKeyList.get(i), sellChannelList.get(i));
+				resultMap.put(subKeyList.get(i), subValList.get(i));
 			}
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",batchGetMapFromRedis,keyList size = " + recordCount);
-		return sellChannelMap;
+		return resultMap;
+	}
+
+	public Map<String, String> batchHashGetMapFromRedis(Map<String, List<String>> keyMap) {
+		long startTime = System.currentTimeMillis();
+		if (keyMap == null || keyMap.size() == 0)
+			return Collections.emptyMap();
+
+		String batchSizeGetFromRedis = CommonsUtil.CONFIG_PROVIDAR.getProperty("BatchSizeGetFromRedis");
+		Map<String, String> resultMap = new HashMap<String, String>();
+		for (Map.Entry<String, List<String>> entry : keyMap.entrySet()) {
+			ICacheKey hashKeyName = RedisManager.getCacheKey(entry.getKey());
+			List<String> keyList = entry.getValue();
+			int recordCount = keyList.size();
+			int pageSize = StringUtils.isEmpty(batchSizeGetFromRedis) ? 2000 : Integer.valueOf(batchSizeGetFromRedis);
+			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+				int startNum = (pageIndex - 1) * pageSize;
+				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+				List<String> subKeyList = keyList.subList(startNum, endNum);
+				List<String> subValList = redisManager.hashMGet(hashKeyName, subKeyList.toArray(new String[0]));
+				for (int i = 0; i < subKeyList.size(); i++) {
+					resultMap.put(subKeyList.get(i), subValList.get(i));
+				}
+			}
+		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",batchHashGetMapFromRedis,keyMap size = " + keyMap.size());
+		return resultMap;
 	}
 
 }

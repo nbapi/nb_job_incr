@@ -34,7 +34,6 @@ import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmRequest;
 import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmResponse;
 import com.elong.hotel.searchagent.thrift.dss.MhotelAttr;
 import com.elong.hotel.searchagent.thrift.dss.ShotelAttr;
-import com.elong.nb.cache.ICacheKey;
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.adataper.IncrInventoryAdapter;
@@ -141,31 +140,45 @@ public class IncrInventoryRepository {
 		if (incrInventorys == null || incrInventorys.size() == 0)
 			return;
 		long startTime = System.currentTimeMillis();
-		List<String> md5keyList = new ArrayList<String>();
+		Map<String, List<String>> keyMap = new HashMap<String, List<String>>();
 		for (IncrInventory incrInventory : incrInventorys) {
-			String key = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
-			String md5key = DigestUtils.md5Hex(key);
+			String hashKey = "incrinv_" + incrInventory.getHotelCode();
+			List<String> md5keyList = keyMap.get(hashKey);
+			if (md5keyList == null) {
+				md5keyList = new ArrayList<String>();
+			}
+			String key2 = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
+			String md5key = DigestUtils.md5Hex(key2);
 			md5keyList.add(md5key);
+			keyMap.put(hashKey, md5keyList);
 		}
-		Map<String, String> cacheMap = commonRepository.batchGetMapFromRedis(md5keyList);
+		Map<String, String> cacheMap = commonRepository.batchHashGetMapFromRedis(keyMap);
 		int beforeSize = incrInventorys.size();
 		Iterator<IncrInventory> iter = incrInventorys.iterator();
+		Map<String, Map<String, String>> waitSaveMap = new HashMap<String, Map<String, String>>();
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
-			if (incrInventory == null)
-				continue;
 			String key = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
 			String md5key = DigestUtils.md5Hex(key);
 			String currentValue = (incrInventory.isStatus() ? "Y" : "N") + incrInventory.getOverBooking() + incrInventory.getStartDate()
 					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount();
 			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
-			ICacheKey cacheKey = RedisManager.getCacheKey(md5key, 24 * 60 * 60 * 1000);
 			String md5ExistValue = cacheMap.get(md5key);
 			if (StringUtils.isEmpty(md5ExistValue) || !md5ExistValue.equals(md5CurrentValue)) {
-				redisManager.put(cacheKey, md5CurrentValue);
+				String hashKey = "incrinv_" + incrInventory.getHotelCode();
+				Map<String, String> valMap = waitSaveMap.get(hashKey);
+				if (valMap == null) {
+					valMap = new HashMap<String, String>();
+				}
+				valMap.put(md5key, md5CurrentValue);
+				waitSaveMap.put(hashKey, valMap);
 			} else {
 				iter.remove();
 			}
+		}
+
+		for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
+			redisManager.hmset(entry.getKey(), entry.getValue(), 24 * 60 * 60);
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",compressIncrInventory and filter size = "
 				+ (beforeSize - incrInventorys.size()));
