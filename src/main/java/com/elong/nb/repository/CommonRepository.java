@@ -8,8 +8,10 @@ package com.elong.nb.repository;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -130,6 +132,28 @@ public class CommonRepository {
 			redisManager.put(cacheKey, orderFromResult);
 		}
 		return orderFromResult;
+	}
+
+	public Map<String, String> batchGetMapFromRedis(List<String> keyList) {
+		long startTime = System.currentTimeMillis();
+		if (keyList == null || keyList.size() == 0)
+			return Collections.emptyMap();
+		Map<String, String> sellChannelMap = new HashMap<String, String>();
+		int recordCount = keyList.size();
+		String batchSizeGetFromRedis = CommonsUtil.CONFIG_PROVIDAR.getProperty("BatchSizeGetFromRedis");
+		int pageSize = StringUtils.isEmpty(batchSizeGetFromRedis) ? 2000 : Integer.valueOf(batchSizeGetFromRedis);
+		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
+		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+			int startNum = (pageIndex - 1) * pageSize;
+			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
+			List<String> subKeyList = keyList.subList(startNum, endNum);
+			List<String> sellChannelList = redisManager.mget(subKeyList.toArray(new String[0]));
+			for (int i = 0; i < subKeyList.size(); i++) {
+				sellChannelMap.put(subKeyList.get(i), sellChannelList.get(i));
+			}
+		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",batchGetMapFromRedis,keyList size = " + recordCount);
+		return sellChannelMap;
 	}
 
 }

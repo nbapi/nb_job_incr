@@ -120,10 +120,10 @@ public class IncrInventoryRepository {
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrInventoryList from goods,incrInventorys size = "
 				+ incrInventorys.size());
 
-		// 过滤掉携程去哪儿酒店
-		filterShotelsIds(incrInventorys);
 		// 库存增量数据压缩
 		compressIncrInventory(incrInventorys);
+		// 过滤掉携程去哪儿酒店
+		filterShotelsIds(incrInventorys);
 		// 按照ChangeID排序
 		sortIncrInventorysByChangeID(incrInventorys);
 		// 插入数据库
@@ -141,6 +141,13 @@ public class IncrInventoryRepository {
 		if (incrInventorys == null || incrInventorys.size() == 0)
 			return;
 		long startTime = System.currentTimeMillis();
+		List<String> md5keyList = new ArrayList<String>();
+		for (IncrInventory incrInventory : incrInventorys) {
+			String key = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
+			String md5key = DigestUtils.md5Hex(key);
+			md5keyList.add(md5key);
+		}
+		Map<String, String> cacheMap = commonRepository.batchGetMapFromRedis(md5keyList);
 		int beforeSize = incrInventorys.size();
 		Iterator<IncrInventory> iter = incrInventorys.iterator();
 		while (iter.hasNext()) {
@@ -153,7 +160,7 @@ public class IncrInventoryRepository {
 					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount();
 			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
 			ICacheKey cacheKey = RedisManager.getCacheKey(md5key, 24 * 60 * 60 * 1000);
-			String md5ExistValue = redisManager.get(cacheKey);
+			String md5ExistValue = cacheMap.get(md5key);
 			if (StringUtils.isEmpty(md5ExistValue) || !md5ExistValue.equals(md5CurrentValue)) {
 				redisManager.put(cacheKey, md5CurrentValue);
 			} else {
@@ -429,6 +436,8 @@ public class IncrInventoryRepository {
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<IncrInventory> iter = incrInventorys.iterator();
+		List<String> isStraintKeyList = new ArrayList<String>();
+		List<String> sellChannelKeyList = new ArrayList<String>();
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
 			if (incrInventory == null)
@@ -442,9 +451,21 @@ public class IncrInventoryRepository {
 			String roomTypeId = incrInventory.getRoomTypeID();
 			String isStraintKey = "filter_" + hotelCode;
 			String sellChannelKey = isStraintKey + roomTypeId;
-			String isStraint = redisManager.get(RedisManager.getCacheKey(isStraintKey));
-			String sellChannel = redisManager.get(RedisManager.getCacheKey(sellChannelKey));
+			isStraintKeyList.add(isStraintKey);
+			sellChannelKeyList.add(sellChannelKey);
+		}
+		Map<String, String> isStraintMap = commonRepository.batchGetMapFromRedis(isStraintKeyList);
+		Map<String, String> sellChannelMap = commonRepository.batchGetMapFromRedis(sellChannelKeyList);
+		for (IncrInventory incrInventory : incrInventorys) {
+			String hotelCode = incrInventory.getHotelCode();
+			String roomTypeId = incrInventory.getRoomTypeID();
+
+			String isStraintKey = "filter_" + hotelCode;
+			String isStraint = isStraintMap.get(isStraintKey);
 			isStraint = StringUtils.isEmpty(isStraint) ? "0" : isStraint;
+
+			String sellChannelKey = isStraintKey + roomTypeId;
+			String sellChannel = sellChannelMap.get(sellChannelKey);
 			sellChannel = StringUtils.isEmpty(sellChannel) ? "65534" : sellChannel;
 			incrInventory.setIsStraint(Integer.parseInt(isStraint));
 			incrInventory.setSellChannel(Integer.parseInt(sellChannel));
