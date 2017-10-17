@@ -158,7 +158,7 @@ public class IncrInventoryRepository {
 				md5keyList = new ArrayList<String>();
 			}
 			String key2 = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
-			String md5key = DigestUtils.md5Hex(key2);
+			String md5key = DigestUtils.md5Hex(key2.trim());
 			md5keyList.add(md5key);
 			keyMap.put(hashKey, md5keyList);
 		}
@@ -169,7 +169,7 @@ public class IncrInventoryRepository {
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
 			String key = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
-			String md5key = DigestUtils.md5Hex(key);
+			String md5key = DigestUtils.md5Hex(key.trim());
 			String currentValue = (incrInventory.isStatus() ? "Y" : "N") + incrInventory.getOverBooking() + incrInventory.getStartDate()
 					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount();
 			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
