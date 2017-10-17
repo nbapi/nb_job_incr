@@ -119,12 +119,12 @@ public class IncrInventoryRepository {
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrInventoryList from goods,incrInventorys size = "
 				+ incrInventorys.size());
 
-		// 库存增量数据压缩
-		compressIncrInventory(incrInventorys);
 		// 过滤掉携程去哪儿酒店
 		filterShotelsIds(incrInventorys);
 		// 按照ChangeID排序
 		sortIncrInventorysByChangeID(incrInventorys);
+		// 库存增量数据压缩
+		compressIncrInventory(incrInventorys);
 		// 插入数据库
 		builkInsert(incrInventorys);
 		Number lastChangeId = (Number) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
