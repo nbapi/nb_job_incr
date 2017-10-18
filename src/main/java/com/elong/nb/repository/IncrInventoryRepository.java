@@ -38,7 +38,6 @@ import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.adataper.IncrInventoryAdapter;
 import com.elong.nb.model.bean.IncrInventory;
-import com.elong.nb.ms.agent.HotelDataServiceAgent;
 import com.elong.nb.submeter.service.ISubmeterService;
 import com.elong.nb.util.ConfigUtils;
 import com.elong.nb.util.ExecutorUtils;
@@ -73,8 +72,6 @@ public class IncrInventoryRepository {
 
 	@Resource
 	private GoodsMetaRepository goodsMetaRepository;
-	
-	private HotelDataServiceAgent hotelDataServiceAgent = new HotelDataServiceAgent();
 
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
@@ -463,8 +460,8 @@ public class IncrInventoryRepository {
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<IncrInventory> iter = incrInventorys.iterator();
-		List<String> hotelCodeList = new ArrayList<String>();
-		List<String> roomTypeIdList = new ArrayList<String>();
+		List<String> isStraintKeyList = new ArrayList<String>();
+		List<String> sellChannelKeyList = new ArrayList<String>();
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
 			if (incrInventory == null)
@@ -476,22 +473,26 @@ public class IncrInventoryRepository {
 				incrInventory.setChannel(0);
 			}
 			String roomTypeId = incrInventory.getRoomTypeID();
-			roomTypeId = hotelCode + "_" + roomTypeId;
-			hotelCodeList.add(hotelCode);
-			roomTypeIdList.add(roomTypeId);
+			String isStraintKey = "f2_" + hotelCode;
+			String sellChannelKey = "f1_" + hotelCode + "_" + roomTypeId;
+			isStraintKeyList.add(isStraintKey);
+			sellChannelKeyList.add(sellChannelKey);
 		}
-		Map<String, Object> isStraintMap = hotelDataServiceAgent.getCooperationTypeByHotelCode(hotelCodeList.toArray(new String[0]));
-		Map<String, Object> sellChannelMap = hotelDataServiceAgent.getSellChannelsByRoomTypeId(roomTypeIdList.toArray(new String[0]));
+		Map<String, String> isStraintMap = commonRepository.batchGetMapFromRedis(isStraintKeyList);
+		Map<String, String> sellChannelMap = commonRepository.batchGetMapFromRedis(sellChannelKeyList);
 		for (IncrInventory incrInventory : incrInventorys) {
 			String hotelCode = incrInventory.getHotelCode();
 			String roomTypeId = incrInventory.getRoomTypeID();
 
-			Object isStraint = isStraintMap.get(hotelCode);
-			String isStraintStr = (isStraint == null) ? "0" : (String)isStraint;
-			Object sellChannel = sellChannelMap.get(hotelCode + "_" + roomTypeId);
-			String sellChannelStr = (sellChannel == null) ? "65534" : (String)sellChannel;
-			incrInventory.setIsStraint(Integer.parseInt(isStraintStr));
-			incrInventory.setSellChannel(Integer.parseInt(sellChannelStr));
+			String isStraintKey = "f2_" + hotelCode;
+			String isStraint = isStraintMap.get(isStraintKey);
+			isStraint = StringUtils.isEmpty(isStraint) ? "0" : isStraint;
+
+			String sellChannelKey = "f1_" + hotelCode + "_" + roomTypeId;
+			String sellChannel = sellChannelMap.get(sellChannelKey);
+			sellChannel = StringUtils.isEmpty(sellChannel) ? "65534" : sellChannel;
+			incrInventory.setIsStraint(Integer.parseInt(isStraint));
+			incrInventory.setSellChannel(Integer.parseInt(sellChannel));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",after fillFilteredSHotelsIds,incrInventorys size = "
 				+ incrInventorys.size());
