@@ -379,7 +379,7 @@ public class IncrRateRepository {
 			incrRate.setEndDate(endDate);
 
 			String hotelCode = incrRate.getHotelCode();
-			String rateplanId = incrRate.getRoomTypeId();
+			String rateplanId = incrRate.getRateplanId() + "";
 			String isStraintKey = "f2_" + hotelCode;
 			String sellChannelKey = "f_" + rateplanId;
 			isStraintKeyList.add(isStraintKey);
@@ -389,7 +389,7 @@ public class IncrRateRepository {
 		Map<String, String> sellChannelMap = commonRepository.batchGetMapFromRedis(sellChannelKeyList);
 		for (IncrRate incrRate : incrRateList) {
 			String hotelCode = incrRate.getHotelCode();
-			String rateplanId = incrRate.getRoomTypeId();
+			String rateplanId = incrRate.getRateplanId() + "";
 
 			String isStraintKey = "f2_" + hotelCode;
 			String isStraint = isStraintMap.get(isStraintKey);
