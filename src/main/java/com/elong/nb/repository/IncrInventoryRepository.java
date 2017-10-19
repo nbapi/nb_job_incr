@@ -40,6 +40,7 @@ import com.elong.nb.dao.adataper.IncrInventoryAdapter;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.submeter.service.ISubmeterService;
 import com.elong.nb.util.ConfigUtils;
+import com.elong.nb.util.DateHandlerUtils;
 import com.elong.nb.util.ExecutorUtils;
 
 /**
@@ -157,8 +158,7 @@ public class IncrInventoryRepository {
 			if (md5keyList == null) {
 				md5keyList = new ArrayList<String>();
 			}
-			String key2 = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
-			String md5key = DigestUtils.md5Hex(key2.trim());
+			String md5key = incrInventory.getHotelCode().trim() + incrInventory.getRoomTypeID().trim() + DateHandlerUtils.formatDate(incrInventory.getAvailableDate(), "yyyyMMddHHmmss");
 			md5keyList.add(md5key);
 			keyMap.put(hashKey, md5keyList);
 		}
@@ -168,8 +168,7 @@ public class IncrInventoryRepository {
 		Map<String, Map<String, String>> waitSaveMap = new HashMap<String, Map<String, String>>();
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
-			String key = incrInventory.getHotelCode() + incrInventory.getRoomTypeID() + incrInventory.getAvailableDate();
-			String md5key = DigestUtils.md5Hex(key.trim());
+			String md5key = incrInventory.getHotelCode().trim() + incrInventory.getRoomTypeID().trim() + DateHandlerUtils.formatDate(incrInventory.getAvailableDate(), "yyyyMMddHHmmss");
 			String currentValue = (incrInventory.isStatus() ? "Y" : "N") + incrInventory.getOverBooking() + incrInventory.getStartDate()
 					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount();
 			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
@@ -187,7 +186,7 @@ public class IncrInventoryRepository {
 			}
 		}
 
-		int expireSeconds = 24 * 60 * 60;
+		int expireSeconds = 8 * 60 * 60;
 		for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
 			redisManager.hmset(entry.getKey(), entry.getValue(), expireSeconds);
 		}
