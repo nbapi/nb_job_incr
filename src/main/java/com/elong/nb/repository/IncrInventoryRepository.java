@@ -78,8 +78,6 @@ public class IncrInventoryRepository {
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
 
-	private HotelDataServiceAgent hotelDataServiceAgent = new HotelDataServiceAgent();
-
 	/** 
 	 * 同步库存增量
 	 *
@@ -191,7 +189,7 @@ public class IncrInventoryRepository {
 			}
 		}
 
-		int expireSeconds = 8 * 60 * 60;
+		int expireSeconds = 2 * 60 * 60;
 		for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
 			redisManager.hmset(entry.getKey(), entry.getValue(), expireSeconds);
 		}
@@ -460,7 +458,6 @@ public class IncrInventoryRepository {
 	 *
 	 * @param productInventoryIncrementList
 	 */
-	@SuppressWarnings("static-access")
 	private void filterShotelsIds(List<IncrInventory> incrInventorys) {
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
@@ -481,8 +478,8 @@ public class IncrInventoryRepository {
 			hotelCodeList.add(hotelCode);
 			roomTypeIdList.add(hotelCode + "_" + roomTypeId);
 		}
-		Map<String, String> isStraintMap = hotelDataServiceAgent.getCooperationTypeByHotelCode(hotelCodeList.toArray(new String[0]));
-		Map<String, String> sellChannelMap = hotelDataServiceAgent.getSellChannelsByRoomTypeId(roomTypeIdList.toArray(new String[0]));
+		Map<String, String> isStraintMap = HotelDataServiceAgent.getCooperationTypeByHotelCode(hotelCodeList.toArray(new String[0]));
+		Map<String, String> sellChannelMap = HotelDataServiceAgent.getSellChannelsByRoomTypeId(roomTypeIdList.toArray(new String[0]));
 		for (IncrInventory incrInventory : incrInventorys) {
 			String hotelCode = incrInventory.getHotelCode();
 			String roomTypeId = incrInventory.getRoomTypeID();

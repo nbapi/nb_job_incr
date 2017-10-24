@@ -79,8 +79,6 @@ public class IncrRateRepository {
 	@Resource
 	private MySqlDataDao mySqlDataDao;
 	
-	private HotelDataServiceAgent hotelDataServiceAgent = new HotelDataServiceAgent();
-
 	/** 
 	 * IncrRate同步到数据库
 	 *
@@ -358,7 +356,6 @@ public class IncrRateRepository {
 	 *
 	 * @param incrRateList
 	 */
-	@SuppressWarnings("static-access")
 	private void filterAndHandler(List<IncrRate> incrRateList) {
 		logger.info("before fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
 		Date validDate = DateTime.now().plusYears(1).toDate();
@@ -385,8 +382,8 @@ public class IncrRateRepository {
 			hotelCodeList.add(incrRate.getHotelCode());
 			ratePlanIdList.add(incrRate.getRateplanId() + "");
 		}
-		Map<String, String> isStraintMap = hotelDataServiceAgent.getCooperationTypeByHotelCode(hotelCodeList.toArray(new String[0]));
-		Map<String, String> sellChannelMap = hotelDataServiceAgent.getSellChannelByRatePlanId(ratePlanIdList.toArray(new String[0]));
+		Map<String, String> isStraintMap = HotelDataServiceAgent.getCooperationTypeByHotelCode(hotelCodeList.toArray(new String[0]));
+		Map<String, String> sellChannelMap = HotelDataServiceAgent.getSellChannelByRatePlanId(ratePlanIdList.toArray(new String[0]));
 		for (IncrRate incrRate : incrRateList) {
 			String hotelCode = incrRate.getHotelCode();
 			String rateplanId = incrRate.getRateplanId() + "";
