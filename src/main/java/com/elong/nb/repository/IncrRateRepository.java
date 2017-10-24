@@ -40,6 +40,7 @@ import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.MySqlDataDao;
 import com.elong.nb.dao.adataper.IncrRateAdapter;
 import com.elong.nb.model.bean.IncrRate;
+import com.elong.nb.ms.agent.HotelDataServiceAgent;
 import com.elong.nb.submeter.service.ISubmeterService;
 import com.elong.nb.util.ConfigUtils;
 import com.elong.nb.util.DateHandlerUtils;
@@ -77,6 +78,8 @@ public class IncrRateRepository {
 
 	@Resource
 	private MySqlDataDao mySqlDataDao;
+	
+	private HotelDataServiceAgent hotelDataServiceAgent = new HotelDataServiceAgent();
 
 	/** 
 	 * IncrRate同步到数据库
@@ -355,14 +358,15 @@ public class IncrRateRepository {
 	 *
 	 * @param incrRateList
 	 */
+	@SuppressWarnings("static-access")
 	private void filterAndHandler(List<IncrRate> incrRateList) {
 		logger.info("before fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
 		Date validDate = DateTime.now().plusYears(1).toDate();
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<IncrRate> iter = incrRateList.iterator();
-		List<String> isStraintKeyList = new ArrayList<String>();
-		List<String> sellChannelKeyList = new ArrayList<String>();
+		List<String> hotelCodeList = new ArrayList<String>();
+		List<String> ratePlanIdList = new ArrayList<String>();
 		while (iter.hasNext()) {
 			IncrRate incrRate = iter.next();
 			if (incrRate == null) {
@@ -378,25 +382,19 @@ public class IncrRateRepository {
 			endDate = (endDate.compareTo(validDate) > 0) ? validDate : endDate;
 			incrRate.setEndDate(endDate);
 
-			String hotelCode = incrRate.getHotelCode();
-			String rateplanId = incrRate.getRateplanId() + "";
-			String isStraintKey = "f2_" + hotelCode;
-			String sellChannelKey = "f_" + rateplanId;
-			isStraintKeyList.add(isStraintKey);
-			sellChannelKeyList.add(sellChannelKey);
+			hotelCodeList.add(incrRate.getHotelCode());
+			ratePlanIdList.add(incrRate.getRateplanId() + "");
 		}
-		Map<String, String> isStraintMap = commonRepository.batchGetMapFromRedis(isStraintKeyList);
-		Map<String, String> sellChannelMap = commonRepository.batchGetMapFromRedis(sellChannelKeyList);
+		Map<String, String> isStraintMap = hotelDataServiceAgent.getCooperationTypeByHotelCode(hotelCodeList.toArray(new String[0]));
+		Map<String, String> sellChannelMap = hotelDataServiceAgent.getSellChannelByRatePlanId(ratePlanIdList.toArray(new String[0]));
 		for (IncrRate incrRate : incrRateList) {
 			String hotelCode = incrRate.getHotelCode();
 			String rateplanId = incrRate.getRateplanId() + "";
 
-			String isStraintKey = "f2_" + hotelCode;
-			String isStraint = isStraintMap.get(isStraintKey);
+			String isStraint = isStraintMap.get(hotelCode);
 			isStraint = StringUtils.isEmpty(isStraint) ? "0" : isStraint;
 
-			String sellChannelKey = "f_" + rateplanId;
-			String sellChannel = sellChannelMap.get(sellChannelKey);
+			String sellChannel = sellChannelMap.get(rateplanId);
 			sellChannel = StringUtils.isEmpty(sellChannel) ? "65534" : sellChannel;
 			incrRate.setIsStraint(Integer.parseInt(isStraint));
 			incrRate.setSellChannel(Integer.parseInt(sellChannel));

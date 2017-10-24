@@ -38,6 +38,7 @@ import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.adataper.IncrInventoryAdapter;
 import com.elong.nb.model.bean.IncrInventory;
+import com.elong.nb.ms.agent.HotelDataServiceAgent;
 import com.elong.nb.submeter.service.ISubmeterService;
 import com.elong.nb.util.ConfigUtils;
 import com.elong.nb.util.DateHandlerUtils;
@@ -76,6 +77,8 @@ public class IncrInventoryRepository {
 
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
+
+	private HotelDataServiceAgent hotelDataServiceAgent = new HotelDataServiceAgent();
 
 	/** 
 	 * 同步库存增量
@@ -158,7 +161,8 @@ public class IncrInventoryRepository {
 			if (md5keyList == null) {
 				md5keyList = new ArrayList<String>();
 			}
-			String md5key = incrInventory.getHotelCode().trim() + incrInventory.getRoomTypeID().trim() + DateHandlerUtils.formatDate(incrInventory.getAvailableDate(), "yyyyMMddHHmmss");
+			String md5key = incrInventory.getHotelCode().trim() + incrInventory.getRoomTypeID().trim()
+					+ DateHandlerUtils.formatDate(incrInventory.getAvailableDate(), "yyyyMMddHHmmss");
 			md5keyList.add(md5key);
 			keyMap.put(hashKey, md5keyList);
 		}
@@ -168,7 +172,8 @@ public class IncrInventoryRepository {
 		Map<String, Map<String, String>> waitSaveMap = new HashMap<String, Map<String, String>>();
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
-			String md5key = incrInventory.getHotelCode().trim() + incrInventory.getRoomTypeID().trim() + DateHandlerUtils.formatDate(incrInventory.getAvailableDate(), "yyyyMMddHHmmss");
+			String md5key = incrInventory.getHotelCode().trim() + incrInventory.getRoomTypeID().trim()
+					+ DateHandlerUtils.formatDate(incrInventory.getAvailableDate(), "yyyyMMddHHmmss");
 			String currentValue = (incrInventory.isStatus() ? "Y" : "N") + incrInventory.getOverBooking() + incrInventory.getStartDate()
 					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount();
 			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
@@ -455,12 +460,13 @@ public class IncrInventoryRepository {
 	 *
 	 * @param productInventoryIncrementList
 	 */
+	@SuppressWarnings("static-access")
 	private void filterShotelsIds(List<IncrInventory> incrInventorys) {
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<IncrInventory> iter = incrInventorys.iterator();
-		List<String> isStraintKeyList = new ArrayList<String>();
-		List<String> sellChannelKeyList = new ArrayList<String>();
+		List<String> hotelCodeList = new ArrayList<String>();
+		List<String> roomTypeIdList = new ArrayList<String>();
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
 			if (incrInventory == null)
@@ -472,22 +478,19 @@ public class IncrInventoryRepository {
 				incrInventory.setChannel(0);
 			}
 			String roomTypeId = incrInventory.getRoomTypeID();
-			String isStraintKey = "f2_" + hotelCode;
-			String sellChannelKey = "f1_" + hotelCode + "_" + roomTypeId;
-			isStraintKeyList.add(isStraintKey);
-			sellChannelKeyList.add(sellChannelKey);
+			hotelCodeList.add(hotelCode);
+			roomTypeIdList.add(hotelCode + "_" + roomTypeId);
 		}
-		Map<String, String> isStraintMap = commonRepository.batchGetMapFromRedis(isStraintKeyList);
-		Map<String, String> sellChannelMap = commonRepository.batchGetMapFromRedis(sellChannelKeyList);
+		Map<String, String> isStraintMap = hotelDataServiceAgent.getCooperationTypeByHotelCode(hotelCodeList.toArray(new String[0]));
+		Map<String, String> sellChannelMap = hotelDataServiceAgent.getSellChannelsByRoomTypeId(roomTypeIdList.toArray(new String[0]));
 		for (IncrInventory incrInventory : incrInventorys) {
 			String hotelCode = incrInventory.getHotelCode();
 			String roomTypeId = incrInventory.getRoomTypeID();
 
-			String isStraintKey = "f2_" + hotelCode;
-			String isStraint = isStraintMap.get(isStraintKey);
+			String isStraint = isStraintMap.get(hotelCode);
 			isStraint = StringUtils.isEmpty(isStraint) ? "0" : isStraint;
 
-			String sellChannelKey = "f1_" + hotelCode + "_" + roomTypeId;
+			String sellChannelKey = hotelCode + "_" + roomTypeId;
 			String sellChannel = sellChannelMap.get(sellChannelKey);
 			sellChannel = StringUtils.isEmpty(sellChannel) ? "65534" : sellChannel;
 			incrInventory.setIsStraint(Integer.parseInt(isStraint));
