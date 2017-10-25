@@ -77,7 +77,7 @@ public class ChecklistAspect {
 			String userNameStr = userName == null?null:(String)userName;
 			EnumNBLogType logType = StringUtils.contains(classFullName, "Controller")?EnumNBLogType.JOB_CONTROLLER:EnumNBLogType.DAO;
 			NBActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null,
-					JSON.toJSONString(returnValue), JSON.toJSONString(point.getArgs()), userNameStr, logType);
+					null, JSON.toJSONString(point.getArgs()), userNameStr, logType);
 		} catch (Exception e) {
 		}
 	}
