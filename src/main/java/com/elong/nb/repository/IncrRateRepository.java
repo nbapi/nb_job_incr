@@ -362,8 +362,8 @@ public class IncrRateRepository {
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<IncrRate> iter = incrRateList.iterator();
-		List<String> hotelCodeList = new ArrayList<String>();
-		List<String> ratePlanIdList = new ArrayList<String>();
+		Set<String> hotelCodeList = new HashSet<String>();
+		Set<String> ratePlanIdList = new HashSet<String>();
 		while (iter.hasNext()) {
 			IncrRate incrRate = iter.next();
 			if (incrRate == null) {

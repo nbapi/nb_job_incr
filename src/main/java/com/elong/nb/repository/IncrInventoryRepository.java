@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -462,8 +463,8 @@ public class IncrInventoryRepository {
 		long startTime = System.currentTimeMillis();
 		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<IncrInventory> iter = incrInventorys.iterator();
-		List<String> hotelCodeList = new ArrayList<String>();
-		List<String> roomTypeIdList = new ArrayList<String>();
+		Set<String> hotelCodeList = new HashSet<String>();
+		Set<String> roomTypeIdList = new HashSet<String>();
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
 			if (incrInventory == null)
