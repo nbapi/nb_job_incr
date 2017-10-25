@@ -5,6 +5,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -74,8 +75,9 @@ public class ChecklistAspect {
 
 			Object userName = ThreadLocalUtil.get(Constants.ELONG_REQUEST_USERNAME);
 			String userNameStr = userName == null?null:(String)userName;
+			EnumNBLogType logType = StringUtils.contains(classFullName, "Controller")?EnumNBLogType.JOB_CONTROLLER:EnumNBLogType.DAO;
 			NBActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null,
-					JSON.toJSONString(returnValue), JSON.toJSONString(point.getArgs()), userNameStr, EnumNBLogType.JOB_CONTROLLER);
+					JSON.toJSONString(returnValue), JSON.toJSONString(point.getArgs()), userNameStr, logType);
 		} catch (Exception e) {
 		}
 	}
@@ -92,10 +94,11 @@ public class ChecklistAspect {
 
 			Object userName = ThreadLocalUtil.get(Constants.ELONG_REQUEST_USERNAME);
 			String userNameStr = userName == null?null:(String)userName;
+			EnumNBLogType logType = StringUtils.contains(classFullName, "Controller")?EnumNBLogType.JOB_CONTROLLER:EnumNBLogType.DAO;
 			if (throwing instanceof Exception) {
 				Exception e = (Exception) throwing;
 				NBActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), null,
-						JSON.toJSONString(point.getArgs()), userNameStr, EnumNBLogType.JOB_CONTROLLER);
+						JSON.toJSONString(point.getArgs()), userNameStr, logType);
 			}
 		} catch (Exception e) {
 		}
