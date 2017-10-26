@@ -74,10 +74,14 @@ public class ChecklistAspect {
 				guid = UUID.randomUUID().toString();
 
 			Object userName = ThreadLocalUtil.get(Constants.ELONG_REQUEST_USERNAME);
-			String userNameStr = userName == null?null:(String)userName;
-			EnumNBLogType logType = StringUtils.contains(classFullName, "Controller")?EnumNBLogType.JOB_CONTROLLER:EnumNBLogType.DAO;
-			NBActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null,
-					null, JSON.toJSONString(point.getArgs()), userNameStr, logType);
+			String userNameStr = userName == null?null:(String)userName;			
+			if (StringUtils.contains(classFullName, "Controller")) {
+				NBActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null,
+						null, null, userNameStr, EnumNBLogType.JOB_CONTROLLER);
+			}else{
+				NBActionLogHelper.businessLog((String) guid, true, methodName, classFullName, null, useTime, 0, null,
+						null, JSON.toJSONString(point.getArgs()), userNameStr, EnumNBLogType.DAO);
+			}
 		} catch (Exception e) {
 		}
 	}
@@ -94,11 +98,16 @@ public class ChecklistAspect {
 
 			Object userName = ThreadLocalUtil.get(Constants.ELONG_REQUEST_USERNAME);
 			String userNameStr = userName == null?null:(String)userName;
-			EnumNBLogType logType = StringUtils.contains(classFullName, "Controller")?EnumNBLogType.JOB_CONTROLLER:EnumNBLogType.DAO;
+			Exception e = null;
 			if (throwing instanceof Exception) {
-				Exception e = (Exception) throwing;
+				e = (Exception) throwing;
+			}
+			if (StringUtils.contains(classFullName, "Controller")) {
 				NBActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), null,
-						JSON.toJSONString(point.getArgs()), userNameStr, logType);
+						null, userNameStr, EnumNBLogType.JOB_CONTROLLER);
+			}else{
+				NBActionLogHelper.businessLog((String) guid, false, methodName, classFullName, e, useTime, -1, e.getMessage(), null,
+						JSON.toJSONString(point.getArgs()), userNameStr, EnumNBLogType.DAO);
 			}
 		} catch (Exception e) {
 		}
