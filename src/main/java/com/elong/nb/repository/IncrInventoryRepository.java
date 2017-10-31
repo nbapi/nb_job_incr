@@ -65,7 +65,7 @@ public class IncrInventoryRepository {
 
 	private static final int MAXDAYS = 90;
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared_2", "redis_shared_2");
 
 	@Resource
 	private MSRelationRepository msRelationRepository;
@@ -174,7 +174,8 @@ public class IncrInventoryRepository {
 			String md5key = incrInventory.getHotelCode().trim() + incrInventory.getRoomTypeID().trim()
 					+ DateHandlerUtils.formatDate(incrInventory.getAvailableDate(), "yyyyMMddHHmmss");
 			String currentValue = (incrInventory.isStatus() ? "Y" : "N") + incrInventory.getOverBooking() + incrInventory.getStartDate()
-					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount();
+					+ incrInventory.getEndDate() + incrInventory.getAvailableAmount() + (incrInventory.isIsInstantConfirm() ? "Y" : "N")
+					+ incrInventory.getIC_BeginTime() + incrInventory.getIC_EndTime();
 			String md5CurrentValue = DigestUtils.md5Hex(currentValue);
 			String md5ExistValue = cacheMap.get(md5key);
 			if (StringUtils.isEmpty(md5ExistValue) || !md5ExistValue.equals(md5CurrentValue)) {
@@ -190,7 +191,7 @@ public class IncrInventoryRepository {
 			}
 		}
 
-		int expireSeconds = 2 * 60 * 60;
+		int expireSeconds = 8 * 60 * 60;
 		for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
 			redisManager.hmset(entry.getKey(), entry.getValue(), expireSeconds);
 		}

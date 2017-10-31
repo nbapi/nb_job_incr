@@ -21,7 +21,7 @@
 	<!-- 批量插入IncrInventory到指定分表subTableName -->
 	<insert id="bulkInsertSub">
 		insert into
-		${subTableName}(IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,Channel,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime,SellChannel,IsStraint)
+		${subTableName}(IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,Channel,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime,SellChannel,IsStraint,IsInstantConfirm,IC_BeginTime,IC_EndTime)
 		values
 		<foreach collection="list" item="incrInventory" index="index" separator=",">
 			(
@@ -44,7 +44,10 @@
 			#{incrInventory.OperateTime},
 			#{incrInventory.InsertTime},
 			#{incrInventory.SellChannel,jdbcType=INTEGER},
-			#{incrInventory.IsStraint,jdbcType=INTEGER}
+			#{incrInventory.IsStraint,jdbcType=INTEGER},
+			#{incrInventory.IsInstantConfirm,jdbcType=INTEGER},
+			#{incrInventory.IC_BeginTime,jdbcType=VARCHAR},
+			#{incrInventory.IC_EndTime,jdbcType=VARCHAR}
 			)
 		</foreach>
 	</insert>
