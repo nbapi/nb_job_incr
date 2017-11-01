@@ -47,6 +47,8 @@ public class CommonRepository {
 	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
+	
+	private RedisManager redisManagerIncr = RedisManager.getInstance("redis_shared_2", "redis_shared_2");
 
 	/** 
 	 * 本地缓存文件中过滤SHotelIds	
@@ -134,28 +136,6 @@ public class CommonRepository {
 		return orderFromResult;
 	}
 
-	public Map<String, String> batchGetMapFromRedis(List<String> keyList) {
-		long startTime = System.currentTimeMillis();
-		if (keyList == null || keyList.size() == 0)
-			return Collections.emptyMap();
-		Map<String, String> resultMap = new HashMap<String, String>();
-		int recordCount = keyList.size();
-		String batchSizeGetFromRedis = CommonsUtil.CONFIG_PROVIDAR.getProperty("BatchSizeGetFromRedis");
-		int pageSize = StringUtils.isEmpty(batchSizeGetFromRedis) ? 2000 : Integer.valueOf(batchSizeGetFromRedis);
-		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
-		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			int startNum = (pageIndex - 1) * pageSize;
-			int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-			List<String> subKeyList = keyList.subList(startNum, endNum);
-			List<String> subValList = redisManager.mget(subKeyList.toArray(new String[0]));
-			for (int i = 0; i < subKeyList.size(); i++) {
-				resultMap.put(subKeyList.get(i), subValList.get(i));
-			}
-		}
-		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",batchGetMapFromRedis,keyList size = " + recordCount);
-		return resultMap;
-	}
-
 	public Map<String, String> batchHashGetMapFromRedis(Map<String, List<String>> keyMap) {
 		long startTime = System.currentTimeMillis();
 		if (keyMap == null || keyMap.size() == 0)
@@ -173,7 +153,7 @@ public class CommonRepository {
 				int startNum = (pageIndex - 1) * pageSize;
 				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
 				List<String> subKeyList = keyList.subList(startNum, endNum);
-				List<String> subValList = redisManager.hashMGet(hashKeyName, subKeyList.toArray(new String[0]));
+				List<String> subValList = redisManagerIncr.hashMGet(hashKeyName, subKeyList.toArray(new String[0]));
 				for (int i = 0; i < subKeyList.size(); i++) {
 					resultMap.put(subKeyList.get(i), subValList.get(i));
 				}

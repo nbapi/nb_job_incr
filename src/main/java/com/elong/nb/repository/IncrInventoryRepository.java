@@ -65,7 +65,7 @@ public class IncrInventoryRepository {
 
 	private static final int MAXDAYS = 90;
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_shared_2", "redis_shared_2");
+	private RedisManager redisManagerIncr = RedisManager.getInstance("redis_shared_2", "redis_shared_2");
 
 	@Resource
 	private MSRelationRepository msRelationRepository;
@@ -127,7 +127,7 @@ public class IncrInventoryRepository {
 		// 按照ChangeID排序
 		sortIncrInventorysByChangeID(incrInventorys);
 		// 库存增量数据压缩
-//		compressIncrInventory(incrInventorys);
+		compressIncrInventory(incrInventorys);
 		// 插入数据库
 		builkInsert(incrInventorys);
 		Number lastChangeId = (Number) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
@@ -193,7 +193,7 @@ public class IncrInventoryRepository {
 
 		int expireSeconds = 4 * 60 * 60;
 		for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
-			redisManager.hmset(entry.getKey(), entry.getValue(), expireSeconds);
+			redisManagerIncr.hmset(entry.getKey(), entry.getValue(), expireSeconds);
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",compressIncrInventory and filter size = "
 				+ (beforeSize - incrInventorys.size()));

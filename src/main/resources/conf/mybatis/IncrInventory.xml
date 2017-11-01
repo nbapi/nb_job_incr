@@ -75,7 +75,7 @@
 		`InsertTime` datetime NOT NULL,
 		`SellChannel` INT(5) NOT NULL DEFAULT 65534,
 		`IsStraint` INT(1) NOT NULL DEFAULT 0,
-		`IsInstantConfirm` INT(1) NOT NULL DEFAULT 1,
+		`IsInstantConfirm` INT(1) NOT NULL DEFAULT 0,
 		`IC_BeginTime` varchar(8) NOT NULL,
 		`IC_EndTime` varchar(8) NOT NULL,
 		PRIMARY KEY (`IncrID`),
