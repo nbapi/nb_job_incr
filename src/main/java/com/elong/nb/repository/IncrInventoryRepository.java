@@ -191,7 +191,8 @@ public class IncrInventoryRepository {
 			}
 		}
 
-		int expireSeconds = 4 * 60 * 60;
+		int stayTime = ConfigUtils.getIntConfigValue("CompressInvStayTime", 8);
+		int expireSeconds = stayTime * 60 * 60;
 		for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
 			redisManagerIncr.hmset(entry.getKey(), entry.getValue(), expireSeconds);
 		}
