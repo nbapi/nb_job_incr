@@ -5,11 +5,12 @@
  */
 package com.elong.nb.repository;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
-import com.elong.nb.cache.RedisManager;
-import com.elong.nb.common.model.RedisKeyConst;
+import com.elong.nb.ms.agent.HotelDataServiceAgent;
 
 /**
  *
@@ -27,22 +28,6 @@ import com.elong.nb.common.model.RedisKeyConst;
 @Repository
 public class MSRelationRepository {
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
-
-	/** 
-	 * 获取sHotelID对应的mHotelID
-	 *
-	 * @param sHotelID
-	 * @return
-	 */
-	public String getMHotelId(String sHotelID) {
-		if (!redisManager.exists(RedisKeyConst.CacheKey_KEY_ID_S_M)) {
-			return sHotelID;
-		}
-		String mHotelID = redisManager.hashGet(RedisKeyConst.CacheKey_KEY_ID_S_M, sHotelID);
-		return StringUtils.isEmpty(mHotelID) ? sHotelID : mHotelID;
-	}
-
 	/** 
 	 * 获取sHotelID对应的mHotelID，保证都是有效的
 	 *
@@ -50,9 +35,10 @@ public class MSRelationRepository {
 	 * @return
 	 */
 	public String getValidMHotelId(String sHotelID) {
-		if (!redisManager.exists(RedisKeyConst.CacheKey_KEY_ID_S_M))
+		Map<String, String> resultMap = HotelDataServiceAgent.getMhotelIdByShotelId(new String[] { sHotelID });
+		if (resultMap == null)
 			return null;
-		String mHotelID = redisManager.hashGet(RedisKeyConst.CacheKey_KEY_ID_S_M, sHotelID);
+		String mHotelID = resultMap.get(sHotelID);
 		return StringUtils.isEmpty(mHotelID) ? null : mHotelID;
 	}
 
