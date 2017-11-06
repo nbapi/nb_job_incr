@@ -79,7 +79,7 @@ public class IncrInventoryAdapter {
 												inv.setIC_EndTime(icEndTime);
 												convertInventory(inv);
 												incrInventorys.add(inv);
-												if(hotelCode.equals("91512416")){
+												if(hotelCode.equals("91512416")&&roomTypeID.equals("0019")){
 													logger.info("item = " + JSON.toJSONString(item));
 													logger.info("nbinv = " + JSON.toJSONString(inv));
 												}
