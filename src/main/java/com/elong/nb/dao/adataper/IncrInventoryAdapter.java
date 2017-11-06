@@ -20,7 +20,7 @@ import com.elong.nb.common.util.SafeConvertUtils;
 import com.elong.nb.model.bean.IncrInventory;
 
 public class IncrInventoryAdapter {
-	
+
 	private static final Logger logger = Logger.getLogger("CheckCreateTableLogger");
 
 	public Map<String, List<IncrInventory>> toNBObect(GetInvAndInstantConfirmResponse response) {
@@ -79,7 +79,8 @@ public class IncrInventoryAdapter {
 												inv.setIC_EndTime(icEndTime);
 												convertInventory(inv);
 												incrInventorys.add(inv);
-												if(hotelCode.equals("91512416")&&roomTypeID.equals("0019")){
+												if (hotelCode.equals("91512416") && roomTypeID.equals("0019")
+														&& 1509897600000l == item.getAvailable_date()) {
 													logger.info("item = " + JSON.toJSONString(item));
 													logger.info("nbinv = " + JSON.toJSONString(inv));
 												}
