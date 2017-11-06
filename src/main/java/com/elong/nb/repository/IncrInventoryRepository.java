@@ -377,6 +377,7 @@ public class IncrInventoryRepository {
 		request.setEnd_date(endDate != null ? endDate.getTime() : DateTime.now().plusDays(MAXDAYS).toDate().getTime());
 		request.setSearch_from(3);// 3：NBAPI
 		request.setMhotel_attr(mhotel_attr);
+		request.setNeed_instant_confirm(true);
 
 		GetInvAndInstantConfirmResponse response = null;
 		Exception exception = null;

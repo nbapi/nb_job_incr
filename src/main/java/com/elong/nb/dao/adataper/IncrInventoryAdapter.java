@@ -8,9 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
-import com.alibaba.fastjson.JSON;
 import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmResponse;
 import com.elong.hotel.searchagent.thrift.dss.InvDetail;
 import com.elong.hotel.searchagent.thrift.dss.MhotelDetail;
@@ -20,8 +18,6 @@ import com.elong.nb.common.util.SafeConvertUtils;
 import com.elong.nb.model.bean.IncrInventory;
 
 public class IncrInventoryAdapter {
-
-	private static final Logger logger = Logger.getLogger("CheckCreateTableLogger");
 
 	public Map<String, List<IncrInventory>> toNBObect(GetInvAndInstantConfirmResponse response) {
 		Map<String, List<IncrInventory>> incrInventoryMap = new HashMap<String, List<IncrInventory>>();
@@ -79,11 +75,6 @@ public class IncrInventoryAdapter {
 												inv.setIC_EndTime(icEndTime);
 												convertInventory(inv);
 												incrInventorys.add(inv);
-												if (hotelCode.equals("91512416") && roomTypeID.equals("0019")
-														&& 1509897600000l == item.getAvailable_date()) {
-													logger.info("item = " + JSON.toJSONString(item));
-													logger.info("nbinv = " + JSON.toJSONString(inv));
-												}
 											}
 										}
 										incrInventoryMap.put(key, incrInventorys);
