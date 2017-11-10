@@ -360,7 +360,6 @@ public class IncrRateRepository {
 		logger.info("before fillFilteredSHotelsIds, incrRates size = " + incrRateList.size());
 		Date validDate = DateTime.now().plusYears(1).toDate();
 		long startTime = System.currentTimeMillis();
-		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<IncrRate> iter = incrRateList.iterator();
 		Set<String> hotelCodeList = new HashSet<String>();
 		Set<String> ratePlanIdList = new HashSet<String>();
@@ -371,10 +370,6 @@ public class IncrRateRepository {
 				continue;
 			}
 			incrRate.setChannel(0);
-			String shotelId = incrRate.getHotelCode();
-			if (filteredSHotelIds.contains(shotelId)) {
-				incrRate.setChannel(1);
-			}
 			Date endDate = incrRate.getEndDate();
 			endDate = (endDate.compareTo(validDate) > 0) ? validDate : endDate;
 			incrRate.setEndDate(endDate);

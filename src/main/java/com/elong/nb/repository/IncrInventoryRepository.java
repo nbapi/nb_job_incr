@@ -464,7 +464,6 @@ public class IncrInventoryRepository {
 	 */
 	private void filterShotelsIds(List<IncrInventory> incrInventorys) {
 		long startTime = System.currentTimeMillis();
-		Set<String> filteredSHotelIds = commonRepository.fillFilteredSHotelsIds();
 		Iterator<IncrInventory> iter = incrInventorys.iterator();
 		Set<String> hotelCodeList = new HashSet<String>();
 		Set<String> roomTypeIdList = new HashSet<String>();
@@ -472,12 +471,8 @@ public class IncrInventoryRepository {
 			IncrInventory incrInventory = iter.next();
 			if (incrInventory == null)
 				continue;
+			incrInventory.setChannel(0);
 			String hotelCode = incrInventory.getHotelCode();
-			if (filteredSHotelIds.contains(hotelCode)) {
-				incrInventory.setChannel(1);
-			} else {
-				incrInventory.setChannel(0);
-			}
 			String roomTypeId = incrInventory.getRoomTypeID();
 			hotelCodeList.add(hotelCode);
 			roomTypeIdList.add(hotelCode + "_" + roomTypeId);
