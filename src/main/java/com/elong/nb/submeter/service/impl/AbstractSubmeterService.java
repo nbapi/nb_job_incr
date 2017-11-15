@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 
@@ -18,6 +19,7 @@ import org.apache.log4j.Logger;
 
 import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
+import com.elong.nb.model.ShardingInfo;
 import com.elong.nb.model.bean.Idable;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.ISubmeterService;
@@ -47,7 +49,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	private IImpulseSenderService impulseSenderService;
 
 	@Resource
-	private SubmeterTableCalculate submeterTableCache;
+	protected SubmeterTableCalculate submeterTableCache;
 
 	/** 
 	 * 获取最后一张非空表名 
@@ -83,11 +85,11 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 		if (StringUtils.isEmpty(configValue)) {
 			endID = impulseSenderService.getId(tablePrefix + "_ID", incrVal);
 		} else {
-			endID = redisManager.incrBy(RedisManager.getCacheKey(tablePrefix + "_ID"), incrVal);
+			endID = redisManager.incrBy(RedisManager.getCacheKey("incrindsdasvas_12a1A1_" + "_ID"), incrVal);
 		}
 		long beginID = endID - incrVal + 1;
 
-		List<String> subTableList = new ArrayList<String>();
+		List<String> shardIdSubTableNameList = new ArrayList<String>();
 		Map<String, List<T>> subTableDataMap = new HashMap<String, List<T>>();
 		long startTime = System.currentTimeMillis();
 		for (T row : rowList) {
@@ -96,39 +98,41 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			long ID = beginID++;
 			row.setID(ID);
 
+			int shardId = submeterTableCache.getSelectedShardId(ID);
 			long tableNumber = submeterTableCache.getSelectedSubTableNumber(ID);
 			String subTableName = tablePrefix + "_" + tableNumber;
+			String shardIdSubTableName = shardId + "-" + subTableName;
 
-			List<T> subRowList = subTableDataMap.get(subTableName);
+			List<T> subRowList = subTableDataMap.get(shardIdSubTableName);
 			if (subRowList == null) {
 				subRowList = new ArrayList<T>();
 			}
 			subRowList.add(row);
-			subTableDataMap.put(subTableName, subRowList);
-			if (!subTableList.contains(subTableName)) {
-				subTableList.add(subTableName);
+			subTableDataMap.put(shardIdSubTableName, subRowList);
+			if (!shardIdSubTableNameList.contains(shardIdSubTableName)) {
+				shardIdSubTableNameList.add(shardIdSubTableName);
 			}
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName and subRowList put to map,rowList size = "
 				+ incrVal);
 
 		int successCount = 0;
-		for (String subTableName : subTableList) {
-			List<T> subRowList = subTableDataMap.get(subTableName);
-			logger.info("subTableName = " + subTableName + ",bulkInsert waitCount = " + subRowList.size());
+		for (String shardIdSubTableName : shardIdSubTableNameList) {
+			List<T> subRowList = subTableDataMap.get(shardIdSubTableName);
+			logger.info("shardIdSubTableName = " + shardIdSubTableName + ",bulkInsert waitCount = " + subRowList.size());
 
 			int recordCount = subRowList == null ? 0 : subRowList.size();
 			String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("BuilkInsertSize");
-			int pageSize = StringUtils.isEmpty(builkInsertSize) ? 50 : Integer.valueOf(builkInsertSize);
+			int pageSize = StringUtils.isEmpty(builkInsertSize) ? 50000 : Integer.valueOf(builkInsertSize);
 			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 			startTime = System.currentTimeMillis();
 			int subSuccessCount = 0;
 			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 				int startNum = (pageIndex - 1) * pageSize;
 				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-				subSuccessCount += bulkInsertSub(subTableName, subRowList.subList(startNum, endNum));
+				subSuccessCount += bulkInsertSub(shardIdSubTableName, subRowList.subList(startNum, endNum));
 			}
-			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName = " + subTableName
+			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",shardIdSubTableName = " + shardIdSubTableName
 					+ ",bulkInsert successCount = " + subSuccessCount);
 			successCount += subSuccessCount;
 		}
@@ -208,7 +212,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	 * @param subRowList
 	 * @return
 	 */
-	protected abstract int bulkInsertSub(String subTableName, List<T> subRowList);
+	protected abstract int bulkInsertSub(String shardIdSubTableName, List<T> subRowList);
 
 	/** 
 	 * 获取分表数据（根据需要子类选择覆盖）

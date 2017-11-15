@@ -25,11 +25,11 @@
 	</bean>
 	
 	<!-- 分表专用数据源 -->
-	<bean id="dataSource_nbsubmeter_read" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	<bean id="dataSource_nbincr_write1" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="${jdbc.job.driverClassName}"></property>
-		<property name="url" value="${jdbc.submeter.read.url}"></property>
-		<property name="username" value="${jdbc.submeter.read.username}"></property>
-		<property name="password" value="${jdbc.submeter.read.password}"></property>
+		<property name="url" value="${jdbc.submeter.write.url1}"></property>
+		<property name="username" value="${jdbc.submeter.write.username1}"></property>
+		<property name="password" value="${jdbc.submeter.write.password1}"></property>
 		<property name="maxActive" value="${jdbc.common.maxActive}"></property>
 		<property name="maxIdle" value="${jdbc.common.maxIdle}"></property>
 		<property name="maxWait" value="${jdbc.common.maxWait}"></property>
@@ -42,11 +42,28 @@
 		</property>
 	</bean>
 	
-	<bean id="dataSource_nbsubmeter_write" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	<bean id="dataSource_nbincr_write2" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="${jdbc.job.driverClassName}"></property>
-		<property name="url" value="${jdbc.submeter.write.url}"></property>
-		<property name="username" value="${jdbc.submeter.write.username}"></property>
-		<property name="password" value="${jdbc.submeter.write.password}"></property>
+		<property name="url" value="${jdbc.submeter.write.url2}"></property>
+		<property name="username" value="${jdbc.submeter.write.username2}"></property>
+		<property name="password" value="${jdbc.submeter.write.password2}"></property>
+		<property name="maxActive" value="${jdbc.common.maxActive}"></property>
+		<property name="maxIdle" value="${jdbc.common.maxIdle}"></property>
+		<property name="maxWait" value="${jdbc.common.maxWait}"></property>
+		<property name="timeBetweenEvictionRunsMillis" value="${jdbc.common.timeBetweenEvictionRunsMillis}"></property>
+		<property name="testWhileIdle" value="${jdbc.common.testWhileIdle}"></property>
+		<property name="testOnBorrow" value="${jdbc.common.testOnBorrow}"></property>
+		<property name="testOnReturn" value="${jdbc.common.testOnReturn}"></property>
+		<property name="validationQuery">
+			<value>select 1</value>
+		</property>
+	</bean>
+	
+	<bean id="dataSource_nbincr_write3" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.job.driverClassName}"></property>
+		<property name="url" value="${jdbc.submeter.write.url3}"></property>
+		<property name="username" value="${jdbc.submeter.write.username3}"></property>
+		<property name="password" value="${jdbc.submeter.write.password3}"></property>
 		<property name="maxActive" value="${jdbc.common.maxActive}"></property>
 		<property name="maxIdle" value="${jdbc.common.maxIdle}"></property>
 		<property name="maxWait" value="${jdbc.common.maxWait}"></property>

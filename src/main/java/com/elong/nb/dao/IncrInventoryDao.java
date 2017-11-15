@@ -37,16 +37,16 @@ public interface IncrInventoryDao {
 	 * @param params
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
-	public List<IncrInventory> getIncrInventories(@Param("subTableName") String subTableName, @Param("params") Map<String, Object> params);
+	public List<IncrInventory> getIncrInventories(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName,
+			@Param("params") Map<String, Object> params);
 
 	/** 
 	 * 批量插入IncrInventory到指定分表subTableName
 	 *
 	 * @param incrInventories
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
-	public int bulkInsertSub(@Param("subTableName") String subTableName, @Param("list") List<IncrInventory> incrInventories);
+	public int bulkInsertSub(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName,
+			@Param("list") List<IncrInventory> incrInventories);
 
 	/** 
 	 * 创建分表
@@ -54,8 +54,7 @@ public interface IncrInventoryDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
-	public int createSubTable(@Param("tableName") String tableName);
+	public int createSubTable(@DataSource("dataSource") String dataSource, @Param("tableName") String tableName);
 
 	/** 
 	 * 获取最后一条记录 
@@ -63,8 +62,7 @@ public interface IncrInventoryDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
-	public IncrInventory getLastIncrFromWrite(@Param("subTableName") String subTableName);
+	public IncrInventory getLastIncrFromWrite(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName);
 
 	/** 
 	 * 获取最后一条记录 
@@ -72,8 +70,7 @@ public interface IncrInventoryDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_read")
-	public IncrInventory getLastIncrFromRead(@Param("subTableName") String subTableName);
+	public IncrInventory getLastIncrFromRead(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName);
 
 	/** 
 	 * 获取指定时间的记录数
@@ -82,8 +79,7 @@ public interface IncrInventoryDao {
 	 * @param endTime
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_read")
-	public int getRecordCountFromRead(@Param("subTableName") String subTableName, @Param("startTime") Date startTime,
-			@Param("endTime") Date endTime);
+	public int getRecordCountFromRead(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName,
+			@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
 }

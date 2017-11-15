@@ -220,11 +220,6 @@
 		<appender-ref ref="actionLogEntityAppender" />
 	</category>
 
-	<logger name="schedulelogger">
-		<level value="INFO" />
-		<appender-ref ref="scheduleAppender" />
-	</logger>
-
 	<root>
 		<level value="ERROR" />
 		<appender-ref ref="console" />

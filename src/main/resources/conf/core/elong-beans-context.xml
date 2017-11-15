@@ -17,8 +17,9 @@
 		<property name="targetDataSources">
 			<map key-type="java.lang.String">
 				<entry key="dataSource_mysql_product" value-ref="dataSource_mysql_product" />
-				<entry key="dataSource_nbsubmeter_write" value-ref="dataSource_nbsubmeter_write" />
-				<entry key="dataSource_nbsubmeter_read" value-ref="dataSource_nbsubmeter_read" />
+				<entry key="dataSource_nbincr_write1" value-ref="dataSource_nbincr_write1" />
+				<entry key="dataSource_nbincr_write2" value-ref="dataSource_nbincr_write2" />
+				<entry key="dataSource_nbincr_write3" value-ref="dataSource_nbincr_write3" />
 				<entry key="dataSource_nbhotelincr_write" value-ref="dataSource_nbhotelincr_write" />
 				<entry key="dataSource_nbhotelincr_read" value-ref="dataSource_nbhotelincr_read" />
 				<entry key="dataSource_sqlserver_13" value-ref="dataSource_sqlserver_13" />
@@ -58,13 +59,7 @@
 	<aop:config>
 		<aop:aspect id="b2" ref="checklistAspect">
 			<aop:pointcut id="tx2"
-				expression="execution(public * com.elong.nb.dao.*.*(..))
-							||execution(public * com.elong.nb.controller.*.*(..))
-							||execution(public * com.elong.nb.repository.MSRelationRepository.*(..))
-							||execution(public * com.elong.nb.repository.CommonRepository.*(..))
-							||execution(public * com.elong.nb.repository.GoodsMetaRepository.*(..))
-							||execution(public * com.elong.nb.submeter.service.impl.ImpulseSenderServiceImpl.*(..))
-							||execution(public * com.elong.nb.service.impl.OrderCenterServiceImpl.*(..))" />
+				expression="execution(public * com.elong.nb.dao.*.*(..))" />
 			<aop:before pointcut-ref="tx2" method="handlerLogBefore" />
 			<aop:after-returning pointcut-ref="tx2" method="handlerLogAfter" returning="returnValue" />
 			<aop:after-throwing pointcut-ref="tx2" method="handlerLogThrowing" throwing="throwing" />

@@ -86,52 +86,37 @@ public class IncrInventoryRepository {
 	 * @return
 	 */
 	public long syncInventoryToDB(List<Map<String, Object>> productInventoryIncrementList) {
-		long changID = -1;
-		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
-			return changID;
-
-		// 开始结束日期过滤
-		filterUnvalidDate(productInventoryIncrementList);
-		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
-			return changID;
-
-		// 分批次批量调用商品库库存元数据接口
-		List<Callable<List<IncrInventory>>> callableList = new ArrayList<Callable<List<IncrInventory>>>();
-		int recordCount = productInventoryIncrementList.size();
-		int batchSize = ConfigUtils.getIntConfigValue("GoodsInventoryBatchSize", 10);
-		int pageCount = (int) Math.ceil(recordCount * 1.0 / batchSize);
-		long startTime = System.currentTimeMillis();
-		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
-			int startNum = (pageIndex - 1) * batchSize;
-			int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
-			callableList.add(new GoodsInventoryThread(productInventoryIncrementList.subList(startNum, endNum)));
-		}
 		List<IncrInventory> incrInventorys = new ArrayList<IncrInventory>();
-		int goodsInventoryThreadCount = ConfigUtils.getIntConfigValue("GoodsInventoryThreadCount", 3);
-		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsInventoryThreadCount, 300);
-		try {
-			List<Future<List<IncrInventory>>> futureList = executorService.invokeAll(callableList);
-			executorService.shutdown();
-			for (Future<List<IncrInventory>> future : futureList) {
-				List<IncrInventory> threadIncrInventorys = future.get();
-				incrInventorys.addAll(threadIncrInventorys);
-			}
-		} catch (InterruptedException | ExecutionException e) {
-			throw new IllegalStateException(e.getMessage(), e);
+		Date now = new Date();
+		for(int i=0;i<130;i++){
+			IncrInventory incrInventory = new IncrInventory();
+			incrInventory.setAvailableAmount(3);
+			incrInventory.setAvailableDate(now);
+			incrInventory.setChangeID(123l);
+			incrInventory.setChangeTime(now);
+			incrInventory.setChannel(1);
+			incrInventory.setEndDate(now);
+			incrInventory.setEndTime("23:59");
+			incrInventory.setHotelCode("5123421");
+			incrInventory.setHotelID("5123421");
+			incrInventory.setIC_BeginTime("00:00");
+			incrInventory.setIC_EndTime("23:59");
+			incrInventory.setInsertTime(now);
+			incrInventory.setIsInstantConfirm(true);
+			incrInventory.setIsStraint(2);
+			incrInventory.setOperateTime(now);
+			incrInventory.setOverBooking(1);
+			incrInventory.setRoomTypeID("1033");
+			incrInventory.setSellChannel(2);
+			incrInventory.setStartDate(now);
+			incrInventory.setStartTime("00:00");
+			incrInventory.setStatus(true);
+			incrInventorys.add(incrInventory);
 		}
-		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrInventoryList from goods,incrInventorys size = "
-				+ incrInventorys.size());
-
-		// 过滤掉携程去哪儿酒店
-		filterShotelsIds(incrInventorys);
-		// 按照ChangeID排序
-		sortIncrInventorysByChangeID(incrInventorys);
-		// 库存增量数据压缩
-		compressIncrInventory(incrInventorys);
 		// 插入数据库
 		builkInsert(incrInventorys);
-		Number lastChangeId = (Number) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
-		return lastChangeId.longValue();
+//		Number lastChangeId = (Number) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
+		return 0l;
 	}
 
 	/** 
@@ -230,7 +215,7 @@ public class IncrInventoryRepository {
 			return;
 		logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
 		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryInsertSizePerTask");
-		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 5000 : Integer.valueOf(builkInsertSize);
+		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 50000 : Integer.valueOf(builkInsertSize);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		List<MysqlInventoryThread> callableList = new ArrayList<MysqlInventoryThread>();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
