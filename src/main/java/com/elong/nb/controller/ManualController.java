@@ -5,7 +5,6 @@
  */
 package com.elong.nb.controller;
 
-import java.text.MessageFormat;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -16,9 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSON;
-import com.elong.nb.cache.ICacheKey;
-import com.elong.nb.cache.RedisManager;
-import com.elong.nb.model.enums.SubmeterConst;
+import com.elong.nb.model.bean.IncrInventory;
+import com.elong.nb.repository.IncrHotelRepository;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.impl.SubmeterTableCalculate;
@@ -40,8 +38,6 @@ import com.elong.nb.submeter.service.impl.SubmeterTableCalculate;
 @Controller
 public class ManualController {
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
-
 	@Resource
 	private IImpulseSenderService impulseSenderService;
 
@@ -51,35 +47,21 @@ public class ManualController {
 	@Resource
 	private SubmeterTableCalculate submeterTableCache;
 
+	@Resource
+	private IncrHotelRepository incrHotelRepository;
+
 	/** 
 	 * 获取当前使用非空表名集合
 	 *
 	 * @param tablePrefix
 	 * @return
 	 */
-	@RequestMapping(value = "/test/submeterTableCache/{tablePrefix}")
-	public @ResponseBody String getSubmeterTableNames(@PathVariable("tablePrefix") String tablePrefix) {
-		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
-		List<String> subTableNameList = submeterTableCache.querySubTableNameList(0, maxId, tablePrefix, true);
-		return JSON.toJSONString(subTableNameList);
-	}
-
-	/** 
-	 * 设置分表开始序号(分表上线时初始化分表开始序号)
-	 *
-	 * @param tablePrefix
-	 * @param subTableNumber (比如分表序号要从100开始，则subTableNumber设置为99)
-	 * @return
-	 */
-	@RequestMapping(value = "/test/putSubTableNumber/{tablePrefix}/{subTableNumber}")
-	public @ResponseBody String putSubTableNumber(@PathVariable("tablePrefix") String tablePrefix,
-			@PathVariable("subTableNumber") String subTableNumber) {
-		try {
-			incrSetInfoService.put(tablePrefix + ".SubTable.Number", Long.valueOf(subTableNumber));
-		} catch (Exception e) {
-			return "putSubTableNumber error = " + e.getMessage() + ",tablePrefix = " + tablePrefix + ",subTableNumber = " + subTableNumber;
-		}
-		return "putSubTableNumber success.tablePrefix = " + tablePrefix + ",subTableNumber = " + subTableNumber;
+	@RequestMapping(value = "/test/getData/{lastId}/{recordCount}")
+	public @ResponseBody String getSubmeterTableNames(@PathVariable("lastId") String lastId, @PathVariable("recordCount") String recordCount) {
+		long id = Long.valueOf(lastId);
+		int maxRecordCount = Integer.valueOf(recordCount);
+		List<IncrInventory> inventorys = incrHotelRepository.getIncrInventories(id, maxRecordCount);
+		return JSON.toJSONString(inventorys);
 	}
 
 	/** 
@@ -100,25 +82,6 @@ public class ManualController {
 	}
 
 	/** 
-	 * 设置发号器id(分表上线时初始化发号器id)
-	 *
-	 * @param tablePrefix
-	 * @param idVal
-	 * @return
-	 */
-	@RequestMapping(value = "/test/initImpulseSender/{tablePrefix}/{idVal}")
-	public @ResponseBody String initImpulseSender(@PathVariable("tablePrefix") String tablePrefix, @PathVariable("idVal") String idVal) {
-		String key = tablePrefix + "_ID";
-		try {
-			Long idLong = Long.valueOf(idVal);
-			impulseSenderService.putId(tablePrefix + "_ID", idLong);
-		} catch (Exception e) {
-			return "initImpulseSender error = " + e.getMessage();
-		}
-		return "initImpulseSender success.key = " + key + ",value = " + idVal;
-	}
-
-	/** 
 	 * 查看发号器当前id
 	 *
 	 * @param tablePrefix
@@ -133,25 +96,6 @@ public class ManualController {
 		} catch (Exception e) {
 			return "getImpulseSenderID error = " + e.getMessage() + ",key = " + key;
 		}
-	}
-
-	/** 
-	 * 清除缓存分表表名数据 
-	 *
-	 * @param tablePrefix
-	 * @return
-	 */
-	@RequestMapping(value = "/test/delSubmeterTableCache/{tablePrefix}")
-	public @ResponseBody String delSubmeterTableCache(@PathVariable("tablePrefix") String tablePrefix) {
-		ICacheKey tablesCacheKey = RedisManager.getCacheKey(MessageFormat
-				.format(SubmeterConst.SUBMETER_NOEMPTY_TABLENAMES_KEY, tablePrefix));
-		try {
-			// 清除老数据
-			redisManager.del(tablesCacheKey);
-		} catch (Exception e) {
-			return "delSubmeterTableCache error = " + e.getMessage() + ",tablePrefix = " + tablePrefix;
-		}
-		return "delSubmeterTableCache success.tablePrefix = " + tablePrefix;
 	}
 
 }

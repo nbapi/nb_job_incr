@@ -23,6 +23,7 @@ import com.elong.nb.common.model.RedisKeyConst;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.common.util.HttpClientUtil;
 import com.elong.nb.model.OrderFromResult;
+import com.elong.nb.util.ConfigUtils;
 
 /**
  *
@@ -43,7 +44,7 @@ public class CommonRepository {
 	private static final Logger logger = Logger.getLogger("IncrCommonLogger");
 
 	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
-	
+
 	private RedisManager redisManagerIncr = RedisManager.getInstance("redis_shared_2", "redis_shared_2");
 
 	/** 
@@ -115,6 +116,18 @@ public class CommonRepository {
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",batchHashGetMapFromRedis,keyMap size = " + keyMap.size());
 		return resultMap;
+	}
+
+	public void batchHashSetMapToRedis(Map<String, Map<String, String>> waitSaveMap) {
+		int stayTime = ConfigUtils.getIntConfigValue("CompressInvStayTime", 8);
+		int expireSeconds = stayTime * 60 * 60;
+		try {
+			for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
+				redisManagerIncr.hmset(entry.getKey(), entry.getValue(), expireSeconds);
+			}
+		} catch (Exception e) {
+			logger.error("batchHashSetMapToRedis error = " + e.getMessage(), e);
+		}
 	}
 
 }

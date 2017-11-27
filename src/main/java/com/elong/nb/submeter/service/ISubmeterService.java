@@ -22,9 +22,16 @@ import java.util.List;
  * @since		JDK1.7
  */
 public interface ISubmeterService<T> {
-	
+
 	/** 
-	 * 获取最后一张非空表名 
+	 * 获取最后数据所在分片数据源 
+	 *
+	 * @return
+	 */
+	public String getLastShardDataSource();
+
+	/** 
+	 * 获取最后数据所在表名
 	 *
 	 * @return
 	 */

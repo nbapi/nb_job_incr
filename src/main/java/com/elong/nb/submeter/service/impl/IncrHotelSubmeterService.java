@@ -6,6 +6,7 @@
 package com.elong.nb.submeter.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -56,8 +57,8 @@ public class IncrHotelSubmeterService extends AbstractSubmeterService<IncrHotel>
 	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#bulkInsertSub(java.lang.String, java.util.List)    
 	 */
 	@Override
-	protected int bulkInsertSub(String subTableName, List<IncrHotel> subRowList) {
-		return incrHotelDao.bulkInsertSub(subTableName, subRowList);
+	protected int bulkInsertSub(String dataSource, String subTableName, List<IncrHotel> subRowList) {
+		return incrHotelDao.bulkInsertSub(dataSource, subTableName, subRowList);
 	}
 
 	/** 
@@ -69,21 +70,22 @@ public class IncrHotelSubmeterService extends AbstractSubmeterService<IncrHotel>
 	 */
 	@Override
 	public void createSubTable(String newTableName) {
-		incrHotelDao.createSubTable(newTableName);
+		// incrHotelDao.createSubTable(newTableName);TODO
 	}
 
 	/** 
 	 * 获取分表指定trigger的最后一条增量
 	 *
+	 * @param dataSource
 	 * @param subTableName
 	 * @param trigger
 	 * @return 
 	 *
-	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getLastIncrData(java.lang.String, java.lang.String)    
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getLastIncrData(java.lang.String, java.lang.String, java.lang.String)    
 	 */
 	@Override
-	protected IncrHotel getLastIncrData(String subTableName, String trigger) {
-		return incrHotelDao.getLastHotel(subTableName, trigger);
+	protected IncrHotel getLastIncrData(String dataSource, String subTableName, Map<String, Object> params) {
+		return incrHotelDao.getLastHotel(dataSource, subTableName, params);
 	}
 
 }

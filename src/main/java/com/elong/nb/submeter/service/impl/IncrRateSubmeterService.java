@@ -31,7 +31,7 @@ import com.elong.nb.model.bean.IncrRate;
  */
 @Service(value = "incrRateSubmeterService")
 public class IncrRateSubmeterService extends AbstractSubmeterService<IncrRate> {
-	
+
 	@Resource
 	private IncrRateDao incrRateDao;
 
@@ -42,17 +42,17 @@ public class IncrRateSubmeterService extends AbstractSubmeterService<IncrRate> {
 
 	@Override
 	public void createSubTable(String newTableName) {
-		incrRateDao.createSubTable(newTableName);
+		// incrRateDao.createSubTable(newTableName);TODO
 	}
 
 	@Override
-	protected int bulkInsertSub(String subTableName, List<IncrRate> subRowList) {
-		return incrRateDao.bulkInsertSub(subTableName, subRowList);
+	protected int bulkInsertSub(String dataSource, String subTableName, List<IncrRate> subRowList) {
+		return incrRateDao.bulkInsertSub(dataSource, subTableName, subRowList);
 	}
 
 	@Override
-	protected List<IncrRate> getIncrDataList(String subTableName, Map<String, Object> params) {
-		return incrRateDao.getIncrRates(subTableName, params);
+	protected List<IncrRate> getIncrDataList(String dataSource, String subTableName, Map<String, Object> params) {
+		return incrRateDao.getIncrRates(dataSource, subTableName, params);
 	}
 
 }

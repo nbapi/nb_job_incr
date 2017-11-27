@@ -12,7 +12,10 @@
 				<![CDATA[ and ChangeTime > #{params.changeTime} ]]>
 			</if>
 			<if test="params.ID != null and !params.ID.equals('')">
-				<![CDATA[ and ID > #{params.ID}  ]]>
+				<![CDATA[ and ID >= #{params.ID}  ]]>
+			</if>
+			<if test="params.segmentEndId != null and !params.segmentEndId.equals('')">
+				<![CDATA[ and ID <= #{params.segmentEndId}  ]]>
 			</if>
 		</where>
 		order by ID limit 0,#{params.maxRecordCount}

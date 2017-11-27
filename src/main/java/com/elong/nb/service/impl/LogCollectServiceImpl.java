@@ -141,9 +141,10 @@ public class LogCollectServiceImpl implements LogCollectService {
 	}
 
 	private String writeIncrHotelLog(Date logTime, String triggerName) {
+		String dataSource = incrHotelSubmeterService.getLastShardDataSource();
 		String subTableName = incrHotelSubmeterService.getLastTableName();
-		IncrHotel masterIncrHotel = incrHotelDao.getLastIncrFromWrite(subTableName, triggerName);
-		IncrHotel slaveIncrHotel = incrHotelDao.getLastIncrFromRead(subTableName, triggerName);
+		IncrHotel masterIncrHotel = incrHotelDao.getLastIncrFromWrite(dataSource, subTableName, triggerName);
+		IncrHotel slaveIncrHotel = incrHotelDao.getLastIncrFromRead(dataSource, subTableName, triggerName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
 		statisticModel.setIncrType(EnumIncrType.Data.name() + "_" + triggerName);
@@ -151,28 +152,29 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrHotelDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime),
-				triggerName);
+		int recordCount = incrHotelDao.getRecordCountFromRead(dataSource, subTableName, getPreviousMinuteBegin(logTime),
+				getPreviousMinuteEnd(logTime), triggerName);
 		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
 	}
 
 	private String writeIncrInventoryLog(Date logTime) {
-//		String subTableName = incrInventorySubmeterService.getLastTableName();
-//		IncrInventory masterIncrInventory = incrInventoryDao.getLastIncrFromWrite(subTableName);
-//		IncrInventory slaveIncrInventory = incrInventoryDao.getLastIncrFromRead(subTableName);
-//		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
-//		statisticModel.setBusiness_type(BUSINESS_TYPE);
-//		statisticModel.setIncrType(EnumIncrType.Inventory.name());
-//		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrInventory.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
-//		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
-//		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
-//		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
-//		int recordCount = incrInventoryDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime),
-//				getPreviousMinuteEnd(logTime));
-//		statisticModel.setRecordCount(recordCount + "");
-//		minitorLogger.info(JSON.toJSONString(statisticModel));
+		String dataSource = incrInventorySubmeterService.getLastShardDataSource();
+		String subTableName = incrInventorySubmeterService.getLastTableName();
+		IncrInventory masterIncrInventory = incrInventoryDao.getLastIncrFromWrite(dataSource, subTableName);
+		IncrInventory slaveIncrInventory = incrInventoryDao.getLastIncrFromRead(dataSource, subTableName);
+		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
+		statisticModel.setBusiness_type(BUSINESS_TYPE);
+		statisticModel.setIncrType(EnumIncrType.Inventory.name());
+		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrInventory.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
+		int recordCount = incrInventoryDao.getRecordCountFromRead(dataSource, subTableName, getPreviousMinuteBegin(logTime),
+				getPreviousMinuteEnd(logTime));
+		statisticModel.setRecordCount(recordCount + "");
+		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";
 	}
 
@@ -193,9 +195,10 @@ public class LogCollectServiceImpl implements LogCollectService {
 	}
 
 	private String writeIncrRateLog(Date logTime) {
+		String dataSource = incrRateSubmeterService.getLastShardDataSource();
 		String subTableName = incrRateSubmeterService.getLastTableName();
-		IncrRate masterIncrRate = incrRateDao.getLastIncrFromWrite(subTableName);
-		IncrRate slaveIncrRate = incrRateDao.getLastIncrFromRead(subTableName);
+		IncrRate masterIncrRate = incrRateDao.getLastIncrFromWrite(dataSource, subTableName);
+		IncrRate slaveIncrRate = incrRateDao.getLastIncrFromRead(dataSource, subTableName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
 		statisticModel.setIncrType(EnumIncrType.Rate.name());
@@ -203,7 +206,8 @@ public class LogCollectServiceImpl implements LogCollectService {
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrRate.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(logTime, "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrRate.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
-		int recordCount = incrRateDao.getRecordCountFromRead(subTableName, getPreviousMinuteBegin(logTime), getPreviousMinuteEnd(logTime));
+		int recordCount = incrRateDao.getRecordCountFromRead(dataSource, subTableName, getPreviousMinuteBegin(logTime),
+				getPreviousMinuteEnd(logTime));
 		statisticModel.setRecordCount(recordCount + "");
 		minitorLogger.info(JSON.toJSONString(statisticModel));
 		return "Success";

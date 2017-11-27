@@ -35,7 +35,6 @@ import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmRequest;
 import com.elong.hotel.searchagent.thrift.dss.GetInvAndInstantConfirmResponse;
 import com.elong.hotel.searchagent.thrift.dss.MhotelAttr;
 import com.elong.hotel.searchagent.thrift.dss.ShotelAttr;
-import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
 import com.elong.nb.dao.adataper.IncrInventoryAdapter;
 import com.elong.nb.model.bean.IncrInventory;
@@ -65,8 +64,6 @@ public class IncrInventoryRepository {
 
 	private static final int MAXDAYS = 90;
 
-	private RedisManager redisManagerIncr = RedisManager.getInstance("redis_shared_2", "redis_shared_2");
-
 	@Resource
 	private MSRelationRepository msRelationRepository;
 
@@ -86,37 +83,52 @@ public class IncrInventoryRepository {
 	 * @return
 	 */
 	public long syncInventoryToDB(List<Map<String, Object>> productInventoryIncrementList) {
-		List<IncrInventory> incrInventorys = new ArrayList<IncrInventory>();
-		Date now = new Date();
-		for(int i=0;i<130;i++){
-			IncrInventory incrInventory = new IncrInventory();
-			incrInventory.setAvailableAmount(3);
-			incrInventory.setAvailableDate(now);
-			incrInventory.setChangeID(123l);
-			incrInventory.setChangeTime(now);
-			incrInventory.setChannel(1);
-			incrInventory.setEndDate(now);
-			incrInventory.setEndTime("23:59");
-			incrInventory.setHotelCode("5123421");
-			incrInventory.setHotelID("5123421");
-			incrInventory.setIC_BeginTime("00:00");
-			incrInventory.setIC_EndTime("23:59");
-			incrInventory.setInsertTime(now);
-			incrInventory.setIsInstantConfirm(true);
-			incrInventory.setIsStraint(2);
-			incrInventory.setOperateTime(now);
-			incrInventory.setOverBooking(1);
-			incrInventory.setRoomTypeID("1033");
-			incrInventory.setSellChannel(2);
-			incrInventory.setStartDate(now);
-			incrInventory.setStartTime("00:00");
-			incrInventory.setStatus(true);
-			incrInventorys.add(incrInventory);
+		long changID = -1;
+		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
+			return changID;
+
+		// 开始结束日期过滤
+		filterUnvalidDate(productInventoryIncrementList);
+		if (productInventoryIncrementList == null || productInventoryIncrementList.size() == 0)
+			return changID;
+
+		// 分批次批量调用商品库库存元数据接口
+		List<Callable<List<IncrInventory>>> callableList = new ArrayList<Callable<List<IncrInventory>>>();
+		int recordCount = productInventoryIncrementList.size();
+		int batchSize = ConfigUtils.getIntConfigValue("GoodsInventoryBatchSize", 10);
+		int pageCount = (int) Math.ceil(recordCount * 1.0 / batchSize);
+		long startTime = System.currentTimeMillis();
+		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+			int startNum = (pageIndex - 1) * batchSize;
+			int endNum = pageIndex * batchSize > recordCount ? recordCount : pageIndex * batchSize;
+			callableList.add(new GoodsInventoryThread(productInventoryIncrementList.subList(startNum, endNum)));
 		}
+		List<IncrInventory> incrInventorys = new ArrayList<IncrInventory>();
+		int goodsInventoryThreadCount = ConfigUtils.getIntConfigValue("GoodsInventoryThreadCount", 3);
+		ExecutorService executorService = ExecutorUtils.newSelfThreadPool(goodsInventoryThreadCount, 300);
+		try {
+			List<Future<List<IncrInventory>>> futureList = executorService.invokeAll(callableList);
+			executorService.shutdown();
+			for (Future<List<IncrInventory>> future : futureList) {
+				List<IncrInventory> threadIncrInventorys = future.get();
+				incrInventorys.addAll(threadIncrInventorys);
+			}
+		} catch (InterruptedException | ExecutionException e) {
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",getIncrInventoryList from goods,incrInventorys size = "
+				+ incrInventorys.size());
+
+		// 过滤掉携程去哪儿酒店
+		filterShotelsIds(incrInventorys);
+		// 按照ChangeID排序
+		sortIncrInventorysByChangeID(incrInventorys);
+		// 库存增量数据压缩
+		compressIncrInventory(incrInventorys);
 		// 插入数据库
 		builkInsert(incrInventorys);
-//		Number lastChangeId = (Number) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
-		return 0l;
+		Number lastChangeId = (Number) productInventoryIncrementList.get(productInventoryIncrementList.size() - 1).get("id");
+		return lastChangeId.longValue();
 	}
 
 	/** 
@@ -175,12 +187,7 @@ public class IncrInventoryRepository {
 				iter.remove();
 			}
 		}
-
-		int stayTime = ConfigUtils.getIntConfigValue("CompressInvStayTime", 8);
-		int expireSeconds = stayTime * 60 * 60;
-		for (Map.Entry<String, Map<String, String>> entry : waitSaveMap.entrySet()) {
-			redisManagerIncr.hmset(entry.getKey(), entry.getValue(), expireSeconds);
-		}
+		commonRepository.batchHashSetMapToRedis(waitSaveMap);
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",compressIncrInventory and filter size = "
 				+ (beforeSize - incrInventorys.size()));
 	}
@@ -215,7 +222,7 @@ public class IncrInventoryRepository {
 			return;
 		logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
 		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryInsertSizePerTask");
-		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 50000 : Integer.valueOf(builkInsertSize);
+		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 5000 : Integer.valueOf(builkInsertSize);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		List<MysqlInventoryThread> callableList = new ArrayList<MysqlInventoryThread>();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
@@ -450,7 +457,6 @@ public class IncrInventoryRepository {
 	private void filterShotelsIds(List<IncrInventory> incrInventorys) {
 		long startTime = System.currentTimeMillis();
 		Iterator<IncrInventory> iter = incrInventorys.iterator();
-		Set<String> hotelCodeList = new HashSet<String>();
 		Set<String> roomTypeIdList = new HashSet<String>();
 		while (iter.hasNext()) {
 			IncrInventory incrInventory = iter.next();
@@ -459,22 +465,16 @@ public class IncrInventoryRepository {
 			incrInventory.setChannel(0);
 			String hotelCode = incrInventory.getHotelCode();
 			String roomTypeId = incrInventory.getRoomTypeID();
-			hotelCodeList.add(hotelCode);
 			roomTypeIdList.add(hotelCode + "_" + roomTypeId);
 		}
-		Map<String, String> isStraintMap = HotelDataServiceAgent.getCooperationTypeByHotelCode(hotelCodeList.toArray(new String[0]));
 		Map<String, String> sellChannelMap = HotelDataServiceAgent.getSellChannelsByRoomTypeId(roomTypeIdList.toArray(new String[0]));
 		for (IncrInventory incrInventory : incrInventorys) {
 			String hotelCode = incrInventory.getHotelCode();
 			String roomTypeId = incrInventory.getRoomTypeID();
 
-			String isStraint = isStraintMap.get(hotelCode);
-			isStraint = StringUtils.isEmpty(isStraint) ? "0" : isStraint;
-
 			String sellChannelKey = hotelCode + "_" + roomTypeId;
 			String sellChannel = sellChannelMap.get(sellChannelKey);
 			sellChannel = StringUtils.isEmpty(sellChannel) ? "65534" : sellChannel;
-			incrInventory.setIsStraint(Integer.parseInt(isStraint));
 			incrInventory.setSellChannel(Integer.parseInt(sellChannel));
 		}
 		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",after fillFilteredSHotelsIds,incrInventorys size = "

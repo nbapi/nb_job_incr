@@ -6,20 +6,16 @@
 package com.elong.nb.submeter.service.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import com.elong.nb.cache.RedisManager;
 import com.elong.nb.common.util.CommonsUtil;
-import com.elong.nb.model.ShardingInfo;
 import com.elong.nb.model.bean.Idable;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.submeter.service.ISubmeterService;
@@ -43,13 +39,22 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 	protected static final Logger logger = Logger.getLogger("SubmeterLogger");
 
-	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
-
 	@Resource
 	private IImpulseSenderService impulseSenderService;
 
 	@Resource
 	protected SubmeterTableCalculate submeterTableCache;
+
+	/** 
+	 * 获取最后数据所在分片数据源 
+	 *
+	 * @return
+	 */
+	public String getLastShardDataSource() {
+		String tablePrefix = getTablePrefix();
+		long curId = impulseSenderService.curId(tablePrefix + "_ID");
+		return submeterTableCache.getSelectedDataSource(curId);
+	}
 
 	/** 
 	 * 获取最后一张非空表名 
@@ -62,8 +67,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	public String getLastTableName() {
 		String tablePrefix = getTablePrefix();
 		long curId = impulseSenderService.curId(tablePrefix + "_ID");
-		long tableNumber = submeterTableCache.getSelectedSubTableNumber(curId);
-		return tablePrefix + "_" + tableNumber;
+		return submeterTableCache.getSelectedSubTable(tablePrefix, curId);
 	}
 
 	/** 
@@ -80,16 +84,11 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 		String tablePrefix = getTablePrefix();
 		long incrVal = rowList.size();
-		String configValue = CommonsUtil.CONFIG_PROVIDAR.getProperty("ImpulseSenderFromRedisTest");
-		long endID = 0l;
-		if (StringUtils.isEmpty(configValue)) {
-			endID = impulseSenderService.getId(tablePrefix + "_ID", incrVal);
-		} else {
-			endID = redisManager.incrBy(RedisManager.getCacheKey("incrindsdasvas_12a1A1_" + "_ID"), incrVal);
-		}
+		long endID = impulseSenderService.getId(tablePrefix + "_ID", incrVal);
 		long beginID = endID - incrVal + 1;
 
-		List<String> shardIdSubTableNameList = new ArrayList<String>();
+		// 发号器取出的号进行分配，相同分片相同分表数据分组
+		List<String> shardSubTableNameList = new ArrayList<String>();
 		Map<String, List<T>> subTableDataMap = new HashMap<String, List<T>>();
 		long startTime = System.currentTimeMillis();
 		for (T row : rowList) {
@@ -98,28 +97,28 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			long ID = beginID++;
 			row.setID(ID);
 
-			int shardId = submeterTableCache.getSelectedShardId(ID);
-			long tableNumber = submeterTableCache.getSelectedSubTableNumber(ID);
-			String subTableName = tablePrefix + "_" + tableNumber;
-			String shardIdSubTableName = shardId + "-" + subTableName;
+			String dataSource = submeterTableCache.getSelectedDataSource(ID);
+			String subTableName = submeterTableCache.getSelectedSubTable(tablePrefix, ID);
+			String shardSubTableName = dataSource + "-" + subTableName;
 
-			List<T> subRowList = subTableDataMap.get(shardIdSubTableName);
+			List<T> subRowList = subTableDataMap.get(shardSubTableName);
 			if (subRowList == null) {
 				subRowList = new ArrayList<T>();
 			}
 			subRowList.add(row);
-			subTableDataMap.put(shardIdSubTableName, subRowList);
-			if (!shardIdSubTableNameList.contains(shardIdSubTableName)) {
-				shardIdSubTableNameList.add(shardIdSubTableName);
+			subTableDataMap.put(shardSubTableName, subRowList);
+			if (!shardSubTableNameList.contains(shardSubTableName)) {
+				shardSubTableNameList.add(shardSubTableName);
 			}
 		}
-		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",subTableName and subRowList put to map,rowList size = "
-				+ incrVal);
 
+		// 数据入库
 		int successCount = 0;
-		for (String shardIdSubTableName : shardIdSubTableNameList) {
-			List<T> subRowList = subTableDataMap.get(shardIdSubTableName);
-			logger.info("shardIdSubTableName = " + shardIdSubTableName + ",bulkInsert waitCount = " + subRowList.size());
+		for (String shardSubTableName : shardSubTableNameList) {
+			List<T> subRowList = subTableDataMap.get(shardSubTableName);
+			String dataSource = StringUtils.substringBefore(shardSubTableName, "-");
+			String subTableName = StringUtils.substringAfter(shardSubTableName, "-");
+			logger.info("dataSource = " + dataSource + ",subTableName = " + subTableName + ",bulkInsert waitCount = " + subRowList.size());
 
 			int recordCount = subRowList == null ? 0 : subRowList.size();
 			String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("BuilkInsertSize");
@@ -130,10 +129,10 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 			for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 				int startNum = (pageIndex - 1) * pageSize;
 				int endNum = pageIndex * pageSize > recordCount ? recordCount : pageIndex * pageSize;
-				subSuccessCount += bulkInsertSub(shardIdSubTableName, subRowList.subList(startNum, endNum));
+				subSuccessCount += bulkInsertSub(dataSource, subTableName, subRowList.subList(startNum, endNum));
 			}
-			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",shardIdSubTableName = " + shardIdSubTableName
-					+ ",bulkInsert successCount = " + subSuccessCount);
+			logger.info("use time = " + (System.currentTimeMillis() - startTime) + "ms,dataSource = " + dataSource + ",subTableName = "
+					+ subTableName + ",bulkInsert successCount = " + subSuccessCount);
 			successCount += subSuccessCount;
 		}
 		return successCount;
@@ -150,27 +149,31 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	 */
 	@Override
 	public List<T> getIncrDataList(long lastId, int maxRecordCount) {
+		// 获取id所在分片datasource
+		String dataSource = submeterTableCache.getSelectedDataSource(lastId);
+		// 获取id所在分表表名
 		String tablePrefix = getTablePrefix();
-		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
-		List<String> subTableNameList = submeterTableCache.querySubTableNameList(lastId, maxId, tablePrefix, true);
-		if (subTableNameList == null || subTableNameList.size() == 0)
-			return Collections.emptyList();
+		String subTableName = submeterTableCache.getSelectedSubTable(tablePrefix, lastId);
+		// 获取id所在段段尾id
+		long segmentEndId = submeterTableCache.getSegmentEndId(lastId);
 
-		List<T> resultList = new ArrayList<T>();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("ID", lastId);
-		for (String subTableName : subTableNameList) {
-			if (StringUtils.isEmpty(subTableName))
-				continue;
-			params.put("maxRecordCount", maxRecordCount);
-			List<T> subList = getIncrDataList(subTableName, params);
-			if (subList == null || subList.size() == 0)
-				continue;
-			resultList.addAll(subList);
-			logger.info("subTableName = " + subTableName + ",getIncrDataList params = " + params + ",result size = " + subList.size());
-			if (subList.size() >= maxRecordCount)
-				break;
+		params.put("segmentEndId", segmentEndId);
+		params.put("maxRecordCount", maxRecordCount);
+		List<T> subList = getIncrDataList(dataSource, subTableName, params);
+		logger.info("getIncrDataList,dataSource = " + dataSource + ",subTableName = " + subTableName + ",params = " + params
+				+ ",resultListSize = " + subList.size());
+
+		List<T> resultList = new ArrayList<T>();
+		resultList.addAll(subList);
+		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
+		long nextSegmentBeginId = segmentEndId + 1;
+		// id所在段返回数据不够，并且后面段有数据，则继续查下一个段
+		if (maxRecordCount > subList.size() && nextSegmentBeginId < maxId) {
 			maxRecordCount = maxRecordCount - subList.size();
+			List<T> remainList = getIncrDataList(nextSegmentBeginId, maxRecordCount);
+			resultList.addAll(remainList);
 		}
 		return resultList;
 	}
@@ -187,52 +190,69 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 	public T getLastIncrData(String trigger) {
 		String tablePrefix = getTablePrefix();
 		long maxId = impulseSenderService.curId(tablePrefix + "_ID");
-		List<String> subTableNameList = submeterTableCache.querySubTableNameList(0, maxId, tablePrefix, false);
-		if (subTableNameList == null || subTableNameList.size() == 0)
-			return null;
-
-		subTableNameList.remove(tablePrefix);
-		for (String subTableName : subTableNameList) {
-			if (StringUtils.isEmpty(subTableName))
-				continue;
-			T result = getLastIncrData(subTableName, trigger);
-			logger.info("subTableName = " + subTableName + ",getLastIncrData trigger = " + trigger + ",result  = " + result);
-			if (result == null)
-				continue;
-			return result;
-		}
-		return null;
+		return getLastIncrData(trigger, maxId);
 	}
 
 	/** 
-	 * 插入分表数据 
+	 * 按段递归查询trigger最后一条数据 
 	 *
-	 * @param incrType
+	 * @param trigger
+	 * @param maxId
+	 * @return
+	 */
+	private T getLastIncrData(String trigger, long maxId) {
+		String tablePrefix = getTablePrefix();
+		// 获取id所在分片datasource
+		String dataSource = submeterTableCache.getSelectedDataSource(maxId);
+		// 获取id所在分表表名
+		String subTableName = submeterTableCache.getSelectedSubTable(tablePrefix, maxId);
+		// 获取id所在段段尾id
+		long segmentBeginId = submeterTableCache.getSegmentBeginId(maxId);
+
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("trigerName", trigger);
+		params.put("segmentBeginId", segmentBeginId);
+		T result = getLastIncrData(dataSource, subTableName, params);
+		logger.info("getLastIncrData,dataSource = " + dataSource + ",subTableName = " + subTableName + ",params= " + params + ",result  = "
+				+ result);
+		if (result == null && segmentBeginId > 1) {
+			long previousSegmentEndId = segmentBeginId - 1;
+			return getLastIncrData(trigger, previousSegmentEndId);
+		}
+		return result;
+	}
+
+	/** 
+	 * 插入分表数据
+	 *
+	 * @param dataSource
 	 * @param subTableName
 	 * @param subRowList
 	 * @return
 	 */
-	protected abstract int bulkInsertSub(String shardIdSubTableName, List<T> subRowList);
+	protected abstract int bulkInsertSub(String dataSource, String subTableName, List<T> subRowList);
 
 	/** 
 	 * 获取分表数据（根据需要子类选择覆盖）
 	 *
+	 * @param dataSource
 	 * @param subTableName
 	 * @param params
 	 * @return
 	 */
-	protected List<T> getIncrDataList(String subTableName, Map<String, Object> params) {
+	protected List<T> getIncrDataList(String dataSource, String subTableName, Map<String, Object> params) {
 		return null;
 	}
 
 	/** 
 	 * 获取分表指定trigger的最后一条增量 （根据需要子类选择覆盖）
 	 *
+	 * @param dataSource
 	 * @param subTableName
 	 * @param trigger
 	 * @return
 	 */
-	protected T getLastIncrData(String subTableName, String trigger) {
+	protected T getLastIncrData(String dataSource, String subTableName, Map<String, Object> params) {
 		return null;
 	}
 

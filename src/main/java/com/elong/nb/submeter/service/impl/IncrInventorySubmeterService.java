@@ -10,7 +10,6 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.elong.nb.dao.IncrInventoryDao;
@@ -49,39 +48,33 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 	}
 
 	/** 
-	 * 插入分表数据
+	 * 插入分表数据 
 	 *
+	 * @param dataSource
 	 * @param subTableName
 	 * @param subRowList
 	 * @return 
 	 *
-	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#bulkInsertSub(java.lang.String, java.util.List)    
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#bulkInsertSub(java.lang.String, java.lang.String, java.util.List)    
 	 */
 	@Override
-	protected int bulkInsertSub(String shardIdSubTableName, final List<IncrInventory> subRowList) {
-		String[] strs = StringUtils.split(shardIdSubTableName, "-", -1);
-		int selectedShardId = Integer.valueOf(strs[0]);
-		String dataSource = submeterTableCache.getSelectedDataSource(selectedShardId);
-		String subTableName = strs[1];
-		if("1-IncrInventory_1".equals(shardIdSubTableName)){
-			incrInventoryDao.bulkInsertSub(dataSource, subTableName, subRowList);
-		}
-		return 0;
+	protected int bulkInsertSub(String dataSource, String subTableName, List<IncrInventory> subRowList) {
+		return incrInventoryDao.bulkInsertSub(dataSource, subTableName, subRowList);
 	}
 
 	/** 
-	 * 获取分表数据 
+	 * 获取分表数据  
 	 *
+	 * @param dataSource
 	 * @param subTableName
 	 * @param params
 	 * @return 
 	 *
-	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getIncrDataList(java.lang.String, java.util.Map)    
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getIncrDataList(java.lang.String, java.lang.String, java.util.Map)    
 	 */
 	@Override
-	protected List<IncrInventory> getIncrDataList(String subTableName, Map<String, Object> params) {
-		// return incrInventoryDao.getIncrInventories(subTableName, params);
-		return null;
+	protected List<IncrInventory> getIncrDataList(String dataSource, String subTableName, Map<String, Object> params) {
+		return incrInventoryDao.getIncrInventories(dataSource, subTableName, params);
 	}
 
 	/** 
@@ -93,7 +86,7 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 	 */
 	@Override
 	public void createSubTable(String newTableName) {
-		// incrInventoryDao.createSubTable(newTableName);
+		// incrInventoryDao.createSubTable(newTableName);TODO
 	}
 
 	/** 
@@ -106,9 +99,8 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getLastIncrData(java.lang.String, java.lang.String)    
 	 */
 	@Override
-	protected IncrInventory getLastIncrData(String subTableName, String trigger) {
-		// return incrInventoryDao.getLastIncrFromWrite(subTableName);
-		return null;
+	protected IncrInventory getLastIncrData(String dataSource, String subTableName, Map<String, Object> params) {
+		return incrInventoryDao.getLastIncrFromWrite(dataSource, subTableName);
 	}
 
 }

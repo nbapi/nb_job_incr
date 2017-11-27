@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import redis.clients.jedis.Jedis;
 
+import com.elong.nb.cache.RedisManager;
 import com.elong.nb.submeter.service.IImpulseSenderService;
 import com.elong.nb.util.JedisPoolUtil;
 
@@ -34,6 +35,8 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 	private static final Logger logger = Logger.getLogger("ImpulseSenderLogger");
 
 	private static final String REDIS_SENTINEL_CONFIG = "redis_sentinel";
+
+	private RedisManager redisManager = RedisManager.getInstance("redis_shared", "redis_shared");
 
 	/** 
 	 * 获取id
@@ -108,22 +111,12 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender curId must not be null parameter['key']");
 		}
-		Jedis jedis = JedisPoolUtil.getJedis(REDIS_SENTINEL_CONFIG);
-		String idStr = jedis.get(key);
-		JedisPoolUtil.returnRes(jedis);
+		String idStr = redisManager.get(RedisManager.getCacheKey(key + "_asdfaasdfsdfasdfsqeradfID"));
 		return Long.valueOf(idStr);
 	}
 
 	@Override
 	public long getId(String key, long incrVal) {
-		if (StringUtils.isEmpty(key)) {
-			throw new IllegalArgumentException("ImpulseSender getId must not be null parameter['key']");
-		}
-		long startTime = System.currentTimeMillis();
-		Jedis jedis = JedisPoolUtil.getJedis(REDIS_SENTINEL_CONFIG);
-		long id = jedis.incrBy(key, incrVal);
-		JedisPoolUtil.returnRes(jedis);
-		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",key = " + key + ",value = " + id + ",incrVal = " + incrVal);
-		return id;
+		return redisManager.incrBy(RedisManager.getCacheKey(key + "_asdfaasdfsdfasdfsqeradfID"), incrVal);
 	}
 }
