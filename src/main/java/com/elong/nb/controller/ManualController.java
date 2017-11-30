@@ -5,8 +5,6 @@
  */
 package com.elong.nb.controller;
 
-import java.util.List;
-
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Controller;
@@ -14,12 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.alibaba.fastjson.JSON;
-import com.elong.nb.model.bean.IncrInventory;
-import com.elong.nb.repository.IncrHotelRepository;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.IImpulseSenderService;
-import com.elong.nb.submeter.service.impl.SubmeterTableCalculate;
 
 /**
  * 手动修改某些值
@@ -44,25 +38,6 @@ public class ManualController {
 	@Resource
 	private IIncrSetInfoService incrSetInfoService;
 
-	@Resource
-	private SubmeterTableCalculate submeterTableCache;
-
-	@Resource
-	private IncrHotelRepository incrHotelRepository;
-
-	/** 
-	 * 获取当前使用非空表名集合
-	 *
-	 * @param tablePrefix
-	 * @return
-	 */
-	@RequestMapping(value = "/test/getData/{lastId}/{recordCount}")
-	public @ResponseBody String getSubmeterTableNames(@PathVariable("lastId") String lastId, @PathVariable("recordCount") String recordCount) {
-		long id = Long.valueOf(lastId);
-		int maxRecordCount = Integer.valueOf(recordCount);
-		List<IncrInventory> inventorys = incrHotelRepository.getIncrInventories(id, maxRecordCount);
-		return JSON.toJSONString(inventorys);
-	}
 
 	/** 
 	 * 设置增量配置信息

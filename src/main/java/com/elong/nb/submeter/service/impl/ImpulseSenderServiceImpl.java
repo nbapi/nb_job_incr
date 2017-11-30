@@ -111,12 +111,12 @@ public class ImpulseSenderServiceImpl implements IImpulseSenderService {
 		if (StringUtils.isEmpty(key)) {
 			throw new IllegalArgumentException("ImpulseSender curId must not be null parameter['key']");
 		}
-		String idStr = redisManager.get(RedisManager.getCacheKey(key + "_asdfaasdfsdfasdfsqeradfID"));
+		String idStr = redisManager.get(RedisManager.getCacheKey(key + "_zxvasdfadID"));
 		return Long.valueOf(idStr);
 	}
 
 	@Override
 	public long getId(String key, long incrVal) {
-		return redisManager.incrBy(RedisManager.getCacheKey(key + "_asdfaasdfsdfasdfsqeradfID"), incrVal);
+		return redisManager.incrBy(RedisManager.getCacheKey(key + "_zxvasdfadID"), incrVal);
 	}
 }

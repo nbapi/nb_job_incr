@@ -122,7 +122,7 @@ public abstract class AbstractSubmeterService<T extends Idable> implements ISubm
 
 			int recordCount = subRowList == null ? 0 : subRowList.size();
 			String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("BuilkInsertSize");
-			int pageSize = StringUtils.isEmpty(builkInsertSize) ? 50000 : Integer.valueOf(builkInsertSize);
+			int pageSize = StringUtils.isEmpty(builkInsertSize) ? 50 : Integer.valueOf(builkInsertSize);
 			int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 			startTime = System.currentTimeMillis();
 			int subSuccessCount = 0;

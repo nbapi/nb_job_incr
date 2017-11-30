@@ -83,12 +83,12 @@ public class SubmeterTableCalculate {
 	}
 
 	/** 
-	 * 获取id对应的分片编号
+	 * 获取指定id所在行范围的分片数量 
 	 *
 	 * @param id
 	 * @return
 	 */
-	public int getSelectedShardId(long id) {
+	private int getShardCount(long id) {
 		// 确定id属于的行范围
 		RowRangeInfo rowRangeInfo = null;
 		List<RowRangeInfo> rowRangeInfoList = ShardingUtils.ROWRANGEINFO_LIST;
@@ -107,8 +107,18 @@ public class SubmeterTableCalculate {
 			throw new IllegalStateException("id = " + id + ",shardIds is null or empty!");
 		}
 		String[] shardIds = StringUtils.split(shardIdStr, ",", -1);
-		int shardSize = shardIds.length;
-		int selectedShardId = (int) ((id - 1) / 10) % shardSize + 1;
+		return shardIds.length;
+	}
+
+	/** 
+	 * 获取id对应的分片编号
+	 *
+	 * @param id
+	 * @return
+	 */
+	public int getSelectedShardId(long id) {
+		int shardCount = getShardCount(id);
+		int selectedShardId = (int) ((id - 1) / 10) % shardCount + 1;
 		return selectedShardId;
 	}
 
@@ -119,9 +129,10 @@ public class SubmeterTableCalculate {
 	 * @return
 	 */
 	public String getSelectedSubTable(String tablePrefix, long id) {
+		int shardCount = getShardCount(id);
 		int submeterRowCount = SubmeterConst.PER_SUBMETER_ROW_COUNT;
-		submeterRowCount = 600;// TODO
-		return tablePrefix + "_" + (int) Math.ceil(id * 1.0 / submeterRowCount);
+		submeterRowCount = 100;// TODO
+		return tablePrefix + "_" + (int) Math.ceil(id * 1.0 / (shardCount * submeterRowCount));
 	}
 
 }

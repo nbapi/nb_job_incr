@@ -222,7 +222,7 @@ public class IncrInventoryRepository {
 			return;
 		logger.info("IncrInventory BulkInsert start,recordCount = " + recordCount);
 		String builkInsertSize = CommonsUtil.CONFIG_PROVIDAR.getProperty("IncrInventoryInsertSizePerTask");
-		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 5000 : Integer.valueOf(builkInsertSize);
+		int pageSize = StringUtils.isEmpty(builkInsertSize) ? 8000 : Integer.valueOf(builkInsertSize);
 		int pageCount = (int) Math.ceil(recordCount * 1.0 / pageSize);
 		List<MysqlInventoryThread> callableList = new ArrayList<MysqlInventoryThread>();
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
