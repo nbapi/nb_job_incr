@@ -10,8 +10,6 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 
-import com.elong.nb.db.DataSource;
-
 /**
  * 检查、创建、查询分表
  *

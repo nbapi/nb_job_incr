@@ -35,24 +35,74 @@ public class IncrRateSubmeterService extends AbstractSubmeterService<IncrRate> {
 	@Resource
 	private IncrRateDao incrRateDao;
 
+	/** 
+	 * 获取分表前缀 
+	 *
+	 * @return 
+	 *
+	 * @see com.elong.nb.submeter.service.ISubmeterService#getTablePrefix()    
+	 */
 	@Override
 	public String getTablePrefix() {
 		return "IncrRate";
 	}
 
+	/** 
+	 * 创建分表
+	 *
+	 * @param dataSource
+	 * @param newTableName 
+	 *
+	 * @see com.elong.nb.submeter.service.ISubmeterService#createSubTable(java.lang.String, java.lang.String)    
+	 */
 	@Override
 	public void createSubTable(String dataSource, String newTableName) {
 		incrRateDao.createSubTable(dataSource, newTableName);
 	}
 
+	/** 
+	 * 插入分表数据
+	 *
+	 * @param dataSource
+	 * @param subTableName
+	 * @param subRowList
+	 * @return 
+	 *
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#bulkInsertSub(java.lang.String, java.lang.String, java.util.List)    
+	 */
 	@Override
 	protected int bulkInsertSub(String dataSource, String subTableName, List<IncrRate> subRowList) {
 		return incrRateDao.bulkInsertSub(dataSource, subTableName, subRowList);
 	}
 
+	/** 
+	 * 获取分表数据   
+	 *
+	 * @param dataSource
+	 * @param subTableName
+	 * @param params
+	 * @return 
+	 *
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getIncrDataList(java.lang.String, java.lang.String, java.util.Map)    
+	 */
 	@Override
 	protected List<IncrRate> getIncrDataList(String dataSource, String subTableName, Map<String, Object> params) {
 		return incrRateDao.getIncrRates(dataSource, subTableName, params);
+	}
+
+	/** 
+	 * 获取最后一条记录 
+	 *
+	 * @param dataSource
+	 * @param subTableName
+	 * @param params
+	 * @return 
+	 *
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getLastIncrData(java.lang.String, java.lang.String, java.util.Map)    
+	 */
+	@Override
+	protected IncrRate getLastIncrData(String dataSource, String subTableName, Map<String, Object> params) {
+		return incrRateDao.getLastIncrFromWrite(dataSource, subTableName);
 	}
 
 }

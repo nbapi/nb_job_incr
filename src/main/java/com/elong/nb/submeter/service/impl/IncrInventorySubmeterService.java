@@ -80,9 +80,10 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 	/** 
 	 * 创建分表
 	 *
+	 * @param dataSource
 	 * @param newTableName 
 	 *
-	 * @see com.elong.nb.submeter.service.ISubmeterService#createSubTable(java.lang.String)    
+	 * @see com.elong.nb.submeter.service.ISubmeterService#createSubTable(java.lang.String, java.lang.String)    
 	 */
 	@Override
 	public void createSubTable(String dataSource, String newTableName) {
@@ -92,11 +93,12 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 	/** 
 	 * 获取最后一条记录
 	 *
+	 * @param dataSource
 	 * @param subTableName
-	 * @param trigger
+	 * @param params
 	 * @return 
 	 *
-	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getLastIncrData(java.lang.String, java.lang.String)    
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#getLastIncrData(java.lang.String, java.lang.String, java.util.Map)    
 	 */
 	@Override
 	protected IncrInventory getLastIncrData(String dataSource, String subTableName, Map<String, Object> params) {

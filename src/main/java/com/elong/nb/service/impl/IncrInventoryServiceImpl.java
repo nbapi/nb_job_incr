@@ -71,7 +71,34 @@ public class IncrInventoryServiceImpl implements IIncrInventoryService {
 	 * @see com.elong.nb.service.IIncrInventoryService#SyncInventoryToDB(long)    
 	 */
 	private void syncInventoryToDB(long changeID, long beginTime) {
-		incrInventoryRepository.syncInventoryToDB(null);
+		long startTime = System.currentTimeMillis();
+		if (changeID == 0) {
+			String setValue = incrSetInfoService.get(RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey());
+			changeID = StringUtils.isEmpty(setValue) ? 0 : Long.valueOf(setValue);
+			logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",get value from redis key = "
+					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",changeID = " + changeID);
+		}
+		// 库存变化流水表获取数据
+		List<Map<String, Object>> productInventoryIncrementList = getProductInventoryIncrement(changeID);
+		startTime = System.currentTimeMillis();
+		long newLastChgID = incrInventoryRepository.syncInventoryToDB(productInventoryIncrementList);
+		newLastChgID = (newLastChgID == -1) ? changeID : newLastChgID;
+		logger.info("use time = " + (System.currentTimeMillis() - startTime) + ",syncInventoryToDB,change: from " + changeID + " to "
+				+ newLastChgID);
+
+		long incred = newLastChgID - changeID;
+		if (incred > 0) {
+			// 更新LastID
+			startTime = System.currentTimeMillis();
+			incrSetInfoService.put(RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey(), newLastChgID);
+			long endTime = System.currentTimeMillis();
+			logger.info("use time = " + (endTime - startTime) + ",put to redis key" + ",incred = " + incred + ",key = "
+					+ RedisKeyConst.CacheKey_KEY_Inventory_LastID.getKey() + ",value = " + newLastChgID);
+			if (incred > 100 && (endTime - beginTime) < 10 * 60 * 1000) {
+				// 继续执行
+				syncInventoryToDB(newLastChgID, beginTime);
+			}
+		}
 	}
 
 	/** 

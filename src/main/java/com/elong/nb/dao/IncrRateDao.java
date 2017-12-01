@@ -37,7 +37,6 @@ public interface IncrRateDao {
 	 * @param params
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
 	public List<IncrRate> getIncrRates(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName, @Param("params") Map<String, Object> params);
 
 	/** 
@@ -45,7 +44,6 @@ public interface IncrRateDao {
 	 *
 	 * @param incrInventories
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
 	public int bulkInsertSub(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName, @Param("list") List<IncrRate> incrRates);
 
 	/** 
@@ -54,7 +52,6 @@ public interface IncrRateDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
 	public int createSubTable(@DataSource("dataSource") String dataSource, @Param("tableName") String tableName);
 
 	/** 
@@ -63,7 +60,6 @@ public interface IncrRateDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
 	public IncrRate getLastIncrFromWrite(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName);
 
 	/** 
@@ -72,7 +68,6 @@ public interface IncrRateDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_read")
 	public IncrRate getLastIncrFromRead(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName);
 
 	/** 
@@ -82,7 +77,6 @@ public interface IncrRateDao {
 	 * @param endTime
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_read")
 	public int getRecordCountFromRead(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName, @Param("startTime") Date startTime,
 			@Param("endTime") Date endTime);
 

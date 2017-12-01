@@ -36,7 +36,6 @@ public interface IncrHotelDao {
 	 * @param trigger
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
 	public IncrHotel getLastHotel(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName,
 			@Param("params") Map<String, Object> params);
 
@@ -45,7 +44,6 @@ public interface IncrHotelDao {
 	 *
 	 * @param incrInventories
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
 	public int bulkInsertSub(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName,
 			@Param("list") List<IncrHotel> incrHotelList);
 
@@ -55,7 +53,6 @@ public interface IncrHotelDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
 	public int createSubTable(@DataSource("dataSource") String dataSource, @Param("tableName") String tableName);
 
 	/** 
@@ -64,7 +61,6 @@ public interface IncrHotelDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_write")
 	public IncrHotel getLastIncrFromWrite(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName,
 			@Param("triggerName") String triggerName);
 
@@ -74,7 +70,6 @@ public interface IncrHotelDao {
 	 * @param tableName
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_read")
 	public IncrHotel getLastIncrFromRead(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName,
 			@Param("triggerName") String triggerName);
 
@@ -85,7 +80,6 @@ public interface IncrHotelDao {
 	 * @param endTime
 	 * @return
 	 */
-	@DataSource("dataSource_nbsubmeter_read")
 	public int getRecordCountFromRead(@DataSource("dataSource") String dataSource, @Param("subTableName") String subTableName,
 			@Param("startTime") Date startTime, @Param("endTime") Date endTime, @Param("triggerName") String triggerName);
 

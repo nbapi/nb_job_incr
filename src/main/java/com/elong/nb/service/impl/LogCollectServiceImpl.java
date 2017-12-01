@@ -144,14 +144,13 @@ public class LogCollectServiceImpl implements LogCollectService {
 		String dataSource = incrHotelSubmeterService.getLastShardDataSource();
 		String subTableName = incrHotelSubmeterService.getLastTableName();
 		IncrHotel masterIncrHotel = incrHotelDao.getLastIncrFromWrite(dataSource, subTableName, triggerName);
-		IncrHotel slaveIncrHotel = incrHotelDao.getLastIncrFromRead(dataSource, subTableName, triggerName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
 		statisticModel.setIncrType(EnumIncrType.Data.name() + "_" + triggerName);
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrHotel.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(masterIncrHotel.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		int recordCount = incrHotelDao.getRecordCountFromRead(dataSource, subTableName, getPreviousMinuteBegin(logTime),
 				getPreviousMinuteEnd(logTime), triggerName);
 		statisticModel.setRecordCount(recordCount + "");
@@ -163,14 +162,13 @@ public class LogCollectServiceImpl implements LogCollectService {
 		String dataSource = incrInventorySubmeterService.getLastShardDataSource();
 		String subTableName = incrInventorySubmeterService.getLastTableName();
 		IncrInventory masterIncrInventory = incrInventoryDao.getLastIncrFromWrite(dataSource, subTableName);
-		IncrInventory slaveIncrInventory = incrInventoryDao.getLastIncrFromRead(dataSource, subTableName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
 		statisticModel.setIncrType(EnumIncrType.Inventory.name());
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrInventory.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(masterIncrInventory.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		int recordCount = incrInventoryDao.getRecordCountFromRead(dataSource, subTableName, getPreviousMinuteBegin(logTime),
 				getPreviousMinuteEnd(logTime));
 		statisticModel.setRecordCount(recordCount + "");
@@ -198,14 +196,13 @@ public class LogCollectServiceImpl implements LogCollectService {
 		String dataSource = incrRateSubmeterService.getLastShardDataSource();
 		String subTableName = incrRateSubmeterService.getLastTableName();
 		IncrRate masterIncrRate = incrRateDao.getLastIncrFromWrite(dataSource, subTableName);
-		IncrRate slaveIncrRate = incrRateDao.getLastIncrFromRead(dataSource, subTableName);
 		IncrInsertStatistic statisticModel = new IncrInsertStatistic();
 		statisticModel.setBusiness_type(BUSINESS_TYPE);
 		statisticModel.setIncrType(EnumIncrType.Rate.name());
 		statisticModel.setChangeTime(DateHandlerUtils.formatDate(masterIncrRate.getChangeTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setInsertTime(DateHandlerUtils.formatDate(masterIncrRate.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		statisticModel.setLog_time(DateHandlerUtils.formatDate(logTime, "yyyy-MM-dd HH:mm:ss"));
-		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(slaveIncrRate.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
+		statisticModel.setSlaveInsertTime(DateHandlerUtils.formatDate(masterIncrRate.getInsertTime(), "yyyy-MM-dd HH:mm:ss"));
 		int recordCount = incrRateDao.getRecordCountFromRead(dataSource, subTableName, getPreviousMinuteBegin(logTime),
 				getPreviousMinuteEnd(logTime));
 		statisticModel.setRecordCount(recordCount + "");

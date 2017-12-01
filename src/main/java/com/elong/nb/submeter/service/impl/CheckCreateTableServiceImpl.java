@@ -19,16 +19,16 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.dao.SubmeterTableDao;
-import com.elong.nb.model.ShardingInfo;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
 import com.elong.nb.model.enums.EnumIncrType;
-import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.service.IIncrSetInfoService;
+import com.elong.nb.submeter.model.ShardingInfo;
+import com.elong.nb.submeter.model.SubmeterConst;
 import com.elong.nb.submeter.service.ICheckCreateTableService;
 import com.elong.nb.submeter.service.ISubmeterService;
-import com.elong.nb.util.ShardingUtils;
+import com.elong.nb.submeter.util.ShardingUtils;
 
 /**
  * 检查、创建分表服务实现

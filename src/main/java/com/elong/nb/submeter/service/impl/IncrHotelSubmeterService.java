@@ -48,13 +48,14 @@ public class IncrHotelSubmeterService extends AbstractSubmeterService<IncrHotel>
 	}
 
 	/** 
-	 * 插入分表数据
+	 * 插入分表数据 
 	 *
+	 * @param dataSource
 	 * @param subTableName
 	 * @param subRowList
 	 * @return 
 	 *
-	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#bulkInsertSub(java.lang.String, java.util.List)    
+	 * @see com.elong.nb.submeter.service.impl.AbstractSubmeterService#bulkInsertSub(java.lang.String, java.lang.String, java.util.List)    
 	 */
 	@Override
 	protected int bulkInsertSub(String dataSource, String subTableName, List<IncrHotel> subRowList) {
