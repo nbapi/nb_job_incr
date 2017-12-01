@@ -2,7 +2,7 @@ package com.elong.nb.test;
 
 import org.junit.Test;
 
-import com.elong.nb.model.enums.SubmeterConst;
+import com.elong.nb.submeter.model.SubmeterConst;
 
 public class SyncIncrTestCase {
 
