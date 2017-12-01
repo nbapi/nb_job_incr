@@ -26,7 +26,6 @@ import com.elong.nb.db.DataSource;
  * @version		1.0  
  * @since		JDK1.7
  */
-@DataSource("dataSource_nbsubmeter_write")
 public interface SubmeterTableDao {
 
 	/** 
@@ -36,7 +35,7 @@ public interface SubmeterTableDao {
 	 * @param maxRecordCount
 	 * @return
 	 */
-	public List<Map<String, Object>> queryAllSubTableList(@Param("tablePrefix") String tablePrefix,
+	public List<Map<String, Object>> queryAllSubTableList(@Param("dataSource") String dataSource,@Param("tablePrefix") String tablePrefix,
 			@Param("maxRecordCount") int maxRecordCount);
 
 }

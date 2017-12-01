@@ -85,8 +85,8 @@ public class IncrInventorySubmeterService extends AbstractSubmeterService<IncrIn
 	 * @see com.elong.nb.submeter.service.ISubmeterService#createSubTable(java.lang.String)    
 	 */
 	@Override
-	public void createSubTable(String newTableName) {
-		// incrInventoryDao.createSubTable(newTableName);TODO
+	public void createSubTable(String dataSource, String newTableName) {
+		incrInventoryDao.createSubTable(dataSource, newTableName);
 	}
 
 	/** 

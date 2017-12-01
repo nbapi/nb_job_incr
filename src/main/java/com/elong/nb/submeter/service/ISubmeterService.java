@@ -48,7 +48,7 @@ public interface ISubmeterService<T> {
 	 * 创建分表
 	 *
 	 */
-	public void createSubTable(String newTableName);
+	public void createSubTable(String dataSource,String newTableName);
 
 	/** 
 	 * 插入分表数据

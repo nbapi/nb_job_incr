@@ -6,6 +6,7 @@
 package com.elong.nb.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -66,18 +67,17 @@ public class SubmeterController {
 
 		long startTime = System.currentTimeMillis();
 		logger.info("checkCreateTable EnumIncrType = " + incrType + ",start");
-		List<String> needCreateTableList = null;
+		Map<String, List<String>> dataSourceTableNameMap = null;
 		try {
-			needCreateTableList = checkCreateTableService.checkSubTable(incrType);
+			dataSourceTableNameMap = checkCreateTableService.checkSubTable(incrType);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			result.setCode(ResponseResult.FAILURE);
 			result.setMessage("checkSubTable error = " + e.getMessage());
 			return JSON.toJSONString(result);
 		}
-		List<String> successTableList = null;
 		try {
-			successTableList = checkCreateTableService.createSubTable(incrType, needCreateTableList);
+			checkCreateTableService.createSubTable(incrType, dataSourceTableNameMap);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			result.setCode(ResponseResult.FAILURE);
@@ -85,7 +85,7 @@ public class SubmeterController {
 			return JSON.toJSONString(result);
 		}
 		result.setCode(ResponseResult.SUCCESS);
-		result.setMessage(JSON.toJSONString(successTableList));
+		result.setMessage("createSubTable successfully.");
 		logger.info("checkCreateTable EnumIncrType = " + incrType + ",end,and use time = " + (System.currentTimeMillis() - startTime)
 				+ "ms");
 		return JSON.toJSONString(result);

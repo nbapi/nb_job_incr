@@ -69,8 +69,8 @@ public class IncrHotelSubmeterService extends AbstractSubmeterService<IncrHotel>
 	 * @see com.elong.nb.submeter.service.ISubmeterService#createSubTable(java.lang.String)    
 	 */
 	@Override
-	public void createSubTable(String newTableName) {
-		// incrHotelDao.createSubTable(newTableName);TODO
+	public void createSubTable(String dataSource, String newTableName) {
+		incrHotelDao.createSubTable(dataSource, newTableName);
 	}
 
 	/** 

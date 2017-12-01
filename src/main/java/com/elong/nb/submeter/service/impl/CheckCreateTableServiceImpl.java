@@ -7,6 +7,7 @@ package com.elong.nb.submeter.service.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
 import com.elong.nb.dao.SubmeterTableDao;
+import com.elong.nb.model.ShardingInfo;
 import com.elong.nb.model.bean.IncrHotel;
 import com.elong.nb.model.bean.IncrInventory;
 import com.elong.nb.model.bean.IncrRate;
@@ -26,6 +28,7 @@ import com.elong.nb.model.enums.SubmeterConst;
 import com.elong.nb.service.IIncrSetInfoService;
 import com.elong.nb.submeter.service.ICheckCreateTableService;
 import com.elong.nb.submeter.service.ISubmeterService;
+import com.elong.nb.util.ShardingUtils;
 
 /**
  * 检查、创建分表服务实现
@@ -48,7 +51,7 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 
 	@Resource(name = "incrInventorySubmeterService")
 	private ISubmeterService<IncrInventory> incrInventorySubmeterService;
-	
+
 	@Resource(name = "incrRateSubmeterService")
 	private ISubmeterService<IncrRate> incrRateSubmeterService;
 
@@ -70,13 +73,32 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	 * @see com.elong.nb.service.ICheckCreateTableService#checkSubTable(com.elong.nb.model.enums.EnumIncrType)    
 	 */
 	@Override
-	public List<String> checkSubTable(EnumIncrType incrType) {
+	public Map<String, List<String>> checkSubTable(EnumIncrType incrType) {
 		ISubmeterService<?> submeterCommonService = getSubmeterService(incrType);
 		String tablePrefix = submeterCommonService.getTablePrefix();
-		List<Map<String, Object>> tableMapList = submeterTableDao.queryAllSubTableList(tablePrefix + "%",
+
+		Map<String, List<String>> resultMap = new HashMap<String, List<String>>();
+		Map<Integer, ShardingInfo> shardingMap = ShardingUtils.SHARDINFO_MAP;
+		for (Map.Entry<Integer, ShardingInfo> entry : shardingMap.entrySet()) {
+			ShardingInfo shardingInfo = entry.getValue();
+			String dataSource = shardingInfo.getDataSource();
+			List<String> tableNameList = getTableNameList(dataSource, tablePrefix);
+			resultMap.put(dataSource, tableNameList);
+		}
+		return resultMap;
+	}
+
+	/** 
+	 * 获取指定数据源待创建表名 
+	 *
+	 * @param tablePrefix
+	 * @param tableMapList
+	 * @return
+	 */
+	private List<String> getTableNameList(String dataSource, String tablePrefix) {
+		List<Map<String, Object>> tableMapList = submeterTableDao.queryAllSubTableList(dataSource, tablePrefix + "%",
 				SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB);
 		logger.info("tableMapList = " + (tableMapList == null ? 0 : tableMapList.size()));
-
 		// 查找末尾连续空表
 		List<String> emptyTableNameList = new ArrayList<String>();
 		if (tableMapList != null && tableMapList.size() > 0) {
@@ -92,8 +114,8 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 
 		// 末尾连续空表数量
 		int currentEmptyCount = emptyTableNameList == null ? 0 : emptyTableNameList.size();
-		logger.info("currentEmptyCount = " + currentEmptyCount);
-		logger.info("currentEmptyTable = " + JSON.toJSONString(emptyTableNameList));
+		logger.info("dataSource = " + dataSource + ",currentEmptyCount = " + currentEmptyCount);
+		logger.info("dataSource = " + dataSource + ",currentEmptyTable = " + JSON.toJSONString(emptyTableNameList));
 		if (currentEmptyCount >= SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB)
 			return Collections.emptyList();
 
@@ -107,16 +129,16 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 		lastNumberStr = StringUtils.isEmpty(lastNumberStr) ? incrSetInfoService.get(tablePrefix + ".SubTable.Number") : lastNumberStr;
 		// 数据库未设置分表序号，直接异常
 		if (StringUtils.isEmpty(lastNumberStr)) {
-			throw new IllegalStateException(tablePrefix + " createSubTable first,please set value whose key is " + tablePrefix
-					+ ".SubTable.Number!!!");
+			throw new IllegalStateException("dataSource = " + dataSource + "," + tablePrefix
+					+ " createSubTable first,please set value whose key is " + tablePrefix + ".SubTable.Number!!!");
 		}
 		int lastNumber = 0;
 		try {
 			lastNumber = Integer.valueOf(lastNumberStr);
 		} catch (NumberFormatException e) {
 			// 数据库未设置分表序号设置非数字，直接异常
-			throw new IllegalStateException(tablePrefix + " createSubTable first,please set Integer value whose key is " + tablePrefix
-					+ ".SubTable.Number!!!");
+			throw new IllegalStateException("dataSource = " + dataSource + "," + tablePrefix
+					+ " createSubTable first,please set Integer value whose key is " + tablePrefix + ".SubTable.Number!!!");
 		}
 		int needCreateCount = SubmeterConst.EMPTY_SUBMETER_COUNT_IN_DB - currentEmptyCount;
 		List<String> needCreateTableList = new ArrayList<String>();
@@ -138,21 +160,24 @@ public class CheckCreateTableServiceImpl implements ICheckCreateTableService {
 	 * @see com.elong.nb.service.ICheckCreateTableService#createSubTable(com.elong.nb.model.enums.EnumIncrType, java.util.List)    
 	 */
 	@Override
-	public List<String> createSubTable(EnumIncrType incrType, List<String> tableNameList) {
-		if (tableNameList == null || tableNameList.size() == 0)
-			return Collections.emptyList();
-
+	public void createSubTable(EnumIncrType incrType, Map<String, List<String>> dataSourceTableNameMap) {
+		if (dataSourceTableNameMap == null || dataSourceTableNameMap.size() == 0)
+			return;
 		ISubmeterService<?> submeterCommonService = getSubmeterService(incrType);
-		List<String> successTableList = new ArrayList<String>();
-		for (String newTableName : tableNameList) {
-			if (StringUtils.isEmpty(newTableName))
-				continue;
-			submeterCommonService.createSubTable(newTableName);
-			successTableList.add(newTableName);
+		for (Map.Entry<String, List<String>> entry : dataSourceTableNameMap.entrySet()) {
+			String dataSource = entry.getKey();
+			List<String> tableNameList = entry.getValue();
+
+			List<String> successTableList = new ArrayList<String>();
+			for (String newTableName : tableNameList) {
+				if (StringUtils.isEmpty(newTableName))
+					continue;
+				submeterCommonService.createSubTable(dataSource, newTableName);
+				successTableList.add(newTableName);
+				logger.info("dataSource = " + dataSource + ",successCreateCount = " + tableNameList.size());
+				logger.info("successCreateTable = " + JSON.toJSONString(successTableList));
+			}
 		}
-		logger.info("successCreateCount = " + tableNameList.size());
-		logger.info("successCreateTable = " + JSON.toJSONString(successTableList));
-		return successTableList;
 	}
 
 	/** 

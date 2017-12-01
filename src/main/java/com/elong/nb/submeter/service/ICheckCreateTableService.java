@@ -6,6 +6,7 @@
 package com.elong.nb.submeter.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.elong.nb.model.enums.EnumIncrType;
 
@@ -26,20 +27,19 @@ import com.elong.nb.model.enums.EnumIncrType;
 public interface ICheckCreateTableService {
 
 	/** 
-	 * 检查分表数量是否够，返回待创建分表表名 
+	 * 检查分表数量是否够
 	 *
 	 * @param incrType
-	 * @return
+	 * @return 返回待创建分表表名及对应数据源
 	 */
-	public List<String> checkSubTable(EnumIncrType incrType);
+	public Map<String, List<String>> checkSubTable(EnumIncrType incrType);
 
 	/** 
-	 * 创建新分表 
+	 * 创建新分表
 	 *
 	 * @param incrType
-	 * @param tableNameList
-	 * @return
+	 * @param dataSourceTableNameMap
 	 */
-	public List<String> createSubTable(EnumIncrType incrType, List<String> tableNameList);
+	public void createSubTable(EnumIncrType incrType, Map<String, List<String>> dataSourceTableNameMap);
 
 }

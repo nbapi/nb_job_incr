@@ -41,8 +41,8 @@ public class IncrRateSubmeterService extends AbstractSubmeterService<IncrRate> {
 	}
 
 	@Override
-	public void createSubTable(String newTableName) {
-		// incrRateDao.createSubTable(newTableName);TODO
+	public void createSubTable(String dataSource, String newTableName) {
+		incrRateDao.createSubTable(dataSource, newTableName);
 	}
 
 	@Override
