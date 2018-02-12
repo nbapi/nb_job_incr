@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+	<!-- 控制台输出 -->
+	<appender name="console" class="org.apache.log4j.ConsoleAppender">
+		<param name="threshold" value="INFO" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss.SSS\} %-5p] [%t] (%c{1}:%L) %m%n" />
+		</layout>
+	</appender>
+	
+	<!--nbminitor appender -->
+	<appender name="MinitorAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/nb_job_incr_minitor.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd-HH-mm" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!--actionLogEntity appender -->
+	<appender name="actionLogEntityAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/nb_job_incr_actionlogentity.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd-HH-mm" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!--actionLogEntity appender -->
+	<appender name="scheduleAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/nb_job_incr_schedule.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!-- OrderCenter appender -->
+	<appender name="OrderCenterAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="file" value="${catalina.home}/logs/syncIncrlog/OrderCenter.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!--IncrCommon appender -->
+	<appender name="IncrCommonAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrCommon.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!--syncIncrInventory appender -->
+	<appender name="syncIncrInventoryAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrInventory.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] %t- %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!--syncIncrOrderJob appender -->
+	<appender name="syncIncrOrderJobAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrOrderJob.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!--syncIncrHotel appender -->
+	<appender name="syncIncrHotelAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrHotel.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] %t- %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!--syncIncrState appender -->
+	<appender name="syncIncrStateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrState.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<appender name="CheckCreateTableAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/CheckCreateTableAppender.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS}-%p[%t][%c]-%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<appender name="ImpulseSenderAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/ImpulseSenderAppender.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS}-%p[%t][%c]-%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<appender name="SubmeterAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/SubmeterAppender.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS}-%p[%t][%c]-%m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!--syncIncrRate appender -->
+	<appender name="syncIncrRateAppender" class="com.elong.common.util.log.ElongDailyRollingFileAppender">
+		<param name="File" value="${catalina.home}/logs/syncIncrlog/IncrRate.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] %t- %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+
+	<!-- OrderCenter 日志器 -->
+	<logger name="OrderCenterLogger" additivity="false">
+		<level value="info" />
+		<appender-ref ref="OrderCenterAppender" />
+	</logger>
+	<!-- IncrCommon同步日志器 -->
+	<logger name="IncrCommonLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="IncrCommonAppender" />
+	</logger>
+	<!-- IncrOrderJob同步日志器 -->
+	<logger name="IncrOrderJobLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="syncIncrOrderJobAppender" />
+	</logger>
+	<!-- IncrInventory同步日志器 -->
+	<logger name="IncrInventoryLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="syncIncrInventoryAppender" />
+	</logger>
+	<!-- IncrHotel同步日志器 -->
+	<logger name="IncrHotelLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="syncIncrHotelAppender" />
+	</logger>
+	<!-- IncrState同步日志器 -->
+	<logger name="IncrStateLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="syncIncrStateAppender" />
+	</logger>
+	<!-- IncrRate同步日志器 -->
+	<logger name="IncrRateLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="syncIncrRateAppender" />
+	</logger>
+	<logger name="SubmeterLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="SubmeterAppender" />
+	</logger>
+	<logger name="CheckCreateTableLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CheckCreateTableAppender" />
+	</logger>
+	<logger name="ImpulseSenderLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="ImpulseSenderAppender" />
+	</logger>
+	<logger name="MinitorLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="MinitorAppender" />
+	</logger>
+
+	<category name="actionLogEntityLogger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="actionLogEntityAppender" />
+	</category>
+
+	<root>
+		<level value="ERROR" />
+		<appender-ref ref="console" />
+	</root>
+
+</log4j:configuration>

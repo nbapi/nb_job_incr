@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="  
+         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
+   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd  
+   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd  
+   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+   http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<!-- 引入数据源配置文件 -->
+	<import resource="classpath:conf/core/elong-datasource-context.xml" />
+
+	<bean id="incrDataSource" class="com.elong.nb.db.ByKeyRoutingDataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<entry key="dataSource_mysql_product" value-ref="dataSource_mysql_product" />
+				<entry key="dataSource_nbincr_write1" value-ref="dataSource_nbincr_write1" />
+				<entry key="dataSource_nbincr_write2" value-ref="dataSource_nbincr_write2" />
+				<entry key="dataSource_nbincr_write3" value-ref="dataSource_nbincr_write3" />
+				<entry key="dataSource_nbhotelincr_write" value-ref="dataSource_nbhotelincr_write" />
+				<entry key="dataSource_nbhotelincr_read" value-ref="dataSource_nbhotelincr_read" />
+				<entry key="dataSource_sqlserver_13" value-ref="dataSource_sqlserver_13" />
+			</map>
+		</property>
+		<property name="defaultTargetDataSource" ref="dataSource_nbhotelincr_write" />
+	</bean>
+
+	<bean id="incrSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" scope="prototype">
+		<property name="configLocation" value="classpath:conf/core/elong-mybatis-config.xml"></property>
+		<property name="dataSource" ref="incrDataSource" />
+		<property name="mapperLocations" value="classpath:conf/mybatis/*.xml" />
+	</bean>
+
+	<!-- Transaction Start -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="incrDataSource" />
+	</bean>
+	<tx:annotation-driven transaction-manager="transactionManager" />
+	<!-- Transaction End -->
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.elong.nb.dao" />
+	</bean>
+
+	<!-- 配置数据库注解aop -->
+	<bean id="getDataSourceKeyAspect" class="com.elong.nb.db.GetDataSourceKeyAspect" />
+	<aop:config>
+		<aop:aspect id="b" ref="getDataSourceKeyAspect">
+			<aop:pointcut id="tx" expression="execution(* com.elong.nb.dao.*.*(..))" />
+			<aop:before pointcut-ref="tx" method="before" />
+		</aop:aspect>
+	</aop:config>
+	
+	<!-- 配置checklist切面 -->
+	<bean id="checklistAspect" class="com.elong.nb.checklist.ChecklistAspect" />
+	<aop:config>
+		<aop:aspect id="b2" ref="checklistAspect">
+			<aop:pointcut id="tx2"
+				expression="execution(public * com.elong.nb.dao.*.*(..))" />
+			<aop:before pointcut-ref="tx2" method="handlerLogBefore" />
+			<aop:after-returning pointcut-ref="tx2" method="handlerLogAfter" returning="returnValue" />
+			<aop:after-throwing pointcut-ref="tx2" method="handlerLogThrowing" throwing="throwing" />
+		</aop:aspect>
+	</aop:config>
+
+</beans>

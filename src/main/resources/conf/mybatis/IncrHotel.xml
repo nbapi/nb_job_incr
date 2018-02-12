@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrHotelDao">
+
+	<!-- 获取trigger的最后一条IncrHotel -->
+	<select id="getLastHotel" resultType="incrHotel">
+		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime from ${subTableName}
+		<where>
+			<if test="params.trigerName != null and !params.trigerName.equals('')">
+				and `Trigger` = #{params.trigerName}
+			</if>
+			<if test="params.segmentBeginId != null and !params.segmentBeginId.equals('')">
+				<![CDATA[ and ID >= #{params.segmentBeginId}  ]]>
+			</if>
+		</where>
+		order by TriggerID desc limit 0,1
+	</select>
+
+	<!-- 批量插入IncrHotel到指定分表subTableName -->
+	<insert id="bulkInsertSub" parameterType="java.util.List">
+		insert into ${subTableName}
+		(IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,Channel,ChangeTime,InsertTime,SellChannel,IsStraint)
+		values
+		<foreach collection="list" item="incrHotel" index="index" separator=",">
+			(
+			#{incrHotel.IncrID,jdbcType=BIGINT},
+			#{incrHotel.ID,jdbcType=BIGINT},
+			#{incrHotel.HotelID,jdbcType=VARCHAR},
+			#{incrHotel.StartDate},
+			#{incrHotel.EndDate},
+			#{incrHotel.Trigger,jdbcType=VARCHAR},
+			#{incrHotel.TriggerID,jdbcType=INTEGER},
+			#{incrHotel.Channel,jdbcType=INTEGER},
+			#{incrHotel.ChangeTime},
+			#{incrHotel.InsertTime},
+			#{incrHotel.SellChannel,jdbcType=INTEGER},
+			#{incrHotel.IsStraint,jdbcType=INTEGER}
+			)
+		</foreach>
+	</insert>
+
+	<!-- 创建分表 -->
+	<update id="createSubTable">
+		CREATE TABLE `${tableName}` (
+		`IncrID` bigint(20) NOT NULL auto_increment,
+		`ID` bigint(20) NOT NULL,
+		`HotelID` varchar(50)
+		NOT NULL,
+		`StartDate` datetime NOT NULL,
+		`EndDate` datetime NOT NULL,
+		`Trigger` varchar(50) NOT NULL,
+		`TriggerID` bigint(20) NOT NULL,
+		`Channel` INT(1)NOT NULL DEFAULT 0,
+		`ChangeTime` datetime NOT NULL,
+		`InsertTime` datetime NOT NULL,
+		`SellChannel` INT(5) NOT NULL DEFAULT
+		65534,
+		`IsStraint` INT(1) NOT NULL DEFAULT 0,
+		PRIMARY KEY (`IncrID`),
+		KEY `IX_ChangeTime` (`ChangeTime`),
+		KEY `IX_ID` (`ID`),
+		KEY
+		`IX_InsertTime` (`InsertTime`),
+		KEY `IX_IncrHotel_Trigger` (`Trigger`,`TriggerID`)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
+	</update>
+
+	<select id="getLastIncrFromWrite" resultType="incrHotel">
+		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime
+		from ${subTableName}
+		<where>
+			<if test="triggerName != null and !triggerName.equals('')"> and `Trigger` = #{triggerName} </if>
+		</where>
+		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getLastIncrFromRead" resultType="incrHotel">
+		select IncrID,ID,HotelID,StartDate,EndDate,`Trigger`,TriggerID,ChangeTime,InsertTime
+		from ${subTableName}
+		<where>
+			<if test="triggerName != null and !triggerName.equals('')"> and `Trigger` = #{triggerName} </if>
+		</where>
+		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
+		select count(*) from ${subTableName}
+		<where>
+			<![CDATA[ 
+				and InsertTime <= #{endTime} 
+				and InsertTime >= #{startTime} 
+			]]>
+			<if test="triggerName != null and !triggerName.equals('')"> and `Trigger` = #{triggerName} </if>
+		</where>
+	</select>
+
+</mapper>

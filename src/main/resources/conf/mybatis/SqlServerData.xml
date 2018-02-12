@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.SqlServerDataDao">
+	
+	<select id="getHotelIdCount" resultType="java.lang.Integer">
+		select count(1) from (
+                 select  ROW_NUMBER() OVER(ORDER BY op_date) RowNumber,
+                         1 StateType
+                         ,hotel_id HotelId
+                         ,NULL HotelCode
+                         ,NULL RoomId
+                         ,NULL RoomTypeId
+                         ,NULL RatePlanId
+                         ,case hotel_status when 0 then 1 else 0 end Status
+                         ,op_date ChangeTime
+                         ,getdate() as InsertTime
+                         ,hotel_name as Name
+                   from  MHotelBase
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and op_date >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and op_date <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+	</select>
+	
+	<select id="getHotelCodeCount" resultType="java.lang.Integer">
+		select count(1) from (
+                 select ROW_NUMBER() OVER(ORDER BY s.op_date) RowNumber,
+                        2 StateType
+                        ,ms.MHotelID HotelId
+                        ,hotel_id HotelCode                                        
+                        ,NULL RoomId
+                        ,NULL RoomTypeId
+                        ,NULL RatePlanId
+                        ,case isreserve when  0 then 1 else 0 end Status
+                        ,op_date ChangeTime
+                        ,getdate() as InsertTime
+                   from Hotel s
+                inner join mhotelshotelrelation ms on s.hotel_id=ms.SHotelID
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and s.op_date >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and s.op_date <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+	</select>
+	
+	<select id="getRoomIdCount" resultType="java.lang.Integer">
+		select count(1) from (
+                 select	ROW_NUMBER() OVER(ORDER BY op_date) RowNumber,
+                        3 StateType
+                        ,notes HotelId
+                        ,NULL HotelCode
+                        ,room_type_id RoomId
+                        ,NULL RoomTypeId
+                        ,NULL RatePlanId
+                        ,available Status
+                        ,op_date ChangeTime
+                        ,getdate() as InsertTime
+                        ,room_type as Name
+                   from MRoom_type_num
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and op_date >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and op_date <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+	</select>
+	
+	<select id="getRoomTypeIdCount" resultType="java.lang.Integer">
+		select count(1) from (
+                 select ROW_NUMBER() OVER(ORDER BY s.op_date) RowNumber,
+                        4 StateType
+                        ,ms.MHotelID HotelId
+                        ,s.notes HotelCode                                               
+                        ,s.mroom_type_id RoomId
+                        ,s.room_type_id RoomTypeId
+                        ,NULL RatePlanId
+                        ,available Status
+                        ,op_date ChangeTime
+                        ,getdate() as InsertTime
+                   from Room_Type_Num s
+                 inner join mhotelshotelrelation ms on s.notes=ms.SHotelID
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and op_date >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and op_date <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+	</select>
+	
+	<select id="getRatePlanIdCount" resultType="java.lang.Integer">
+		select count(1) from (
+                 select ROW_NUMBER() OVER(ORDER BY s.operateTime) RowNumber,
+                        5 StateType
+                        ,ms.MHotelID HotelId 
+                        ,s.hotelId HotelCode
+                        ,NULL RoomId
+                        ,NULL RoomTypeId
+                        ,s.RatePlanId RatePlanId
+                        ,s.status Status
+                        ,s.operateTime ChangeTime
+                        ,getdate() as InsertTime
+                        ,CNRatePlanName as Name
+                   from RatePlan s
+                 inner join mhotelshotelrelation ms on s.hotelId=ms.SHotelID
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and s.operateTime >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and s.operateTime <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+	</select>
+	
+	<select id="getRatePlanPolicyCount" resultType="java.lang.Integer">
+		select count(1) from (
+                 select ROW_NUMBER() OVER(ORDER BY s.operateTime) RowNumber,
+                        6 StateType
+                        ,ms.MHotelID HotelId 
+                        ,s.hotelId HotelCode
+                        ,NULL RoomId
+                        ,NULL RoomTypeId
+                        ,s.RatePlanId RatePlanId
+                        ,NULL Status
+                        ,s.operateTime ChangeTime
+                        ,getdate() as InsertTime
+                   from RateplanRelationPolicy s
+                 inner join mhotelshotelrelation ms on s.hotelId=ms.SHotelID
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and s.operateTime >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and s.operateTime <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+	</select>
+	
+	<select id="getHotelIdData" resultType="java.util.HashMap">
+		select * from (
+                 select  ROW_NUMBER() OVER(ORDER BY op_date) RowNumber,
+                         1 StateType
+                         ,hotel_id HotelId
+                         ,NULL HotelCode
+                         ,NULL RoomId
+                         ,NULL RoomTypeId
+                         ,NULL RatePlanId
+                         ,case hotel_status when 0 then 1 else 0 end Status
+                         ,op_date ChangeTime
+                         ,getdate() as InsertTime
+                         ,hotel_name as Name
+                   from  MHotelBase
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and op_date >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and op_date <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+             <where>
+				<if test="startNum != null and !startNum.equals('')">
+					<![CDATA[ and RowNumber >= #{startNum} ]]>
+				</if>
+				<if test="endNum != null and !endNum.equals('')">
+					<![CDATA[ and RowNumber <= #{endNum} ]]>
+				</if>
+			</where>
+	</select>
+	
+	<select id="getHotelCodeData" resultType="java.util.HashMap">
+		select * from (
+                 select ROW_NUMBER() OVER(ORDER BY s.op_date) RowNumber,
+                        2 StateType
+                        ,ms.MHotelID HotelId
+                        ,hotel_id HotelCode                                        
+                        ,NULL RoomId
+                        ,NULL RoomTypeId
+                        ,NULL RatePlanId
+                        ,case isreserve when  0 then 1 else 0 end Status
+                        ,op_date ChangeTime
+                        ,getdate() as InsertTime
+                   from Hotel s
+                inner join mhotelshotelrelation ms on s.hotel_id=ms.SHotelID
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and s.op_date >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and s.op_date <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+             <where>
+				<if test="startNum != null and !startNum.equals('')">
+					<![CDATA[ and RowNumber >= #{startNum} ]]>
+				</if>
+				<if test="endNum != null and !endNum.equals('')">
+					<![CDATA[ and RowNumber <= #{endNum} ]]>
+				</if>
+			</where> 
+	</select>
+	
+	<select id="getRoomIdData" resultType="java.util.HashMap">
+		select * from (
+                 select	ROW_NUMBER() OVER(ORDER BY op_date) RowNumber,
+                        3 StateType
+                        ,notes HotelId
+                        ,NULL HotelCode
+                        ,room_type_id RoomId
+                        ,NULL RoomTypeId
+                        ,NULL RatePlanId
+                        ,available Status
+                        ,op_date ChangeTime
+                        ,getdate() as InsertTime
+                        ,room_type as Name
+                   from MRoom_type_num
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and op_date >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and op_date <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+             <where>
+				<if test="startNum != null and !startNum.equals('')">
+					<![CDATA[ and RowNumber >= #{startNum} ]]>
+				</if>
+				<if test="endNum != null and !endNum.equals('')">
+					<![CDATA[ and RowNumber <= #{endNum} ]]>
+				</if>
+			</where>  
+	</select>
+	
+	<select id="getRoomTypeIdData" resultType="java.util.HashMap">
+		select * from (
+                 select ROW_NUMBER() OVER(ORDER BY s.op_date) RowNumber,
+                        4 StateType
+                        ,ms.MHotelID HotelId
+                        ,s.notes HotelCode                                               
+                        ,s.mroom_type_id RoomId
+                        ,s.room_type_id RoomTypeId
+                        ,NULL RatePlanId
+                        ,available Status
+                        ,op_date ChangeTime
+                        ,getdate() as InsertTime
+                   from Room_Type_Num s
+                 inner join mhotelshotelrelation ms on s.notes=ms.SHotelID
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and op_date >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and op_date <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+             <where>
+				<if test="startNum != null and !startNum.equals('')">
+					<![CDATA[ and RowNumber >= #{startNum} ]]>
+				</if>
+				<if test="endNum != null and !endNum.equals('')">
+					<![CDATA[ and RowNumber <= #{endNum} ]]>
+				</if>
+			</where>   
+	</select>
+	
+	<select id="getRatePlanIdData" resultType="java.util.HashMap">
+		select * from (
+                 select ROW_NUMBER() OVER(ORDER BY s.operateTime) RowNumber,
+                        5 StateType
+                        ,ms.MHotelID HotelId 
+                        ,s.hotelId HotelCode
+                        ,NULL RoomId
+                        ,NULL RoomTypeId
+                        ,s.RatePlanId RatePlanId
+                        ,s.status Status
+                        ,s.operateTime ChangeTime
+                        ,getdate() as InsertTime
+                        ,CNRatePlanName as Name
+                   from RatePlan s
+                 inner join mhotelshotelrelation ms on s.hotelId=ms.SHotelID
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and s.operateTime >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and s.operateTime <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+             <where>
+				<if test="startNum != null and !startNum.equals('')">
+					<![CDATA[ and RowNumber >= #{startNum} ]]>
+				</if>
+				<if test="endNum != null and !endNum.equals('')">
+					<![CDATA[ and RowNumber <= #{endNum} ]]>
+				</if>
+			</where>  
+	</select>
+	
+	<select id="getRatePlanPolicyData" resultType="java.util.HashMap">
+		select * from (
+                 select ROW_NUMBER() OVER(ORDER BY s.operateTime) RowNumber,
+                        6 StateType
+                        ,ms.MHotelID HotelId 
+                        ,s.hotelId HotelCode
+                        ,NULL RoomId
+                        ,NULL RoomTypeId
+                        ,s.RatePlanId RatePlanId
+                        ,NULL Status
+                        ,s.operateTime ChangeTime
+                        ,getdate() as InsertTime
+                   from RateplanRelationPolicy s
+                 inner join mhotelshotelrelation ms on s.hotelId=ms.SHotelID
+               	<where>
+					<if test="startTime != null and !startTime.equals('')">
+						<![CDATA[ and s.operateTime >= #{startTime} ]]>
+					</if>
+					<if test="endTime != null and !endTime.equals('')">
+						<![CDATA[ and s.operateTime <= #{endTime} ]]>
+					</if>
+				</where>    
+                  ) t
+             <where>
+				<if test="startNum != null and !startNum.equals('')">
+					<![CDATA[ and RowNumber >= #{startNum} ]]>
+				</if>
+				<if test="endNum != null and !endNum.equals('')">
+					<![CDATA[ and RowNumber <= #{endNum} ]]>
+				</if>
+			</where>    
+	</select>
+
+</mapper>

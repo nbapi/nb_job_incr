@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrInventoryDao">
+
+	<!-- 获取大于指定IncrID或ChangeTime的maxRecordCount条库存增量 -->
+	<select id="getIncrInventories" resultType="incrInventory">
+		select
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,Channel,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime,SellChannel,IsStraint
+		from ${subTableName}
+		<where>
+			<if test="params.changeTime != null and !params.changeTime.equals('')">
+				<![CDATA[ and ChangeTime > #{params.changeTime} ]]>
+			</if>
+			<if test="params.ID != null and !params.ID.equals('')">
+				<![CDATA[ and ID >= #{params.ID}  ]]>
+			</if>
+			<if test="params.segmentEndId != null and !params.segmentEndId.equals('')">
+				<![CDATA[ and ID <= #{params.segmentEndId}  ]]>
+			</if>
+		</where>
+		order by ID limit 0,#{params.maxRecordCount}
+	</select>
+
+	<!-- 批量插入IncrInventory到指定分表subTableName -->
+	<insert id="bulkInsertSub">
+		insert into
+		${subTableName}(IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,Channel,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime,SellChannel,IsStraint,IsInstantConfirm,IC_BeginTime,IC_EndTime)
+		values
+		<foreach collection="list" item="incrInventory" index="index" separator=",">
+			(
+			#{incrInventory.IncrID,jdbcType=BIGINT},
+			#{incrInventory.ID,jdbcType=BIGINT},
+			#{incrInventory.ChangeID,jdbcType=BIGINT},
+			#{incrInventory.HotelID,jdbcType=VARCHAR},
+			#{incrInventory.RoomTypeID,jdbcType=VARCHAR},
+			#{incrInventory.HotelCode,jdbcType=VARCHAR},
+			#{incrInventory.Status,jdbcType=INTEGER},
+			#{incrInventory.Channel,jdbcType=INTEGER},
+			#{incrInventory.AvailableDate},
+			#{incrInventory.AvailableAmount,jdbcType=INTEGER},
+			#{incrInventory.OverBooking,jdbcType=INTEGER},
+			#{incrInventory.StartDate},
+			#{incrInventory.EndDate},
+			#{incrInventory.StartTime,jdbcType=VARCHAR},
+			#{incrInventory.EndTime,jdbcType=VARCHAR},
+			#{incrInventory.ChangeTime},
+			#{incrInventory.OperateTime},
+			#{incrInventory.InsertTime},
+			#{incrInventory.SellChannel,jdbcType=INTEGER},
+			#{incrInventory.IsStraint,jdbcType=INTEGER},
+			#{incrInventory.IsInstantConfirm,jdbcType=INTEGER},
+			#{incrInventory.IC_BeginTime,jdbcType=VARCHAR},
+			#{incrInventory.IC_EndTime,jdbcType=VARCHAR}
+			)
+		</foreach>
+	</insert>
+
+	<!-- 创建分表 -->
+	<update id="createSubTable">
+		CREATE TABLE `${tableName}` (
+		`IncrID` bigint(20) NOT NULL auto_increment,
+		`ID` bigint(20) NOT NULL,
+		`ChangeID` bigint(20) NOT NULL,
+		`HotelID` varchar(50) NOT NULL,
+		`RoomTypeID` varchar(50) NOT NULL,
+		`HotelCode` varchar(50) NOT NULL,
+		`Status` int(11) NOT NULL,
+		`Channel` INT(1)NOT NULL DEFAULT 0,
+		`AvailableDate` datetime NOT NULL,
+		`AvailableAmount` int(11) NOT NULL,
+		`OverBooking` int(11) NOT NULL,
+		`StartDate` datetime NOT NULL,
+		`EndDate` datetime NOT NULL,
+		`StartTime` varchar(50) NOT NULL,
+		`EndTime` varchar(50) NOT NULL,
+		`ChangeTime` datetime NOT NULL,
+		`OperateTime` datetime NOT NULL,
+		`InsertTime` datetime NOT NULL,
+		`SellChannel` INT(5) NOT NULL DEFAULT 65534,
+		`IsStraint` INT(1) NOT NULL DEFAULT 0,
+		`IsInstantConfirm` INT(1) NOT NULL DEFAULT 0,
+		`IC_BeginTime` varchar(8) NOT NULL,
+		`IC_EndTime` varchar(8) NOT NULL,
+		PRIMARY KEY (`IncrID`),
+		KEY `IX_ID` (`ID`),
+		KEY `IX_InsertTime` (`InsertTime`),
+		KEY `IX_ChangeTime` (`ChangeTime`)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
+	</update>
+
+	<select id="getLastIncrFromWrite" resultType="incrInventory">
+		select
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime
+		from ${subTableName}
+		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getLastIncrFromRead" resultType="incrInventory">
+		select
+		IncrID,ID,ChangeID,HotelID,RoomTypeID,HotelCode,Status,AvailableDate,AvailableAmount,OverBooking,StartDate,EndDate,StartTime,EndTime,ChangeTime,OperateTime,InsertTime
+		from ${subTableName}
+		order by IncrID desc limit 0,1
+	</select>
+
+	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
+		select count(*) from ${subTableName}
+		<where>
+			<![CDATA[ 
+				and InsertTime <= #{endTime} 
+				and InsertTime >= #{startTime} 
+			]]>
+		</where>
+	</select>
+
+</mapper>

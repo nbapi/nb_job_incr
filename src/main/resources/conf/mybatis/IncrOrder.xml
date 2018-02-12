@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elong.nb.dao.IncrOrderDao">
+	<!-- 删除过期IncrOrder -->
+	<delete id="deleteByIncrIdList">
+		delete from IncrOrder
+		<where>
+			AND IncrID in
+			<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</where>
+	</delete>
+
+	<!-- 获取晚于指定changeTime的IncrID -->
+	<select id="getIncrIdList" resultType="java.math.BigInteger">
+		select IncrID from IncrOrder
+		<where>
+			<![CDATA[ and ChangeTime <= #{changeTime} ]]>
+		</where>
+		order by IncrID limit 0,#{maxRecordCount}
+	</select>
+
+	<!-- 获取最大IncrID的订单增量 -->
+	<select id="getLastIncrOrder" resultType="incrOrder">
+		select
+		IncrId,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime,affiliateconfirmationid
+		from IncrOrder
+		<where>
+			<if test="orderId != null and !orderId.equals('')">and OrderId =#{orderId} </if>
+			<if test="status != null and !status.equals('')">and Status =#{status} </if>
+		</where>
+		order by ChangeTime desc limit 0,1
+	</select>
+
+	<select id="getLastIncrOrderFromWrite" resultType="java.util.Map">
+		select
+		IncrId,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime,affiliateconfirmationid
+		from IncrOrder
+		order by IncrId desc limit 0,1
+	</select>
+
+	<select id="getLastIncrOrderFromRead" resultType="java.util.Map">
+		select
+		IncrId,ChangeTime,OrderId,Status,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime,affiliateconfirmationid
+		from IncrOrder
+		order by IncrId desc limit 0,1
+	</select>
+
+	<select id="getRecordCountFromRead" resultType="java.lang.Integer">
+		select count(*) from IncrOrder
+		<where>
+			<![CDATA[ 
+				and InsertTime <= #{endTime} 
+				and InsertTime >= #{startTime} 
+			]]>
+		</where>
+	</select>
+
+	<!-- 批量插入IncrOrder -->
+	<insert id="bulkInsert" parameterType="java.util.List" useGeneratedKeys="false">
+		insert into IncrOrder
+		(IncrID,ChangeTime,OrderId,Status,payStatus,affiliateconfirmationid,ArrivalDate,DepartureDate,TotalPrice,NumberOfRooms,CardNo,OrderFrom,ProxyId,InsertTime)
+		values
+		<foreach collection="list" item="incrOrder" index="index" separator=",">
+			(
+			#{incrOrder.IncrID,jdbcType=BIGINT},
+			#{incrOrder.ChangeTime},
+			#{incrOrder.OrderId,jdbcType=BIGINT},
+			#{incrOrder.Status,jdbcType=VARCHAR},
+			#{incrOrder.payStatus,jdbcType=TINYINT},
+			#{incrOrder.AffiliateConfirmationId,jdbcType=VARCHAR},
+			#{incrOrder.ArrivalDate},
+			#{incrOrder.DepartureDate},
+			#{incrOrder.TotalPrice,jdbcType=DOUBLE},
+			#{incrOrder.NumberOfRooms,jdbcType=INTEGER},
+			#{incrOrder.CardNo,jdbcType=BIGINT},
+			#{incrOrder.OrderFrom,jdbcType=INTEGER},
+			#{incrOrder.ProxyId,jdbcType=VARCHAR},
+			#{incrOrder.InsertTime}
+			)
+		</foreach>
+	</insert>
+
+</mapper>
